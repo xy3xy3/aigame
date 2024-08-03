@@ -24,5 +24,5 @@ def submit(request):
         return JsonResponse({'code': 1, 'msg': '用户名或密码错误'})
 
 def logout(request):
-    request.session.flush()
+    request.session.pop('admin_login', None)
     return redirect('admin:login')

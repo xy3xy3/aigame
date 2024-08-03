@@ -87,6 +87,9 @@ def reg(request):
     return render(request, "user/login.html", locals())
 
 
+def logout(request):
+    request.session.pop('user_id', None)
+    return redirect('user:login')
 def check_captcha(captcha, hashkey):
     try:
         captcha_obj = CaptchaStore.objects.get(hashkey=hashkey)
