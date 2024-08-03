@@ -1,3 +1,5 @@
+# 运行方法
+
 需要安装的包
 ```
 conda create --name aigame python=3.11
@@ -22,6 +24,16 @@ python ./manage.py migrate
 ```
 python ./manage.py runserver
 ```
+
+# 路径说明
+
+```
+/admin 管理端，默认账号admin，密码123456
+/user 用户端
+```
+
+
+# 其他指令
 
 创建新APP（仅记录指令，不需要执行）
 ```
