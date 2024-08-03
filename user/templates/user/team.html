@@ -1,0 +1,358 @@
+{% extends 'user/base.html' %}
+{% block title %}队伍管理{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-2xl font-bold mb-4">队伍管理</h2>
+
+    {% if team %}
+    <div class="bg-white shadow-md rounded-lg p-6 mb-4">
+        <div class="flex items-center mb-4">
+            {% if team.avatar %}
+            <img src="{{ team.avatar.url }}" alt="Team Avatar" class="w-12 h-12 rounded-full mr-4">
+            {% else %}
+            <div class="w-12 h-12 rounded-full bg-gray-300 mr-4 flex items-center justify-center text-lg font-bold text-gray-500">
+                {{ team.name|slice:":1" }}
+            </div>
+            {% endif %}
+            <div class="ml-4">
+                <h3 class="text-lg font-semibold">{{ team.name }}</h3>
+                <p class="text-gray-600">队长: {{ team.captain.name }}</p>
+                <p class="text-gray-600">邀请码: {{ team.invite_code }}</p>
+                <p class="text-gray-600">队伍状态:
+                    {% if team.status == 'INACTIVE' %}
+                    未激活
+                    {% elif team.status == 'PENDING_REVIEW' %}
+                    待审核
+                    {% elif team.status == 'ACTIVE' %}
+                    已激活
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        <div>
+            <h4 class="text-lg font-semibold mb-2">队伍成员</h4>
+            <ul>
+                {% for member in team.members.all %}
+                <li class="flex items-center mb-2">
+                    <span>{{ member.name }} ( {{ member.username}} )</span>
+                    {% if user == team.captain and member != team.captain %}
+                    <button class="btn btn-danger btn-sm ml-2 remove-member" data-member-id="{{ member.id }}">踢出队伍</button>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% if user == team.captain %}
+        <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#editInviteCodeModal">编辑邀请码</button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editTeamInfoModal">编辑队伍信息</button>
+        {% if team.status == 'INACTIVE' %}
+        <button class="btn btn-warning" id="submitForReview">提交审核</button>
+        {% endif %}
+        <button class="btn btn-danger" id="disbandTeam">解散队伍</button>
+        {% else %}
+        <button class="btn btn-primary" id="leaveTeam">退出队伍</button>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="bg-white shadow-md rounded-lg p-6 mb-4">
+        <div class="card-header">
+            加入或创建队伍
+        </div>
+        <div class="card-body">
+            <form id="joinTeamForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="join">
+                <div class="mb-3">
+                    <label for="inviteCode" class="form-label">邀请码</label>
+                    <input type="text" class="form-control" id="inviteCode" name="invite_code" required>
+                </div>
+                <button type="submit" class="btn btn-primary">加入队伍</button>
+            </form>
+
+            <!-- 创建队伍按钮，触发模态框 -->
+            <button class="btn btn-success mt-4" data-bs-toggle="modal" data-bs-target="#createTeamModal">创建队伍</button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 创建队伍模态框 -->
+<div class="modal fade" id="createTeamModal" tabindex="-1" aria-labelledby="createTeamModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createTeamModalLabel">创建队伍</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createTeamForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create">
+                    <div class="mb-3">
+                        <label for="teamName" class="form-label">队伍名称</label>
+                        <input type="text" class="form-control" id="teamName" name="team_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="teamAvatar" class="form-label">队伍头像</label>
+                        <input type="file" class="form-control" id="teamAvatar" name="avatar">
+                    </div>
+                    <div class="mb-3">
+                        <label for="inviteCode" class="form-label">邀请码</label>
+                        <input type="text" class="form-control" id="inviteCode" name="invite_code" placeholder="留空以生成随机邀请码">
+                    </div>
+                    <button type="submit" class="btn btn-success">创建队伍</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑邀请码模态框 -->
+<div class="modal fade" id="editInviteCodeModal" tabindex="-1" aria-labelledby="editInviteCodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editInviteCodeModalLabel">编辑邀请码</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editInviteCodeForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="edit_invite_code">
+                    <div class="mb-3">
+                        <label for="newInviteCode" class="form-label">新的邀请码</label>
+                        <input type="text" class="form-control" id="newInviteCode" name="new_invite_code" placeholder="留空以生成随机邀请码">
+                    </div>
+                    <button type="submit" class="btn btn-success">更新邀请码</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑队伍信息模态框 -->
+<div class="modal fade" id="editTeamInfoModal" tabindex="-1" aria-labelledby="editTeamInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editTeamInfoModalLabel">编辑队伍信息</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTeamInfoForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="edit_team_info">
+                    <div class="mb-3">
+                        <label for="teamName" class="form-label">队伍名称</label>
+                        <input type="text" class="form-control" id="teamName" name="team_name" value="{{ team.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="teamAvatar" class="form-label">队伍头像</label>
+                        <input type="file" class="form-control" id="teamAvatar" name="avatar">
+                    </div>
+                    <button type="submit" class="btn btn-success">更新队伍信息</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $("#joinTeamForm").on("submit", function(e) {
+        e.preventDefault();
+        $.ajax({
+            type: "POST",
+            url: "{% url 'user:team_management' %}",
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.code === 0) {
+                    layer.msg(response.msg, {icon: 1}, function() {
+                        $.pjax.reload('#pjax-container')
+                    });
+                } else {
+                    layer.msg(response.msg, {icon: 2});
+                }
+            },
+            error: function() {
+                layer.msg("请求失败，请稍后再试", {icon: 2});
+            }
+        });
+    });
+
+    $("#createTeamForm").on("submit", function(e) {
+        e.preventDefault();
+        let formData = new FormData(this);
+        $.ajax({
+            type: "POST",
+            url: "{% url 'user:team_management' %}",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                if (response.code === 0) {
+                    layer.msg(response.msg, {icon: 1}, function() {
+                        $.pjax.reload('#pjax-container')
+                    });
+                } else {
+                    layer.msg(response.msg, {icon: 2});
+                }
+            },
+            error: function() {
+                layer.msg("请求失败，请稍后再试", {icon: 2});
+            }
+        });
+    });
+
+    $("#disbandTeam").on("click", function() {
+        if (!confirm("确定要解散队伍吗？")) {
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            url: "{% url 'user:team_management' %}",
+            data: {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+                action: "disband"
+            },
+            success: function(response) {
+                if (response.code === 0) {
+                    layer.msg(response.msg, {icon: 1}, function() {
+                        $.pjax.reload('#pjax-container')
+                    });
+                } else {
+                    layer.msg(response.msg, {icon: 2});
+                }
+            },
+            error: function() {
+                layer.msg("请求失败，请稍后再试", {icon: 2});
+            }
+        });
+    });
+
+    $("#leaveTeam").on("click", function() {
+        if (!confirm("确定要退出队伍吗？")) {
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            url: "{% url 'user:team_management' %}",
+            data: {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+                action: "leave"
+            },
+            success: function(response) {
+                if (response.code === 0) {
+                    layer.msg(response.msg, {icon: 1}, function() {
+                        $.pjax.reload('#pjax-container')
+                    });
+                } else {
+                    layer.msg(response.msg, {icon: 2});
+                }
+            },
+            error: function() {
+                layer.msg("请求失败，请稍后再试", {icon: 2});
+            }
+        });
+    });
+
+    $("#editInviteCodeForm").on("submit", function(e) {
+        e.preventDefault();
+        $.ajax({
+            type: "POST",
+            url: "{% url 'user:team_management' %}",
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.code === 0) {
+                    layer.msg(response.msg, {icon: 1}, function() {
+                        $.pjax.reload('#pjax-container')
+                    });
+                } else {
+                    layer.msg(response.msg, {icon: 2});
+                }
+            },
+            error: function() {
+                layer.msg("请求失败，请稍后再试", {icon: 2});
+            }
+        });
+    });
+
+    $("#editTeamInfoForm").on("submit", function(e) {
+        e.preventDefault();
+        let formData = new FormData(this);
+        $.ajax({
+            type: "POST",
+            url: "{% url 'user:team_management' %}",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                if (response.code === 0) {
+                    layer.msg(response.msg, {icon: 1}, function() {
+                        $.pjax.reload('#pjax-container')
+                    });
+                } else {
+                    layer.msg(response.msg, {icon: 2});
+                }
+            },
+            error: function() {
+                layer.msg("请求失败，请稍后再试", {icon: 2});
+            }
+        });
+    });
+    $("#submitForReview").on("click", function() {
+        if (!confirm("确定要提交审核吗？审核通过后个人姓名，学号将不可更改。")) {
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            url: "{% url 'user:team_management' %}",
+            data: {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+                action: "submit_for_review"
+            },
+            success: function(response) {
+                if (response.code === 0) {
+                    layer.msg(response.msg, {icon: 1}, function() {
+                        $.pjax.reload('#pjax-container')
+                    });
+                } else {
+                    layer.msg(response.msg, {icon: 2});
+                }
+            },
+            error: function() {
+                layer.msg("请求失败，请稍后再试", {icon: 2});
+            }
+        });
+    });
+    $(".remove-member").on("click", function() {
+        if (!confirm("确定要踢出该成员吗？")) {
+            return;
+        }
+        const memberId = $(this).data("member-id");
+        $.ajax({
+            type: "POST",
+            url: "{% url 'user:team_management' %}",
+            data: {
+                csrfmiddlewaretoken: "{{ csrf_token }}",
+                action: "remove_member",
+                member_id: memberId
+            },
+            success: function(response) {
+                if (response.code === 0) {
+                    layer.msg(response.msg, {icon: 1}, function() {
+                        $.pjax.reload('#pjax-container')
+                    });
+                } else {
+                    layer.msg(response.msg, {icon: 2});
+                }
+            },
+            error: function() {
+                layer.msg("请求失败，请稍后再试", {icon: 2});
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% load static %}
+{% load config_tags %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% get_config_value 'site_title' %}</title>
+    <link rel="stylesheet" href="{% static 'tailwind.min.css' %}" />
+  </head>
+  <body class="bg-gray-100">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow">
+      <div
+        class="container mx-auto px-4 py-4 flex justify-between items-center"
+      >
+        <h1 class="text-3xl font-bold text-gray-800">{% get_config_value 'site_title' %}</h1>
+        <nav>
+          <a href="#home" class="text-gray-800 hover:text-blue-500 mx-2"
+            >首页</a
+          >
+          <a href="#about" class="text-gray-800 hover:text-blue-500 mx-2"
+            >关于</a
+          >
+          <a href="#contact" class="text-gray-800 hover:text-blue-500 mx-2"
+            >联系</a
+          >
+          <a href="/user/" class="text-gray-800 hover:text-blue-500 mx-2"
+            >用户中心</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <!-- 主页 -->
+    <section id="home" class="container mx-auto px-4 py-12 text-center">
+      <h2 class="text-4xl font-bold text-gray-800">欢迎来到 AI 比赛</h2>
+      <p class="mt-4 text-gray-600">
+        展示你的AI技能，与来自世界各地的参赛者一较高下！
+      </p>
+      <a
+        href="/register"
+        class="mt-6 inline-block bg-blue-500 text-white py-2 px-4 rounded-full hover:bg-blue-600"
+        >立即注册</a
+      >
+    </section>
+
+    <!-- 关于 -->
+    <section id="about" class="bg-white py-12">
+      <div class="container mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold text-gray-800">关于比赛</h2>
+        <p class="mt-4 text-gray-600">
+          AI
+          比赛旨在为开发者提供一个展示和提升自己技能的平台。通过挑战和合作，激发创新和创造力。
+        </p>
+      </div>
+    </section>
+
+    <!-- 联系 -->
+    <section id="contact" class="container mx-auto px-4 py-12 text-center">
+      <h2 class="text-3xl font-bold text-gray-800">联系我们</h2>
+      <p class="mt-4 text-gray-600">
+        如果你有任何问题或需要帮助，请随时联系我们。
+      </p>
+      <a
+        href="mailto:info@aicontest.com"
+        class="mt-6 inline-block bg-blue-500 text-white py-2 px-4 rounded-full hover:bg-blue-600"
+        >发送邮件</a
+      >
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 py-6">
+      <div class="container mx-auto px-4 text-center text-gray-400">
+        &copy; 2024 AI 比赛官网. 版权所有.
+      </div>
+    </footer>
+  </body>
+</html>

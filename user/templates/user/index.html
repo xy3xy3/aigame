@@ -1,0 +1,160 @@
+{% extends 'user/base.html' %} {% block title %}用户中心{% endblock %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+    <!-- 用户头像和基本信息 -->
+    <div class="d-flex align-items-center mb-4">
+        {% if user.avatar %}
+        <img src="{{ user.avatar.url }}" alt="用户头像" class="rounded-circle me-3" style="width: 100px; height: 100px;">
+        {% else %}
+        <img src="{% static '/img/default-avatar.jpg' %}" alt="默认头像" class="rounded-circle me-3" style="width: 100px; height: 100px;">
+        {% endif %}
+        <div>
+            <h2>欢迎, {{ user.name }}</h2>
+            <p>用户名: {{ user.username }}</p>
+            <p>学号: {{ user.student_id }}</p>
+        </div>
+    </div>
+
+    <!-- 队伍信息 -->
+    <div class="card">
+        <div class="card-header">
+            队伍信息
+            <button
+                type="button"
+                class="btn btn-primary btn-sm float-end"
+                data-bs-toggle="modal"
+                data-bs-target="#editProfileModal"
+            >
+                编辑个人信息
+            </button>
+        </div>
+        <div class="card-body">
+            {% if user.team %}
+            <div class="mb-3">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        <img
+                            src="{{ user.team.avatar.url }}"
+                            alt="队伍头像"
+                            class="img-fluid rounded-start"
+                        />
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ user.team.name }}</h5>
+                            <p class="card-text">
+                                <strong>队长:</strong> {{ user.team.captain.name }}
+                            </p>
+                            <p class="card-text">
+                                <strong>队伍是否激活:</strong> {{ team.is_active|yesno:"是,否" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <p>您还没有加入任何队伍。</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<!-- Edit Profile Modal -->
+<div
+  class="modal fade"
+  id="editProfileModal"
+  tabindex="-1"
+  aria-labelledby="editProfileModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editProfileModalLabel">编辑个人信息</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="editProfileForm" method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="editName" class="form-label">姓名</label>
+            <input
+              type="text"
+              class="form-control"
+              id="editName"
+              name="name"
+              value="{{ user.name }}"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="editStudentId" class="form-label">学号</label>
+            <input
+              type="text"
+              class="form-control"
+              id="editStudentId"
+              name="student_id"
+              value="{{ user.student_id }}"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="editAvatar" class="form-label">头像</label>
+            <input
+              type="file"
+              class="form-control"
+              id="editAvatar"
+              name="avatar"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="editPassword" class="form-label">密码</label>
+            <input
+              type="password"
+              class="form-control"
+              id="editPassword"
+              name="password"
+              placeholder="如不修改则留空"
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">保存更改</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  $(document).ready(function () {
+    $("#editProfileForm").on("submit", function (e) {
+      e.preventDefault();
+      let formData = new FormData(this);
+
+      $.ajax({
+        type: "POST",
+        url: '{% url "user:edit_profile" %}',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function (response) {
+          if (response.code === 0) {
+            layer.msg("个人信息已更新", { icon: 1 }, function () {
+              $.pjax.reload('#pjax-container')
+            });
+          } else {
+            layer.msg(response.msg, { icon: 2 });
+          }
+        },
+        error: function (xhr, status, error) {
+          layer.msg("请求失败，请稍后再试", { icon: 2 });
+        },
+      });
+    });
+  });
+</script>
+{% endblock %}
