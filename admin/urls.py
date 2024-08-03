@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import index, console, settings, team
+from .views import index, console, settings, team, user, login
 app_name='admin'
 urlpatterns = [
     path('', index.index, name='index'),
@@ -12,5 +12,15 @@ urlpatterns = [
     path('team/list/', team.team_list, name='team_list'),
     path('team/del/', team.team_del, name='team_del'),
     path('team/dels/', team.team_dels, name='team_dels'),
-
+    # 用户管理
+    path('user/', user.user, name='user'),
+    path('user/form/', user.user_form, name='user_form'),
+    path('user/save/', user.user_save, name='user_save'),
+    path('user/list/', user.user_list, name='user_list'),
+    path('user/del/', user.user_del, name='user_del'),
+    path('user/dels/', user.user_dels, name='user_dels'),
+    # 登录管理
+    path('login/', login.login, name='login'),
+    path('login/submit/', login.submit, name='login_submit'),
+    path('logout/', login.logout, name='logout'),
 ]

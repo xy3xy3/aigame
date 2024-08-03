@@ -53,7 +53,10 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # 自己的
-    "user.middleware.LoginRequiredMiddleware",  # 添加这一行
+    # 用户登录验证中间件
+    "user.middleware.LoginRequiredMiddleware",
+    # 管理员登录验证中间件
+    "admin.middleware.LoginRequiredMiddleware",
 ]
 ROOT_URLCONF = "aigame.urls"
 

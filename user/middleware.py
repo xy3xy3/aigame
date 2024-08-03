@@ -7,6 +7,9 @@ from .models import User
 
 class LoginRequiredMiddleware(MiddlewareMixin):
     def process_request(self, request):
+        incldued_path = '/user/'
+        if not request.path_info.startswith(incldued_path):
+            return
         excluded_paths = [
             '/user/login/',
             '/user/refresh_captcha/',

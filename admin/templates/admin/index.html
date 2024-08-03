@@ -87,10 +87,10 @@
                 <cite>tester</cite>
               </a>
               <dl class="layui-nav-child">
-                <dd><a lay-href="password/">修改密码</a></dd>
+                <dd><a lay-href="login/">修改密码</a></dd>
                 <hr />
-                <dd layadmin-event="logout" style="text-align: center">
-                  <a>退出</a>
+                <dd style="text-align: center">
+                  <a href="{% url 'admin:logout' %}">退出</a>
                 </dd>
               </dl>
             </li>
@@ -141,7 +141,7 @@
                 </a>
                 <dl class="layui-nav-child">
                   <dd data-name="team">
-                    <a lay-href="team/">队伍管理</a>
+                    <a lay-href="{% url 'admin:team' %}">队伍管理</a>
                   </dd>
                 </dl>
               </li>
@@ -152,7 +152,7 @@
                 </a>
                 <dl class="layui-nav-child">
                   <dd data-name="user">
-                    <a lay-href="user/">用户管理</a>
+                    <a lay-href="{% url 'admin:user' %}">用户管理</a>
                   </dd>
                 </dl>
               </li>
@@ -163,7 +163,7 @@
                 </a>
                 <dl class="layui-nav-child">
                   <dd data-name="settings">
-                    <a lay-href="settings/">平台设置</a>
+                    <a lay-href="{% url 'admin:settings' %}">平台设置</a>
                   </dd>
                 </dl>
               </li>
