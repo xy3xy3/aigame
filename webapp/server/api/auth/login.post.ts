@@ -4,7 +4,7 @@ import { generateToken } from '../../utils/jwt'
 import { usePrisma } from '../../utils/prisma'
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  identifier: z.string().min(1), // 可以是邮箱或用户名
   password: z.string().min(1)
 })
 
@@ -19,13 +19,16 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   try {
-    const { email, password } = loginSchema.parse(body)
+    const { identifier, password } = loginSchema.parse(body)
 
     const { $prisma } = await usePrisma()
 
-    // Find user by email
+    // 判断输入的是邮箱还是用户名
+    const isEmail = identifier.includes('@')
+
+    // 根据输入类型查找用户
     const user = await $prisma.user.findUnique({
-      where: { email }
+      where: isEmail ? { email: identifier } : { username: identifier }
     })
 
     if (!user) {

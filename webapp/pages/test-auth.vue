@@ -1,10 +1,10 @@
 <template>
   <div class="max-w-4xl mx-auto py-6 px-4">
     <h1 class="text-2xl font-bold mb-6">认证状态测试</h1>
-    
+
     <div class="bg-white shadow rounded-lg p-6 mb-6">
       <h2 class="text-lg font-semibold mb-4">当前认证状态</h2>
-      
+
       <div class="space-y-2">
         <p><strong>是否已登录:</strong> {{ isLoggedIn ? '是' : '否' }}</p>
         <p><strong>加载中:</strong> {{ isLoading ? '是' : '否' }}</p>
@@ -12,17 +12,17 @@
         <pre v-if="user" class="bg-gray-100 p-3 rounded text-sm">{{ JSON.stringify(user, null, 2) }}</pre>
         <p v-else class="text-gray-500">无用户信息</p>
       </div>
-      
+
       <div class="mt-4 space-x-4">
-        <button 
+        <button
           @click="handleFetchUser"
           :disabled="isLoading"
           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50"
         >
           {{ isLoading ? '获取中...' : '获取用户信息' }}
         </button>
-        
-        <button 
+
+        <button
           v-if="isLoggedIn"
           @click="handleLogout"
           :disabled="isLoading"
@@ -32,32 +32,32 @@
         </button>
       </div>
     </div>
-    
+
     <div class="bg-white shadow rounded-lg p-6">
       <h2 class="text-lg font-semibold mb-4">快速登录测试</h2>
-      
+
       <form @submit.prevent="handleTestLogin" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700">邮箱</label>
-          <input 
-            v-model="testForm.email"
-            type="email" 
+          <label class="block text-sm font-medium text-gray-700">邮箱或用户名</label>
+          <input
+            v-model="testForm.identifier"
+            type="text"
             class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-            placeholder="test@example.com"
+            placeholder="test@example.com 或 testuser"
           >
         </div>
-        
+
         <div>
           <label class="block text-sm font-medium text-gray-700">密码</label>
-          <input 
+          <input
             v-model="testForm.password"
-            type="password" 
+            type="password"
             class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
             placeholder="123456"
           >
         </div>
-        
-        <button 
+
+        <button
           type="submit"
           :disabled="isLoading"
           class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded disabled:opacity-50"
@@ -65,7 +65,7 @@
           {{ isLoading ? '登录中...' : '测试登录' }}
         </button>
       </form>
-      
+
       <div v-if="error" class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
         {{ error }}
       </div>
@@ -79,7 +79,7 @@ const { user, isLoggedIn, isLoading, login, logout, fetchUser } = useCustomAuth(
 
 const error = ref('')
 const testForm = reactive({
-  email: 'test@example.com',
+  identifier: 'test@example.com',
   password: '123456'
 })
 
@@ -104,7 +104,7 @@ const handleLogout = async () => {
 const handleTestLogin = async () => {
   error.value = ''
   try {
-    await login(testForm.email, testForm.password)
+    await login(testForm.identifier, testForm.password)
   } catch (err) {
     error.value = err.statusMessage || err.message || '登录失败'
   }

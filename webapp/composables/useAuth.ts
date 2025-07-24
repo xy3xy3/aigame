@@ -12,12 +12,12 @@ export const useCustomAuth = () => {
 
   const isLoggedIn = computed(() => !!user.value)
 
-  const login = async (email: string, password: string) => {
+  const login = async (identifier: string, password: string) => {
     isLoading.value = true
     try {
       const data = await $fetch<{ success: boolean; user: SafeUser; token: string }>('/api/auth/login', {
         method: 'POST',
-        body: { email, password }
+        body: { identifier, password }
       })
 
       if (data.success) {
