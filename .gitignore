@@ -1,0 +1,109 @@
+/local
+# ===================================================================
+# General / 通用
+#
+# 忽略操作系统和编辑器生成的配置文件
+# ===================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# IDEs
+.idea/
+.vscode/*
+# 保留共享的 VSCode 设置和推荐插件
+!/.vscode/settings.json
+!/.vscode/launch.json
+!/.vscode/extensions.json
+*.swp
+*~
+
+# ===================================================================
+# Node.js / Nuxt.js (packages/webapp)
+#
+# 忽略依赖、构建产物、日志和本地环境变量
+# ===================================================================
+
+# 依赖
+node_modules/
+
+# Nuxt 3/4 构建产物
+.nuxt/
+.output/
+dist/
+
+# 日志文件
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 本地环境变量 (非常重要！)
+# 忽略所有 .env 文件，但保留 .env.example 模板文件
+.env
+.env.*
+!*.env.example
+
+# ===================================================================
+# Python (packages/evaluateapp)
+#
+# 忽略虚拟环境、缓存、构建产物和本地环境变量
+# ===================================================================
+
+# Python 虚拟环境
+.venv/
+venv/
+env/
+*env/
+*venv/
+
+# Python 缓存和编译文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Python 构建和分发产物
+build/
+dist/
+*.egg-info/
+*.egg
+
+# 测试工具缓存
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# ===================================================================
+# Docker & Local Development / Docker 和本地开发
+#
+# 忽略本地 Docker 覆盖文件和本地数据卷
+# ===================================================================
+
+# docker-compose.yml 应该被版本控制，但本地的覆盖文件应该被忽略
+docker-compose.override.yml
+docker-compose.local.yml
+
+# 如果你在本地运行数据库并将数据映射到项目目录，请取消下面行的注释
+# minio-data/
+# mongo-data/
+# redis-data/
+
+
+# ===================================================================
+# Temporary Files / 临时文件
+# ===================================================================
+
+tmp/
+temp/
