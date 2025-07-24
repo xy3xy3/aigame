@@ -101,3 +101,6 @@ export const useCustomAuth = () => {
     fetchUser
   }
 }
+
+// 创建别名以便在中间件中使用
+export const useAuth = useCustomAuth

@@ -63,9 +63,11 @@
 </template>
 
 <script setup>
-// 暂时简化，避免认证相关的问题
-const isLoggedIn = ref(false)
+// 使用认证状态管理
+const { isLoggedIn, fetchUser } = useCustomAuth()
 
-// 获取配置
-const config = useRuntimeConfig()
+// 在组件挂载时获取用户信息
+onMounted(async () => {
+  await fetchUser()
+})
 </script>

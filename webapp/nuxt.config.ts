@@ -10,7 +10,6 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxtjs/color-mode',
     '@nuxt/image',
-    '@sidebase/nuxt-auth',
     '@prisma/nuxt'
   ],
 
@@ -54,13 +53,7 @@ export default defineNuxtConfig({
     storageKey: 'nuxt-color-mode'
   },
 
-  // 认证配置
-  auth: {
-    baseURL: process.env.AUTH_ORIGIN,
-    provider: {
-      type: 'local'
-    }
-  },
+
 
   // Nitro配置（服务端）
   nitro: {

@@ -64,38 +64,26 @@
 </template>
 
 <script setup>
-// 暂时简化登录逻辑，避免认证冲突
+// 使用认证状态管理
+const { login, isLoading } = useCustomAuth()
+
 const form = reactive({
   email: '',
   password: ''
 })
 
-const isLoading = ref(false)
 const error = ref('')
 
 const handleLogin = async () => {
   if (isLoading.value) return
 
   error.value = ''
-  isLoading.value = true
 
   try {
-    const response = await $fetch('/api/auth/login', {
-      method: 'POST',
-      body: {
-        email: form.email,
-        password: form.password
-      }
-    })
-
-    if (response.success) {
-      // 登录成功，跳转到首页
-      await navigateTo('/')
-    }
+    await login(form.email, form.password)
+    // 登录成功会自动跳转到首页
   } catch (err) {
-    error.value = err.data?.message || err.message || '登录失败'
-  } finally {
-    isLoading.value = false
+    error.value = err.statusMessage || err.message || '登录失败'
   }
 }
 </script>

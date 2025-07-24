@@ -76,14 +76,15 @@
 </template>
 
 <script setup>
-// 暂时简化注册逻辑，避免认证冲突
+// 使用认证状态管理
+const { register, isLoading } = useCustomAuth()
+
 const form = reactive({
   username: '',
   email: '',
   password: ''
 })
 
-const isLoading = ref(false)
 const error = ref('')
 
 const handleRegister = async () => {
@@ -96,26 +97,11 @@ const handleRegister = async () => {
     return
   }
 
-  isLoading.value = true
-
   try {
-    const response = await $fetch('/api/auth/register', {
-      method: 'POST',
-      body: {
-        username: form.username,
-        email: form.email,
-        password: form.password
-      }
-    })
-
-    if (response.success) {
-      // 注册成功，跳转到登录页面
-      await navigateTo('/login')
-    }
+    await register(form.username, form.email, form.password)
+    // 注册成功会自动跳转到首页
   } catch (err) {
-    error.value = err.data?.message || err.message || '注册失败'
-  } finally {
-    isLoading.value = false
+    error.value = err.statusMessage || err.message || '注册失败'
   }
 }
 </script>

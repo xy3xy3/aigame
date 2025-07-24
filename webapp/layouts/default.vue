@@ -77,13 +77,17 @@
 </template>
 
 <script setup>
-// 暂时简化，避免认证相关的问题
-const user = ref(null)
-const isLoggedIn = ref(false)
+// 使用认证状态管理
+const { user, isLoggedIn, logout, fetchUser } = useCustomAuth()
+
+// 在组件挂载时获取用户信息
+onMounted(async () => {
+  if (!user.value) {
+    await fetchUser()
+  }
+})
 
 const handleLogout = async () => {
-  // 暂时简化
-  user.value = null
-  isLoggedIn.value = false
+  await logout()
 }
 </script>
