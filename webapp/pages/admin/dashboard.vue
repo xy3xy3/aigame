@@ -92,7 +92,7 @@
           {{ isRefreshingQueue ? '刷新中...' : '刷新' }}
         </button>
       </div>
-      
+
       <div v-if="queueStats" class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="bg-yellow-50 rounded-lg p-4 text-center">
           <div class="text-2xl font-bold text-yellow-600">{{ queueStats.waiting }}</div>
@@ -111,7 +111,7 @@
           <div class="text-sm text-gray-600">失败</div>
         </div>
       </div>
-      
+
       <div v-else class="text-center py-4">
         <p class="text-gray-600">无法获取队列状态</p>
       </div>
@@ -120,12 +120,30 @@
     <!-- 快速操作 -->
     <div class="bg-white rounded-lg shadow-md p-6">
       <h2 class="text-xl font-semibold text-gray-900 mb-4">快速操作</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <NuxtLink
+          to="/admin/competitions"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md text-center font-medium"
+        >
+          管理比赛
+        </NuxtLink>
+        <NuxtLink
+          to="/admin/problems"
+          class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-md text-center font-medium"
+        >
+          管理题目
+        </NuxtLink>
         <NuxtLink
           to="/admin/competitions/create"
           class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-center font-medium"
         >
           创建新比赛
+        </NuxtLink>
+        <NuxtLink
+          to="/admin/problems/create"
+          class="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-md text-center font-medium"
+        >
+          创建新题目
         </NuxtLink>
         <button
           @click="startWorker"
@@ -204,10 +222,10 @@ const startWorker = async () => {
 onMounted(async () => {
   await fetchStats()
   await refreshQueueStats()
-  
+
   // 每30秒自动刷新队列状态
   const interval = setInterval(refreshQueueStats, 30000)
-  
+
   onUnmounted(() => {
     clearInterval(interval)
   })
