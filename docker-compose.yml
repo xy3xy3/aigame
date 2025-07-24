@@ -7,11 +7,9 @@ services:
     restart: always
     networks:
       - aigame
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=password
-    volumes:
-      - ./data/mongo/:/data/db
+    ports:
+      - '27017:27017'
+    command: mongod --replSet rs0 --bind_ip_all
   redis:
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/redis:8.0.3
     container_name: redis
