@@ -14,6 +14,12 @@ export default defineNuxtConfig({
     '@prisma/nuxt'
   ],
 
+  // Prisma配置 - 禁用迁移提示
+  prisma: {
+    autoSetupPrisma: false,
+    installStudio: false
+  },
+
   // CSS配置
   css: ['~/assets/css/main.css'],
 
@@ -34,14 +40,6 @@ export default defineNuxtConfig({
       appName: 'AI竞赛平台',
       apiBase: '/api'
     }
-  },
-
-  // Mongoose 配置
-  mongoose: {
-    uri: process.env.MONGODB_URI || 'mongodb://root:password@localhost:27017/aigame?authSource=admin',
-    options: {},
-    modelsDir: 'models',
-    devtools: true
   },
 
   // 颜色模式配置

@@ -12,6 +12,19 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=password
     volumes:
       - ./data/mongo/:/data/db
+  redis:
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/redis:8.0.3
+    container_name: redis
+    restart: always
+    networks:
+      - aigame
+    ports:
+      - '6379:6379'
+    environment:
+      - REDIS_PASSWORD=password  # Redis密码（根据镜像是否支持该环境变量调整，部分镜像需通过配置文件设置）
+    volumes:
+      - ./data/redis:/data  # 持久化数据目录
+    command: redis-server --requirepass password  # 启动时设置密码（若环境变量不生效时使用）
   aigame-minio:
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/quay.io/minio/minio:latest
     container_name: aigame-minio

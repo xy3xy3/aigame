@@ -1,0 +1,169 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+model User {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  captainedTeams      Team[]        @relation("TeamCaptain")
+  teamMemberships     TeamMember[]
+  submissions         Submission[]
+  createdCompetitions Competition[] @relation("CompetitionCreator")
+
+  @@map("users")
+}
+
+model Team {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  name            String
+  avatarUrl       String?
+  captainId       String   @db.ObjectId
+  isLocked        Boolean  @default(false)
+  participatingIn String[] @db.ObjectId
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  captain            User               @relation("TeamCaptain", fields: [captainId], references: [id])
+  members            TeamMember[]
+  submissions        Submission[]
+  leaderboardEntries LeaderboardEntry[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  teamId   String   @db.ObjectId
+  userId   String   @db.ObjectId
+  joinedAt DateTime @default(now())
+
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+model Competition {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  rules       String
+  bannerUrl   String?
+  startTime   DateTime
+  endTime     DateTime
+  createdBy   String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  creator      User          @relation("CompetitionCreator", fields: [createdBy], references: [id])
+  problems     Problem[]
+  submissions  Submission[]
+  leaderboards Leaderboard[]
+
+  @@map("competitions")
+}
+
+model Problem {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  title               String
+  shortDescription    String
+  detailedDescription String
+  competitionId       String   @db.ObjectId
+  datasetUrl          String?
+  judgingScriptUrl    String?
+  startTime           DateTime
+  endTime             DateTime
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relations
+  competition Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  submissions Submission[]
+
+  @@map("problems")
+}
+
+enum SubmissionStatus {
+  PENDING
+  JUDGING
+  COMPLETED
+  ERROR
+}
+
+model Submission {
+  id            String           @id @default(auto()) @map("_id") @db.ObjectId
+  problemId     String           @db.ObjectId
+  competitionId String           @db.ObjectId
+  teamId        String           @db.ObjectId
+  userId        String           @db.ObjectId
+  submissionUrl String
+  status        SubmissionStatus @default(PENDING)
+  score         Float?
+  executionLogs String?
+  submittedAt   DateTime         @default(now())
+  judgedAt      DateTime?
+  updatedAt     DateTime         @updatedAt
+
+  // Relations
+  problem     Problem     @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("submissions")
+}
+
+model Leaderboard {
+  id            String             @id @default(auto()) @map("_id") @db.ObjectId
+  competitionId String             @unique @db.ObjectId
+  lastUpdated   DateTime           @default(now())
+  rankings      LeaderboardEntry[]
+
+  // Relations
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+
+  @@map("leaderboards")
+}
+
+type ProblemScore {
+  problemId   String   @db.ObjectId
+  score       Float
+  submittedAt DateTime
+}
+
+model LeaderboardEntry {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  leaderboardId String         @db.ObjectId
+  rank          Int
+  teamId        String         @db.ObjectId
+  teamName      String
+  teamAvatarUrl String?
+  totalScore    Float
+  problemScores ProblemScore[]
+
+  // Relations
+  leaderboard Leaderboard @relation(fields: [leaderboardId], references: [id], onDelete: Cascade)
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([leaderboardId, teamId])
+  @@map("leaderboard_entries")
+}
