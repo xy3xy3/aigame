@@ -1,3 +1,34 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 自定义样式 */
+@layer components {
+  /* 下拉菜单样式优化 */
+  .dropdown-menu {
+    @apply absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200;
+  }
+
+  .dropdown-item {
+    @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150;
+  }
+
+  /* 管理后台卡片样式 */
+  .admin-card {
+    @apply bg-white rounded-lg shadow-md p-6;
+  }
+
+  /* 统计卡片样式 */
+  .stat-card {
+    @apply bg-white rounded-lg shadow-md p-6;
+  }
+
+  /* 按钮样式优化 */
+  .btn-primary {
+    @apply bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium transition-colors duration-150;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md font-medium transition-colors duration-150;
+  }
+}

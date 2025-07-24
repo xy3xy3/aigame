@@ -30,13 +30,63 @@
               >
                 我的提交
               </NuxtLink>
-              <NuxtLink
-                v-if="isLoggedIn"
-                to="/admin/dashboard"
-                class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
-              >
-                管理后台
-              </NuxtLink>
+              <div v-if="isLoggedIn" class="relative inline-flex items-center" ref="adminDropdownRef">
+                <button
+                  @click="toggleAdminDropdown"
+                  class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
+                  style="background: none; border: none; padding: 0; margin: 0; font: inherit; cursor: pointer; outline: none;"
+                >
+                  <span class="inline-flex items-center px-1 pt-1">
+                    管理后台
+                    <svg
+                      class="w-4 h-4 ml-1 transition-transform duration-200"
+                      :class="{ 'rotate-180': showAdminDropdown }"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </span>
+                </button>
+                <!-- 下拉菜单 -->
+                <Transition
+                  enter-active-class="transition ease-out duration-100"
+                  enter-from-class="transform opacity-0 scale-95"
+                  enter-to-class="transform opacity-100 scale-100"
+                  leave-active-class="transition ease-in duration-75"
+                  leave-from-class="transform opacity-100 scale-100"
+                  leave-to-class="transform opacity-0 scale-95"
+                >
+                  <div
+                    v-show="showAdminDropdown"
+                    class="absolute right-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200"
+                  >
+                    <NuxtLink
+                      to="/admin/dashboard"
+                      @click="closeAdminDropdown"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                    >
+                      管理仪表板
+                    </NuxtLink>
+                    <NuxtLink
+                      to="/admin/competitions"
+                      @click="closeAdminDropdown"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                    >
+                      管理比赛
+                    </NuxtLink>
+                    <NuxtLink
+                      to="/admin/problems"
+                      @click="closeAdminDropdown"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                    >
+                      管理题目
+                    </NuxtLink>
+                  </div>
+                </Transition>
+              </div>
             </div>
           </div>
           <div class="flex items-center space-x-4">
@@ -80,14 +130,41 @@
 // 使用认证状态管理
 const { user, isLoggedIn, logout, fetchUser } = useCustomAuth()
 
+// 控制下拉菜单显示/隐藏
+const showAdminDropdown = ref(false)
+const adminDropdownRef = ref(null)
+
 // 在组件挂载时获取用户信息
 onMounted(async () => {
   if (!user.value) {
     await fetchUser()
   }
+
+  // 添加点击外部区域关闭下拉菜单的事件监听
+  document.addEventListener('click', handleClickOutside)
+})
+
+// 组件卸载时移除事件监听
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 
 const handleLogout = async () => {
   await logout()
+}
+
+const toggleAdminDropdown = () => {
+  showAdminDropdown.value = !showAdminDropdown.value
+}
+
+const closeAdminDropdown = () => {
+  showAdminDropdown.value = false
+}
+
+// 点击外部区域关闭下拉菜单
+const handleClickOutside = (event) => {
+  if (adminDropdownRef.value && !adminDropdownRef.value.contains(event.target)) {
+    showAdminDropdown.value = false
+  }
 }
 </script>
