@@ -1,4 +1,5 @@
 import { getCachedCompetition, cacheCompetition } from '../../../utils/redis'
+import { usePrisma } from '../../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {

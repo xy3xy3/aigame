@@ -1,3 +1,5 @@
+import { usePrisma } from '../../../utils/prisma'
+
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
     throw createError({
@@ -15,9 +17,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const submissionId = getRouterParam(event, 'id')
-  
+
   const { $prisma } = await usePrisma()
-  
+
   const submission = await $prisma.submission.findUnique({
     where: { id: submissionId },
     include: {
@@ -49,14 +51,14 @@ export default defineEventHandler(async (event) => {
       }
     }
   })
-  
+
   if (!submission) {
     throw createError({
       statusCode: 404,
       statusMessage: 'Submission not found'
     })
   }
-  
+
   // 验证用户是否有权限查看此提交
   const teamMember = await $prisma.teamMember.findFirst({
     where: {
@@ -64,14 +66,14 @@ export default defineEventHandler(async (event) => {
       userId: user.id
     }
   })
-  
+
   if (!teamMember) {
     throw createError({
       statusCode: 403,
       statusMessage: 'You do not have permission to view this submission'
     })
   }
-  
+
   return {
     success: true,
     submission

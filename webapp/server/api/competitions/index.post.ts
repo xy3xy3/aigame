@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { usePrisma } from '../../utils/prisma'
 
 const createCompetitionSchema = z.object({
   title: z.string().min(2).max(100),
@@ -34,42 +35,42 @@ export default defineEventHandler(async (event) => {
   // }
 
   const body = await readBody(event)
-  
+
   try {
     const { title, description, rules, bannerUrl, startTime, endTime } = createCompetitionSchema.parse(body)
-    
+
     // 验证时间逻辑
     const start = new Date(startTime)
     const end = new Date(endTime)
-    
+
     if (start >= end) {
       throw createError({
         statusCode: 400,
         statusMessage: 'End time must be after start time'
       })
     }
-    
+
     if (start <= new Date()) {
       throw createError({
         statusCode: 400,
         statusMessage: 'Start time must be in the future'
       })
     }
-    
+
     const { $prisma } = await usePrisma()
-    
+
     // 检查是否已存在同名比赛
     const existingCompetition = await $prisma.competition.findFirst({
       where: { title }
     })
-    
+
     if (existingCompetition) {
       throw createError({
         statusCode: 400,
         statusMessage: 'Competition with this title already exists'
       })
     }
-    
+
     // 创建比赛
     const competition = await $prisma.competition.create({
       data: {
@@ -92,12 +93,12 @@ export default defineEventHandler(async (event) => {
         problems: true
       }
     })
-    
+
     return {
       success: true,
       competition
     }
-    
+
   } catch (error: any) {
     if (error.name === 'ZodError') {
       throw createError({
@@ -106,7 +107,7 @@ export default defineEventHandler(async (event) => {
         data: error.issues
       })
     }
-    
+
     throw error
   }
 })

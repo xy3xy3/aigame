@@ -1,3 +1,5 @@
+import { usePrisma } from '../../utils/prisma'
+
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
     throw createError({
@@ -10,13 +12,13 @@ export default defineEventHandler(async (event) => {
   const page = parseInt(query.page as string) || 1
   const limit = parseInt(query.limit as string) || 10
   const status = query.status as string // 'upcoming', 'ongoing', 'ended'
-  
+
   const { $prisma } = await usePrisma()
-  
+
   // 构建查询条件
   const where: any = {}
   const now = new Date()
-  
+
   if (status === 'upcoming') {
     where.startTime = { gt: now }
   } else if (status === 'ongoing') {
@@ -27,7 +29,7 @@ export default defineEventHandler(async (event) => {
   } else if (status === 'ended') {
     where.endTime = { lte: now }
   }
-  
+
   // 获取比赛列表
   const [competitions, total] = await Promise.all([
     $prisma.competition.findMany({
@@ -62,7 +64,7 @@ export default defineEventHandler(async (event) => {
     }),
     $prisma.competition.count({ where })
   ])
-  
+
   // 添加状态信息
   const competitionsWithStatus = competitions.map(competition => {
     let competitionStatus = 'upcoming'
@@ -71,13 +73,13 @@ export default defineEventHandler(async (event) => {
     } else if (competition.endTime <= now) {
       competitionStatus = 'ended'
     }
-    
+
     return {
       ...competition,
       status: competitionStatus
     }
   })
-  
+
   return {
     success: true,
     competitions: competitionsWithStatus,

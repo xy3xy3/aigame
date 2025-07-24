@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { hashPassword, verifyPassword, excludePassword } from '../../utils/auth'
 import { generateToken } from '../../utils/jwt'
+import { usePrisma } from '../../utils/prisma'
 
 // Validation schemas
 const registerSchema = z.object({
@@ -23,13 +24,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event)
-  
+
   try {
     // Validate request body
     const { username, email, password } = registerSchema.parse(body)
-    
+
     const { $prisma } = await usePrisma()
-    
+
     // Check if user already exists
     const existingUser = await $prisma.user.findFirst({
       where: {
@@ -39,19 +40,19 @@ export default defineEventHandler(async (event) => {
         ]
       }
     })
-    
+
     if (existingUser) {
       throw createError({
         statusCode: 409,
-        statusMessage: existingUser.email === email 
-          ? 'Email already registered' 
+        statusMessage: existingUser.email === email
+          ? 'Email already registered'
           : 'Username already taken'
       })
     }
-    
+
     // Hash password and create user
     const passwordHash = await hashPassword(password)
-    
+
     const user = await $prisma.user.create({
       data: {
         username,
@@ -59,11 +60,11 @@ export default defineEventHandler(async (event) => {
         passwordHash
       }
     })
-    
+
     // Generate JWT token
     const token = generateToken(user)
     const safeUser = excludePassword(user)
-    
+
     // Set HTTP-only cookie
     setCookie(event, 'auth-token', token, {
       httpOnly: true,
@@ -71,13 +72,13 @@ export default defineEventHandler(async (event) => {
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7 // 7 days
     })
-    
+
     return {
       success: true,
       user: safeUser,
       token
     }
-    
+
   } catch (error) {
     if (error.code === 'P2002') {
       throw createError({
@@ -85,7 +86,7 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'User already exists'
       })
     }
-    
+
     if (error instanceof z.ZodError) {
       throw createError({
         statusCode: 400,
@@ -93,7 +94,7 @@ export default defineEventHandler(async (event) => {
         data: error.issues
       })
     }
-    
+
     throw error
   }
 })

@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import type { User } from '@prisma/client'
+import { usePrisma } from './prisma'
 
 export interface JwtPayload {
   userId: string
@@ -14,8 +15,8 @@ export function generateToken(user: User): string {
     username: user.username,
     email: user.email
   }
-  
-  return jwt.sign(payload, config.jwtSecret, { 
+
+  return jwt.sign(payload, config.jwtSecret, {
     expiresIn: '7d',
     issuer: 'aigame-platform'
   })
@@ -27,7 +28,7 @@ export function verifyToken(token: string): JwtPayload | null {
     const decoded = jwt.verify(token, config.jwtSecret, {
       issuer: 'aigame-platform'
     }) as JwtPayload
-    
+
     return decoded
   } catch (error) {
     return null
@@ -37,9 +38,9 @@ export function verifyToken(token: string): JwtPayload | null {
 export async function getUserFromToken(token: string): Promise<User | null> {
   const payload = verifyToken(token)
   if (!payload) return null
-  
+
   const { $prisma } = await usePrisma()
-  
+
   try {
     const user = await $prisma.user.findUnique({
       where: { id: payload.userId }

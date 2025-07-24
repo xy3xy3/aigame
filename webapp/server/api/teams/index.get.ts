@@ -1,3 +1,5 @@
+import { usePrisma } from '../../utils/prisma'
+
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
     throw createError({
@@ -15,7 +17,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const { $prisma } = await usePrisma()
-  
+
   // Get teams where user is a member
   const teams = await $prisma.team.findMany({
     where: {
@@ -48,7 +50,7 @@ export default defineEventHandler(async (event) => {
       }
     }
   })
-  
+
   return {
     success: true,
     teams

@@ -1,3 +1,5 @@
+import { usePrisma } from '../../../utils/prisma'
+
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
     throw createError({
@@ -15,9 +17,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const teamId = getRouterParam(event, 'id')
-  
+
   const { $prisma } = await usePrisma()
-  
+
   const team = await $prisma.team.findUnique({
     where: { id: teamId },
     include: {
@@ -43,14 +45,14 @@ export default defineEventHandler(async (event) => {
       }
     }
   })
-  
+
   if (!team) {
     throw createError({
       statusCode: 404,
       statusMessage: 'Team not found'
     })
   }
-  
+
   // Check if user is a member of this team
   const isMember = team.members.some(member => member.userId === user.id)
   if (!isMember) {
@@ -59,7 +61,7 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'You are not a member of this team'
     })
   }
-  
+
   return {
     success: true,
     team

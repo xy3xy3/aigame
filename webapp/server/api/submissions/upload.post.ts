@@ -2,6 +2,7 @@ import multer from 'multer'
 import { z } from 'zod'
 import { uploadFile } from '../../utils/minio'
 import { addEvaluationJob } from '../../utils/queue'
+import { usePrisma } from '../../utils/prisma'
 
 // 配置multer使用内存存储
 const upload = multer({
