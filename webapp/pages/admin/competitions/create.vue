@@ -136,26 +136,21 @@ const success = ref(false)
 
 const handleSubmit = async () => {
   if (isSubmitting.value) return
-  
+
   error.value = ''
   success.value = false
   isSubmitting.value = true
-  
+
   try {
     // 验证时间
     const startDate = new Date(form.startTime)
     const endDate = new Date(form.endTime)
-    
+
     if (startDate >= endDate) {
       error.value = '结束时间必须晚于开始时间'
       return
     }
-    
-    if (startDate <= new Date()) {
-      error.value = '开始时间必须是未来时间'
-      return
-    }
-    
+
     const data = await $fetch('/api/competitions', {
       method: 'POST',
       body: {
@@ -167,20 +162,20 @@ const handleSubmit = async () => {
         endTime: endDate.toISOString()
       }
     })
-    
+
     if (data.success) {
       success.value = true
       // 重置表单
       Object.keys(form).forEach(key => {
         form[key] = ''
       })
-      
+
       // 3秒后跳转到比赛列表
       setTimeout(() => {
         navigateTo('/admin/competitions')
       }, 3000)
     }
-    
+
   } catch (err) {
     error.value = err.data?.message || err.message || '创建比赛失败'
   } finally {
@@ -193,7 +188,7 @@ onMounted(() => {
   const now = new Date()
   const start = new Date(now.getTime() + 60 * 60 * 1000) // +1小时
   const end = new Date(now.getTime() + 25 * 60 * 60 * 1000) // +25小时
-  
+
   form.startTime = start.toISOString().slice(0, 16)
   form.endTime = end.toISOString().slice(0, 16)
 })
