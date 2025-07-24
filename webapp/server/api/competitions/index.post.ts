@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
     if (start >= end) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'End time must be after start time'
+        statusMessage: '结束时间必须晚于开始时间'
       })
     }
 
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
     if (existingCompetition) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Competition with this title already exists'
+        statusMessage: '已存在同名的比赛'
       })
     }
 

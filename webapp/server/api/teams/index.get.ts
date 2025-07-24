@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
   if (!user) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Authentication required'
+      statusMessage: '需要登录认证'
     })
   }
 

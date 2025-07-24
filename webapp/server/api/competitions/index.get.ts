@@ -13,6 +13,9 @@ export default defineEventHandler(async (event) => {
   const limit = parseInt(query.limit as string) || 10
   const status = query.status as string // 'upcoming', 'ongoing', 'ended'
 
+  // 获取用户信息（如果已登录）
+  const user = event.context.user
+
   const { $prisma } = await usePrisma()
 
   // 构建查询条件
@@ -65,7 +68,27 @@ export default defineEventHandler(async (event) => {
     $prisma.competition.count({ where })
   ])
 
-  // 添加状态信息
+  // 获取用户参加的比赛信息（如果已登录）
+  let userParticipatingCompetitions: string[] = []
+  if (user) {
+    const userTeams = await $prisma.team.findMany({
+      where: {
+        members: {
+          some: {
+            userId: user.id
+          }
+        }
+      },
+      select: {
+        participatingIn: true
+      }
+    })
+
+    // 收集所有用户队伍参加的比赛ID
+    userParticipatingCompetitions = userTeams.flatMap(team => team.participatingIn)
+  }
+
+  // 添加状态信息和参赛状态
   const competitionsWithStatus = competitions.map(competition => {
     let competitionStatus = 'upcoming'
     if (competition.startTime <= now && competition.endTime > now) {
@@ -76,7 +99,8 @@ export default defineEventHandler(async (event) => {
 
     return {
       ...competition,
-      status: competitionStatus
+      status: competitionStatus,
+      userParticipating: userParticipatingCompetitions.includes(competition.id)
     }
   })
 
