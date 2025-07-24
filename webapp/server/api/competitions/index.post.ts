@@ -3,8 +3,8 @@ import { usePrisma } from '../../utils/prisma'
 
 const createCompetitionSchema = z.object({
   title: z.string().min(2).max(100),
-  description: z.string().min(10).max(2000),
-  rules: z.string().min(10).max(5000),
+  description: z.string().max(2000),
+  rules: z.string().max(5000),
   bannerUrl: z.string().url().optional(),
   startTime: z.string().datetime(),
   endTime: z.string().datetime()
