@@ -50,13 +50,6 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    if (start <= new Date()) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Start time must be in the future'
-      })
-    }
-
     const { $prisma } = await usePrisma()
 
     // 检查是否已存在同名比赛
