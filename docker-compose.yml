@@ -39,9 +39,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/timezone:ro
     command: redis-server --requirepass password  # 启动时设置密码（若环境变量不生效时使用）
-  aigame-minio:
+  minio:
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/quay.io/minio/minio:latest
-    container_name: aigame-minio
+    container_name: minio
     restart: always
     networks:
       - aigame

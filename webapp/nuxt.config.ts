@@ -32,7 +32,7 @@ export default defineNuxtConfig({
     minioAccessKey: process.env.MINIO_ACCESS_KEY || 'root',
     minioSecretKey: process.env.MINIO_SECRET_KEY || 'password',
     minioPublicUrl: process.env.MINIO_PUBLIC_URL || 'http://localhost:9000',
-    minioInternalUrl: process.env.MINIO_INTERNAL_URL || 'http://aigame-minio:9000',
+    minioInternalUrl: process.env.MINIO_INTERNAL_URL || 'http://minio:9000',
     jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key',
     evaluateAppUrl: process.env.EVALUATE_APP_URL || 'http://localhost:8000',
 

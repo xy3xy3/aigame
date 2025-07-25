@@ -20,3 +20,13 @@ docker compose exec mongo mongosh -u root -p password --authenticationDatabase a
 ## Nuxt Web APP
 
 使用`pnpm`进行启动，css采用`tailwind`
+
+为了方便调试统一环境
+需要修改host
+sudo nano /etc/hosts
+
+```
+127.0.0.1   mongo
+127.0.0.1   redis
+127.0.0.1   minio
+```
