@@ -104,33 +104,29 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // 检查队伍是否已经参加了这个比赛
-    if (team.participatingIn.includes(competitionId)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: '队伍已经参加了这个比赛'
-      })
-    }
+    // 获取队伍所有成员的 ID
+    const memberIds = team.members.map(member => member.userId)
 
-    // 检查用户是否已经通过其他队伍参加了这个比赛
-    const userOtherTeams = await $prisma.team.findMany({
+    // 检查是否有任何成员已经通过任何队伍参加了这个比赛
+    const existingParticipantTeam = await $prisma.team.findFirst({
       where: {
-        members: {
-          some: {
-            userId: user.id
-          }
-        },
-        id: { not: teamId },
         participatingIn: {
           has: competitionId
+        },
+        members: {
+          some: {
+            userId: {
+              in: memberIds
+            }
+          }
         }
       }
     })
 
-    if (userOtherTeams.length > 0) {
+    if (existingParticipantTeam) {
       throw createError({
         statusCode: 400,
-        statusMessage: '您已经通过其他队伍参加了这个比赛'
+        statusMessage: '队伍中已有成员报名参加此比赛，无法重复报名'
       })
     }
 
