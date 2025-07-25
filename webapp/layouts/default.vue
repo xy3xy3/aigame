@@ -105,6 +105,13 @@
                     >
                       管理队伍
                     </NuxtLink>
+                    <NuxtLink
+                      to="/admin/submissions"
+                      @click="closeAdminDropdown"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                    >
+                      提交管理
+                    </NuxtLink>
                   </div>
                 </Transition>
               </div>
