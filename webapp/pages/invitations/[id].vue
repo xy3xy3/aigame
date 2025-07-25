@@ -13,8 +13,14 @@
     <div v-else-if="invitation" class="bg-white shadow-lg rounded-lg p-8 text-center">
       <h1 class="text-3xl font-bold text-gray-900 mb-4">您收到了一个邀请</h1>
       <p class="text-lg text-gray-700 mb-6">
-        <span class="font-semibold">{{ invitation.inviter.username }}</span> 邀请您加入队伍
-        <span class="font-semibold text-indigo-600">{{ invitation.team.name }}</span>。
+        <template v-if="invitation.inviter">
+          <span class="font-semibold">{{ invitation.inviter.username }}</span> 邀请您加入队伍
+          <span class="font-semibold text-indigo-600">{{ invitation.team.name }}</span>。
+        </template>
+        <template v-else>
+          您被邀请加入队伍
+          <span class="font-semibold text-indigo-600">{{ invitation.team.name }}</span>。
+        </template>
       </p>
 
       <div v-if="invitation.status === 'PENDING'" class="mt-8">
