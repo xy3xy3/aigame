@@ -111,6 +111,22 @@
         >
       </div>
 
+      <!-- 题目分数 -->
+      <div>
+        <label for="score" class="block text-sm font-medium text-gray-700 mb-2">
+          题目分数
+        </label>
+        <input
+          id="score"
+          v-model="form.score"
+          type="number"
+          min="1"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          placeholder="输入题目分数"
+        >
+        <p class="mt-1 text-sm text-gray-500">请输入正整数</p>
+      </div>
+
       <!-- 时间设置 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
@@ -174,6 +190,7 @@ interface Problem {
     id: string
     title: string
   }
+  score?: number
 }
 
 interface ProblemResponse {
@@ -198,7 +215,8 @@ const form = reactive({
   datasetUrl: '',
   judgingScriptUrl: '',
   startTime: '',
-  endTime: ''
+  endTime: '',
+  score: undefined
 })
 
 const isSubmitting = ref(false)
@@ -216,6 +234,7 @@ watch(data, (newData) => {
     form.judgingScriptUrl = problem.judgingScriptUrl || ''
     form.startTime = new Date(problem.startTime).toISOString().slice(0, 16)
     form.endTime = new Date(problem.endTime).toISOString().slice(0, 16)
+    form.score = problem.score || undefined
   }
 }, { immediate: true })
 
@@ -238,6 +257,11 @@ const handleSubmit = async () => {
 
     // 验证字符长度
 
+    // 验证分数
+    if (form.score !== undefined && (isNaN(form.score) || form.score < 1)) {
+      submitError.value = '分数必须是正整数'
+      return
+    }
 
     const updateData = await $fetch(`/api/problems/${problemId}`, {
       method: 'PUT',
@@ -248,7 +272,8 @@ const handleSubmit = async () => {
         datasetUrl: form.datasetUrl || undefined,
         judgingScriptUrl: form.judgingScriptUrl || undefined,
         startTime: startDate.toISOString(),
-        endTime: endDate.toISOString()
+        endTime: endDate.toISOString(),
+        score: form.score ? parseInt(form.score) : undefined
       }
     })
 

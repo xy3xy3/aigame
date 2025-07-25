@@ -30,7 +30,13 @@ export default defineEventHandler(async (event) => {
     orderBy: {
       startTime: 'asc'
     },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      shortDescription: true,
+      startTime: true,
+      endTime: true,
+      score: true,
       _count: {
         select: {
           submissions: true

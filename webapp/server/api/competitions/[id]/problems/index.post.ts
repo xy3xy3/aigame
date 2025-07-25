@@ -8,7 +8,8 @@ const createProblemSchema = z.object({
   datasetUrl: z.string().url().optional(),
   judgingScriptUrl: z.string().url().optional(),
   startTime: z.string().datetime(),
-  endTime: z.string().datetime()
+  endTime: z.string().datetime(),
+  score: z.number().int().positive().optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -37,7 +38,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   try {
-    const { title, shortDescription, detailedDescription, datasetUrl, judgingScriptUrl, startTime, endTime } = createProblemSchema.parse(body)
+    const { title, shortDescription, detailedDescription, datasetUrl, judgingScriptUrl, startTime, endTime, score } = createProblemSchema.parse(body)
 
     const { $prisma } = await usePrisma()
 
@@ -125,7 +126,8 @@ export default defineEventHandler(async (event) => {
         datasetUrl,
         judgingScriptUrl,
         startTime: start,
-        endTime: end
+        endTime: end,
+        score
       }
     })
 

@@ -99,6 +99,8 @@ model Problem {
   endTime             DateTime
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+  // 题目分值，表示完成该题目可获得的分数
+  score               Int?
 
   // Relations
   competition Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)

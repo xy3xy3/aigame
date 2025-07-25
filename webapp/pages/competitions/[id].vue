@@ -115,7 +115,21 @@
             class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
           >
             <div class="flex items-center justify-between mb-2">
-              <h3 class="text-lg font-semibold text-gray-900">{{ problem.title }}</h3>
+              <div class="flex items-center">
+                <h3 class="text-lg font-semibold text-gray-900">{{ problem.title }}</h3>
+                <span
+                  v-if="problem.score !== null && problem.score !== undefined"
+                  class="ml-3 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium"
+                >
+                  {{ problem.score }} 分 /
+                </span>
+                <span
+                  v-else
+                  class="ml-3 px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium"
+                >
+                  暂无分数
+                </span>
+              </div>
               <span
                 :class="{
                   'bg-green-100 text-green-800': problem.status === 'ongoing',

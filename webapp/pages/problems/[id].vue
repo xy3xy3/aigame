@@ -14,7 +14,7 @@
       <div class="bg-white rounded-lg shadow-md p-6">
         <div class="flex items-center justify-between mb-4">
           <h1 class="text-3xl font-bold text-gray-900">{{ data.problem.title }}</h1>
-          <span 
+          <span
             :class="{
               'bg-green-100 text-green-800': data.problem.status === 'ongoing',
               'bg-blue-100 text-blue-800': data.problem.status === 'upcoming',
@@ -25,31 +25,32 @@
             {{ getStatusText(data.problem.status) }}
           </span>
         </div>
-        
+
         <p class="text-lg text-gray-600 mb-6">{{ data.problem.shortDescription }}</p>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 class="text-lg font-semibold text-gray-900 mb-2">题目信息</h3>
             <div class="space-y-2 text-sm text-gray-600">
               <p><span class="font-medium">开始时间:</span> {{ formatDate(data.problem.startTime) }}</p>
               <p><span class="font-medium">结束时间:</span> {{ formatDate(data.problem.endTime) }}</p>
-              <p><span class="font-medium">所属比赛:</span> 
+              <p><span class="font-medium">所属比赛:</span>
                 <NuxtLink :to="`/competitions/${data.problem.competitionId}`" class="text-indigo-600 hover:text-indigo-800">
                   {{ data.problem.competition?.title }}
                 </NuxtLink>
               </p>
               <p><span class="font-medium">提交数量:</span> {{ data.problem._count?.submissions || 0 }}</p>
+              <p><span class="font-medium">题目分数:</span> {{ data.problem.score !== null ? data.problem.score + '分' : '暂无分数' }}</p>
             </div>
           </div>
-          
+
           <div v-if="data.problem.status === 'ongoing' && userTeams?.length > 0">
             <h3 class="text-lg font-semibold text-gray-900 mb-2">提交解答</h3>
             <div class="space-y-3">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">选择队伍</label>
-                <select 
-                  v-model="selectedTeamId" 
+                <select
+                  v-model="selectedTeamId"
                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                 >
                   <option value="">请选择队伍</option>
@@ -58,12 +59,12 @@
                   </option>
                 </select>
               </div>
-              
+
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">上传文件</label>
-                <input 
+                <input
                   ref="fileInput"
-                  type="file" 
+                  type="file"
                   @change="handleFileSelect"
                   accept=".zip,.py,.txt,.md,.json,.yaml,.yml"
                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -72,7 +73,7 @@
                   支持格式: .zip, .py, .txt, .md, .json, .yaml, .yml (最大50MB)
                 </p>
               </div>
-              
+
               <button
                 @click="submitFile"
                 :disabled="!selectedTeamId || !selectedFile || isSubmitting"
@@ -80,29 +81,29 @@
               >
                 {{ isSubmitting ? '提交中...' : '提交解答' }}
               </button>
-              
+
               <div v-if="submitError" class="bg-red-50 border border-red-200 rounded-md p-3">
                 <p class="text-red-800 text-sm">{{ submitError }}</p>
               </div>
-              
+
               <div v-if="submitSuccess" class="bg-green-50 border border-green-200 rounded-md p-3">
                 <p class="text-green-800 text-sm">提交成功！</p>
               </div>
             </div>
           </div>
-          
+
           <div v-else-if="data.problem.status !== 'ongoing'">
             <h3 class="text-lg font-semibold text-gray-900 mb-2">提交状态</h3>
             <p class="text-gray-600">
               {{ data.problem.status === 'upcoming' ? '题目尚未开始' : '题目已结束' }}
             </p>
           </div>
-          
+
           <div v-else-if="!userTeams?.length">
             <h3 class="text-lg font-semibold text-gray-900 mb-2">参加比赛</h3>
             <p class="text-gray-600 mb-3">您需要加入队伍才能提交解答</p>
-            <NuxtLink 
-              to="/teams" 
+            <NuxtLink
+              to="/teams"
               class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
             >
               管理队伍
@@ -124,8 +125,8 @@
         <h2 class="text-2xl font-bold text-gray-900 mb-4">相关资源</h2>
         <div class="space-y-3">
           <div v-if="data.problem.datasetUrl">
-            <a 
-              :href="data.problem.datasetUrl" 
+            <a
+              :href="data.problem.datasetUrl"
               target="_blank"
               class="inline-flex items-center text-indigo-600 hover:text-indigo-800"
             >
@@ -136,8 +137,8 @@
             </a>
           </div>
           <div v-if="data.problem.judgingScriptUrl">
-            <a 
-              :href="data.problem.judgingScriptUrl" 
+            <a
+              :href="data.problem.judgingScriptUrl"
               target="_blank"
               class="inline-flex items-center text-indigo-600 hover:text-indigo-800"
             >
@@ -153,30 +154,30 @@
       <!-- 我的提交记录 -->
       <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">我的提交记录</h2>
-        
+
         <div v-if="submissionsPending" class="text-center py-4">
           <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
           <p class="mt-2 text-gray-600">加载提交记录中...</p>
         </div>
-        
+
         <div v-else-if="submissionsError" class="bg-red-50 border border-red-200 rounded-md p-4">
           <p class="text-red-800">加载提交记录失败: {{ submissionsError.message }}</p>
         </div>
-        
+
         <div v-else-if="submissionsData?.submissions?.length === 0" class="text-center py-8">
           <p class="text-gray-600">暂无提交记录</p>
         </div>
-        
+
         <div v-else class="space-y-3">
-          <div 
-            v-for="submission in submissionsData?.submissions" 
+          <div
+            v-for="submission in submissionsData?.submissions"
             :key="submission.id"
             class="border border-gray-200 rounded-lg p-4"
           >
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center space-x-3">
                 <span class="font-medium text-gray-900">{{ submission.team.name }}</span>
-                <span 
+                <span
                   :class="{
                     'bg-yellow-100 text-yellow-800': submission.status === 'PENDING',
                     'bg-blue-100 text-blue-800': submission.status === 'JUDGING',
@@ -190,12 +191,12 @@
               </div>
               <span class="text-sm text-gray-500">{{ formatDate(submission.submittedAt) }}</span>
             </div>
-            
+
             <div v-if="submission.score !== null" class="mb-2">
               <span class="text-sm text-gray-600">得分: </span>
               <span class="font-medium text-lg">{{ submission.score }}</span>
             </div>
-            
+
             <div class="flex items-center justify-between">
               <span class="text-sm text-gray-600">提交者: {{ submission.user.username }}</span>
               <NuxtLink
@@ -254,30 +255,30 @@ const handleFileSelect = (event) => {
 
 const submitFile = async () => {
   if (!selectedTeamId.value || !selectedFile.value) return
-  
+
   isSubmitting.value = true
   submitError.value = ''
   submitSuccess.value = false
-  
+
   try {
     const formData = new FormData()
     formData.append('file', selectedFile.value)
     formData.append('problemId', problemId)
     formData.append('competitionId', data.value.problem.competitionId)
     formData.append('teamId', selectedTeamId.value)
-    
+
     const response = await $fetch('/api/submissions/upload', {
       method: 'POST',
       body: formData
     })
-    
+
     if (response.success) {
       submitSuccess.value = true
       selectedFile.value = null
       fileInput.value.value = ''
       await refreshSubmissions()
     }
-    
+
   } catch (err) {
     submitError.value = err.data?.message || err.message || '提交失败'
   } finally {

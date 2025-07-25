@@ -28,7 +28,19 @@ export default defineEventHandler(async (event) => {
 
   const problem = await $prisma.problem.findUnique({
     where: { id: problemId },
-    include: {
+    select: {
+      id: true,
+      title: true,
+      shortDescription: true,
+      detailedDescription: true,
+      competitionId: true,
+      datasetUrl: true,
+      judgingScriptUrl: true,
+      startTime: true,
+      endTime: true,
+      createdAt: true,
+      updatedAt: true,
+      score: true,
       competition: {
         select: {
           id: true,
