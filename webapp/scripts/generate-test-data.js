@@ -30,9 +30,9 @@ async function main() {
             // For this script, we'll create a temporary user as the creator
             creator: {
                 create: {
-                    username: 'admin_creator',
+                    username: 'admin',
                     email: 'admin.creator@example.com',
-                    passwordHash: await bcrypt.hash('password123', 10),
+                    passwordHash: await bcrypt.hash('123456', 10),
                     role: 'admin',
                 },
             },
