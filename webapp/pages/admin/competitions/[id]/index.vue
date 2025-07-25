@@ -312,7 +312,7 @@ const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleString('zh-CN')
 }
 
-const { convertLocalToUTC } = useDateUtils()
+import { convertLocalToUTC } from '~/composables/useDateUtils'
 
 const getStatusText = (status: string): string => {
   const statusMap: Record<string, string> = {
