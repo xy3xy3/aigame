@@ -19,7 +19,7 @@
               required
               class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="邮箱地址或用户名"
-            >
+            />
           </div>
           <div>
             <label for="password" class="sr-only">密码</label>
@@ -32,7 +32,7 @@
               required
               class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="密码"
-            >
+            />
           </div>
         </div>
 
@@ -46,15 +46,12 @@
             :disabled="isLoading"
             class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            {{ isLoading ? '登录中...' : '登录' }}
+            {{ isLoading ? "登录中..." : "登录" }}
           </button>
         </div>
 
         <div class="text-center">
-          <NuxtLink
-            to="/register"
-            class="text-indigo-600 hover:text-indigo-500"
-          >
+          <NuxtLink to="/register" class="text-indigo-600 hover:text-indigo-500">
             还没有账户？注册
           </NuxtLink>
         </div>
@@ -65,45 +62,53 @@
 
 <script setup>
 // 使用认证状态管理
-// 使用认证状态管理
-const { login, isLoading, isLoggedIn } = useCustomAuth()
-const route = useRoute()
-const router = useRouter()
+const { login, isLoading, isLoggedIn } = useCustomAuth();
+const route = useRoute();
+const router = useRouter();
+
+// 添加调试日志
+console.log("[LOGIN PAGE] 页面加载，当前路由:", route.path);
+console.log("[LOGIN PAGE] 重定向参数:", route.query.redirect);
+console.log("[LOGIN PAGE] 是否已登录:", isLoggedIn.value);
 
 const form = reactive({
-  identifier: '',
-  password: ''
-})
+  identifier: "",
+  password: "",
+});
 
-const error = ref('')
+const error = ref("");
 
 const redirectTo = computed(() => {
-  if (route.query.redirect && typeof route.query.redirect === 'string') {
+  if (route.query.redirect && typeof route.query.redirect === "string") {
     // Basic validation to prevent open redirects
-    if (route.query.redirect.startsWith('/')) {
-      return route.query.redirect
+    if (route.query.redirect.startsWith("/")) {
+      return route.query.redirect;
     }
   }
-  return '/'
-})
+  return "/";
+});
 
 // 如果用户已经登录，则重定向
-watch(isLoggedIn, (loggedIn) => {
-  if (loggedIn) {
-    router.push(redirectTo.value)
-  }
-}, { immediate: true })
+watch(
+  isLoggedIn,
+  (loggedIn) => {
+    if (loggedIn) {
+      router.push(redirectTo.value);
+    }
+  },
+  { immediate: true }
+);
 
 const handleLogin = async () => {
-  if (isLoading.value) return
+  if (isLoading.value) return;
 
-  error.value = ''
+  error.value = "";
 
   try {
-    await login(form.identifier, form.password)
+    await login(form.identifier, form.password);
     // 登录成功后，isLoggedIn 会变为 true，watch 会触发重定向
   } catch (err) {
-    error.value = err.statusMessage || err.message || '登录失败'
+    error.value = err.statusMessage || err.message || "登录失败";
   }
-}
+};
 </script>
