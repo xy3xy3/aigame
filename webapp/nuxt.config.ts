@@ -10,7 +10,8 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxtjs/color-mode',
     '@nuxt/image',
-    '@prisma/nuxt'
+    '@prisma/nuxt',
+    'notivue/nuxt'
   ],
 
   // Prisma配置 - 禁用迁移提示
@@ -21,7 +22,11 @@ export default defineNuxtConfig({
   },
 
   // CSS配置
-  css: ['~/assets/css/main.css'],
+  css: [
+    '~/assets/css/main.css',
+    'notivue/notification.css', // Only needed if using built-in notifications
+    'notivue/animations.css' // Only needed if using built-in animations
+  ],
 
   // 运行时配置
   runtimeConfig: {

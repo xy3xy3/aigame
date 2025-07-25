@@ -11,8 +11,18 @@
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              <svg
+                class="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                ></path>
               </svg>
             </div>
           </div>
@@ -29,8 +39,18 @@
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+              <svg
+                class="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                ></path>
               </svg>
             </div>
           </div>
@@ -46,16 +66,30 @@
       <div class="bg-white rounded-lg shadow-md p-6">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+            <div
+              class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center"
+            >
+              <svg
+                class="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                ></path>
               </svg>
             </div>
           </div>
           <div class="ml-5 w-0 flex-1">
             <dl>
               <dt class="text-sm font-medium text-gray-500 truncate">总比赛数</dt>
-              <dd class="text-lg font-medium text-gray-900">{{ stats.competitions || 0 }}</dd>
+              <dd class="text-lg font-medium text-gray-900">
+                {{ stats.competitions || 0 }}
+              </dd>
             </dl>
           </div>
         </div>
@@ -64,16 +98,30 @@
       <div class="bg-white rounded-lg shadow-md p-6">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <div class="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            <div
+              class="w-8 h-8 bg-orange-500 rounded-md flex items-center justify-center"
+            >
+              <svg
+                class="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                ></path>
               </svg>
             </div>
           </div>
           <div class="ml-5 w-0 flex-1">
             <dl>
               <dt class="text-sm font-medium text-gray-500 truncate">总提交数</dt>
-              <dd class="text-lg font-medium text-gray-900">{{ stats.submissions || 0 }}</dd>
+              <dd class="text-lg font-medium text-gray-900">
+                {{ stats.submissions || 0 }}
+              </dd>
             </dl>
           </div>
         </div>
@@ -89,7 +137,7 @@
           :disabled="isRefreshingQueue"
           class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
         >
-          {{ isRefreshingQueue ? '刷新中...' : '刷新' }}
+          {{ isRefreshingQueue ? "刷新中..." : "刷新" }}
         </button>
       </div>
 
@@ -162,7 +210,7 @@
           :disabled="isStartingWorker"
           class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium disabled:opacity-50"
         >
-          {{ isStartingWorker ? '启动中...' : '启动评测工作器' }}
+          {{ isStartingWorker ? "启动中..." : "启动评测工作器" }}
         </button>
         <NuxtLink
           to="/competitions"
@@ -177,65 +225,71 @@
 
 <script setup>
 definePageMeta({
-  middleware: 'auth'
-})
+  middleware: "auth",
+});
 
 const stats = ref({
   users: 0,
   teams: 0,
   competitions: 0,
-  submissions: 0
-})
+  submissions: 0,
+});
 
-const queueStats = ref(null)
-const isRefreshingQueue = ref(false)
-const isStartingWorker = ref(false)
+const queueStats = ref(null);
+const isRefreshingQueue = ref(false);
+const isStartingWorker = ref(false);
 
 const fetchStats = async () => {
   try {
-    const data = await $fetch('/api/admin/stats')
-    stats.value = data
+    const data = await $fetch("/api/admin/stats");
+    stats.value = data;
   } catch (error) {
-    console.error('Failed to fetch stats:', error)
+    console.error("Failed to fetch stats:", error);
   }
-}
+};
 
 const refreshQueueStats = async () => {
-  isRefreshingQueue.value = true
+  isRefreshingQueue.value = true;
   try {
-    const data = await $fetch('/api/admin/queue/stats')
-    queueStats.value = data.stats
+    const data = await $fetch("/api/admin/queue/stats");
+    queueStats.value = data.stats;
   } catch (error) {
-    console.error('Failed to fetch queue stats:', error)
-    queueStats.value = null
+    console.error("Failed to fetch queue stats:", error);
+    queueStats.value = null;
   } finally {
-    isRefreshingQueue.value = false
+    isRefreshingQueue.value = false;
   }
-}
+};
 
 const startWorker = async () => {
-  isStartingWorker.value = true
+  isStartingWorker.value = true;
   try {
-    await $fetch('/api/admin/queue/start', {
-      method: 'POST'
-    })
-    alert('评测工作器启动成功！')
+    await $fetch("/api/admin/queue/start", {
+      method: "POST",
+    });
+    push.success("评测工作器启动成功！");
   } catch (error) {
-    alert('启动评测工作器失败: ' + (error.data?.message || error.message))
+    push.error("启动评测工作器失败: " + (error.data?.message || error.message));
   } finally {
-    isStartingWorker.value = false
+    isStartingWorker.value = false;
   }
-}
+};
+
+// 定义清理函数变量
+let intervalId = null;
 
 onMounted(async () => {
-  await fetchStats()
-  await refreshQueueStats()
+  await fetchStats();
+  await refreshQueueStats();
 
   // 每30秒自动刷新队列状态
-  const interval = setInterval(refreshQueueStats, 30000)
+  intervalId = setInterval(refreshQueueStats, 30000);
+});
 
-  onUnmounted(() => {
-    clearInterval(interval)
-  })
-})
+// 在组件卸载时清理定时器
+onUnmounted(() => {
+  if (intervalId) {
+    clearInterval(intervalId);
+  }
+});
 </script>
