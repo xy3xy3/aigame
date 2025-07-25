@@ -109,3 +109,4 @@ docker-compose.local.yml
 
 tmp/
 temp/
+mongodb.key

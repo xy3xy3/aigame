@@ -10,12 +10,19 @@ services:
       - '27017:27017'
     environment:
       - TZ=Asia/Shanghai
+      - MONGODB_INITDB_ROOT_USERNAME=root
+      - MONGODB_INITDB_ROOT_PASSWORD=password
     volumes:
       - ./data/mongo:/data/db  # 持久化数据目录
       - /etc/localtime:/etc/localtime:ro
-      - /usr/share/zoneinfo/Asia/Shanghai:/etc/timezone:ro
-      - ./init-mongo.sh:/docker-entrypoint/init-mongo.sh:ro
-    command: /docker-entrypoint/init-mongo.sh
+      - ./mongodb.key:/etc/mongo/mongodb.key:ro
+    command:
+      - "mongod"
+      - "--replSet"
+      - "rs0"
+      - "--bind_ip_all"
+      - "--keyFile"
+      - "/etc/mongo/mongodb.key"
   redis:
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/redis:8.0.3
     container_name: redis

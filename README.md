@@ -4,7 +4,12 @@
 
 Redis,Mongodb,minio
 
-`sudo chown -R 998:998 data/mongo`
+```
+mkdir data/mongo
+sudo chown -R 998:998 data/mongo
+openssl rand -base64 756 > mongodb.key
+sudo chown 998:998 mongodb.key
+```
 
 需要设置data权限
 
