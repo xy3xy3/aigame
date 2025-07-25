@@ -1,11 +1,5 @@
-import { z } from 'zod'
-
-const removeMemberSchema = z.object({
-  userId: z.string()
-})
-
 export default defineEventHandler(async (event) => {
-  if (event.method !== 'DELETE') {
+  if (event.method !== 'POST') {
     throw createError({
       statusCode: 405,
       statusMessage: 'Method not allowed'
@@ -21,29 +15,22 @@ export default defineEventHandler(async (event) => {
   }
 
   const teamId = getRouterParam(event, 'id')
-  const body = await readBody(event)
 
   try {
-    const { userId } = removeMemberSchema.parse(body)
-
     const { $prisma } = await usePrisma()
 
-    // Get team and verify user is captain
+    // Get team and verify user is a member but not the captain
     const team = await $prisma.team.findUnique({
-      where: { id: teamId }
+      where: { id: teamId },
+      include: {
+        members: true
+      }
     })
 
     if (!team) {
       throw createError({
         statusCode: 404,
         statusMessage: 'Team not found'
-      })
-    }
-
-    if (team.captainId !== user.id) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: '只有队长可以移除成员'
       })
     }
 
@@ -54,39 +41,33 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Cannot remove captain
-    if (userId === team.captainId) {
+    const isMember = team.members.some(member => member.userId === user.id)
+    if (!isMember) {
       throw createError({
-        statusCode: 400,
-        statusMessage: '不能移除队长'
+        statusCode: 403,
+        statusMessage: '你不是该队伍的成员'
       })
     }
 
-    // Remove member
-    // Remove member
+    if (team.captainId === user.id) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: '队长不能退出队伍，只能解散队伍'
+      })
+    }
+
+    // Remove user from team
     await $prisma.teamMember.delete({
       where: {
         teamId_userId: {
           teamId: team.id,
-          userId
+          userId: user.id
         }
       }
     })
 
-    return {
-      success: true,
-      message: '成功移除成员'
-    }
-
+    return { success: true }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Validation failed',
-        data: error.issues
-      })
-    }
-
     throw error
   }
 })

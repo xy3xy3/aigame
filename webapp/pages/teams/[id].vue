@@ -172,7 +172,7 @@
 
               <button
                 v-if="isCaptain && member.user.id !== data.team.captainId && !data.team.isLocked"
-                @click="removeMember(member.user.id)"
+                @click="handleRemoveMember(member.user.id)"
                 class="text-red-600 hover:text-red-800 text-sm font-medium"
               >
                 移除
@@ -240,6 +240,34 @@
       </div>
     </div>
 
+    <!-- Team Actions -->
+    <div v-if="isCaptain || isMember" class="bg-white shadow rounded-lg p-6 mt-6 border-t border-gray-200">
+      <h3 class="text-lg font-medium leading-6 text-gray-900">危险区域</h3>
+      <div class="mt-2 max-w-xl text-sm text-gray-500">
+        <p>请谨慎操作，以下行为不可逆。</p>
+      </div>
+      <div class="mt-5">
+        <!-- Leave Team Button (Member only) -->
+        <button
+          v-if="isMember"
+          @click="handleLeaveTeam"
+          type="button"
+          class="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm"
+        >
+          退出队伍
+        </button>
+        <!-- Disband Team Button (Captain only) -->
+        <button
+          v-if="isCaptain"
+          @click="handleDisbandTeam"
+          type="button"
+          class="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm"
+        >
+          解散队伍
+        </button>
+      </div>
+    </div>
+
     <div v-else class="text-center py-8">
       <p class="text-gray-600">队伍不存在</p>
     </div>
@@ -252,6 +280,7 @@ definePageMeta({
 })
 
 const route = useRoute()
+const router = useRouter()
 const { user } = useAuth()
 
 // 获取头像公共URL (现在由后端处理，直接返回处理过的URL)
@@ -289,6 +318,12 @@ const isCaptain = computed(() => {
   return data.value?.team?.captainId === user.value?.id
 })
 
+const isMember = computed(() => {
+  if (!user.value || !data.value?.team) { return false }
+  const isTeamMember = data.value.team.members.some(m => m.user.id === user.value.id)
+  return isTeamMember && !isCaptain.value
+})
+
 const inviteMember = async () => {
   if (!inviteEmail.value.trim()) return
 
@@ -319,18 +354,49 @@ const inviteMember = async () => {
   }
 }
 
-const removeMember = async (userId) => {
-  if (!confirm('确定要移除这个成员吗？')) return
+const handleRemoveMember = async (userId) => {
+  if (!window.confirm('您确定要移除该成员吗？此操作不可逆。')) {
+    return
+  }
 
   try {
     await $fetch(`/api/teams/${teamId}/remove`, {
       method: 'DELETE',
       body: { userId }
     })
-
     await refresh()
   } catch (err) {
-    alert(err.data?.message || err.statusMessage || '移除成员失败')
+    alert(`移除成员失败: ${err.data?.message || err.statusMessage || '未知错误'}`)
+  }
+}
+
+const handleLeaveTeam = async () => {
+  if (!window.confirm('您确定要退出该队伍吗？')) {
+    return
+  }
+
+  try {
+    await $fetch(`/api/teams/${teamId}/leave`, {
+      method: 'POST'
+    })
+    await router.push('/teams')
+  } catch (err) {
+    alert(`退出队伍失败: ${err.data?.message || err.statusMessage || '未知错误'}`)
+  }
+}
+
+const handleDisbandTeam = async () => {
+  if (!window.confirm('您确定要解散该队伍吗？此操作将永久删除队伍且不可恢复。')) {
+    return
+  }
+
+  try {
+    await $fetch(`/api/teams/${teamId}`, {
+      method: 'DELETE'
+    })
+    await router.push('/teams')
+  } catch (err) {
+    alert(`解散队伍失败: ${err.data?.message || err.statusMessage || '未知错误'}`)
   }
 }
 
@@ -347,7 +413,7 @@ const copyToClipboard = async () => {
   }
 }
 // 开始编辑团队信息
-  const startEditing = () => {
+const startEditing = () => {
     newDescription.value = teamDescription.value
     isEditing.value = true
     updateError.value = ''

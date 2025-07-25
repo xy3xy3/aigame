@@ -1,9 +1,3 @@
-import { z } from 'zod'
-
-const removeMemberSchema = z.object({
-  userId: z.string()
-})
-
 export default defineEventHandler(async (event) => {
   if (event.method !== 'DELETE') {
     throw createError({
@@ -21,11 +15,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const teamId = getRouterParam(event, 'id')
-  const body = await readBody(event)
 
   try {
-    const { userId } = removeMemberSchema.parse(body)
-
     const { $prisma } = await usePrisma()
 
     // Get team and verify user is captain
@@ -43,7 +34,7 @@ export default defineEventHandler(async (event) => {
     if (team.captainId !== user.id) {
       throw createError({
         statusCode: 403,
-        statusMessage: '只有队长可以移除成员'
+        statusMessage: '只有队长可以解散队伍'
       })
     }
 
@@ -54,39 +45,13 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Cannot remove captain
-    if (userId === team.captainId) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: '不能移除队长'
-      })
-    }
-
-    // Remove member
-    // Remove member
-    await $prisma.teamMember.delete({
-      where: {
-        teamId_userId: {
-          teamId: team.id,
-          userId
-        }
-      }
+    // Delete team
+    await $prisma.team.delete({
+      where: { id: teamId }
     })
 
-    return {
-      success: true,
-      message: '成功移除成员'
-    }
-
+    return { success: true }
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Validation failed',
-        data: error.issues
-      })
-    }
-
     throw error
   }
 })
