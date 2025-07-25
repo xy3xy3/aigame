@@ -16,7 +16,8 @@ export default defineNuxtConfig({
   // Prisma配置 - 禁用迁移提示
   prisma: {
     autoSetupPrisma: false,
-    installStudio: false
+    installStudio: false,
+    runMigration: false
   },
 
   // CSS配置
