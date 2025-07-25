@@ -33,12 +33,20 @@ export async function uploadFile(
   buffer: Buffer,
   metadata?: Record<string, string>
 ): Promise<string> {
-  const client = getMinioClient()
-  await ensureBucketExists(bucketName)
+  try {
+    const client = getMinioClient()
+    await ensureBucketExists(bucketName)
 
-  await client.putObject(bucketName, objectName, buffer, buffer.length, metadata)
+    console.log(`Uploading to MinIO: bucket=${bucketName}, object=${objectName}, size=${buffer.length}`)
 
-  return `${bucketName}/${objectName}`
+    await client.putObject(bucketName, objectName, buffer, buffer.length, metadata)
+
+    console.log(`Successfully uploaded to MinIO: bucket=${bucketName}, object=${objectName}`)
+    return `${bucketName}/${objectName}`
+  } catch (error) {
+    console.error('MinIO upload error:', error)
+    throw new Error(`Failed to upload file to MinIO: ${error.message}`)
+  }
 }
 
 export async function downloadFile(

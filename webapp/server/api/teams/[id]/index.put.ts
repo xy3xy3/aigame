@@ -167,20 +167,42 @@ export default defineEventHandler(async (event) => {
     // 如果上传了头像，则处理头像上传
     let avatarUrl = null
     if (file) {
-      // 上传文件到MinIO
-      const timestamp = Date.now()
-      const fileName = `${timestamp}-${file.originalname}`
-      const objectName = `avatars/teams/${teamId}/${fileName}`
+      try {
+        // 上传文件到MinIO
+        const timestamp = Date.now()
+        // 清理文件名，移除特殊字符
+        const cleanFileName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_')
+        const fileName = `${timestamp}-${cleanFileName}`
+        const objectName = `avatars/teams/${teamId}/${fileName}`
 
-      const filePath = await uploadFile('avatars', objectName, file.buffer, {
-        'Content-Type': file.mimetype,
-        'Original-Name': file.originalname,
-        'Uploaded-By': user.id,
-        'Team-Id': teamId as string
-      })
+        // 确保文件大小参数正确
+        const fileSize = file.size || file.buffer.length
 
-      avatarUrl = `avatars/${objectName}`
-      updateData.avatarUrl = avatarUrl
+        // 清理和验证元数据
+        const metadata = {
+          'Content-Type': file.mimetype,
+          'Original-Name': cleanFileName,
+          'Uploaded-By': user.id,
+          'Team-Id': teamId as string,
+          'Upload-Timestamp': timestamp.toString()
+        }
+
+        console.log(`Uploading team avatar: ${fileName}, size: ${fileSize}, team: ${teamId}`)
+
+        const filePath = await uploadFile('avatars', objectName, file.buffer, metadata)
+
+        avatarUrl = `avatars/${objectName}`
+        updateData.avatarUrl = avatarUrl
+
+        console.log(`Team avatar uploaded successfully: ${filePath}`)
+      } catch (uploadError) {
+        console.error('Team avatar upload error:', uploadError)
+        throw createError({
+          statusCode: 500,
+          statusMessage: 'Failed to upload team avatar',
+          data: uploadError.message
+        })
+      }
     }
 
     // 检查客户端连接状态
