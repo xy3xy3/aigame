@@ -40,7 +40,7 @@
             </h1>
             <div class="flex items-center">
               <NuxtLink
-                :to="`/competitions/${route.params.id}-leaderboard`"
+                :to="`/competitions/${route.params.id}/leaderboard`"
                 class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 排行榜
@@ -382,11 +382,6 @@ definePageMeta({
 
 const route = useRoute();
 const competitionId = route.params.id;
-
-// 添加调试日志
-console.log("[COMPETITION DETAIL PAGE] 页面加载，当前路由:", route.path);
-console.log("[COMPETITION DETAIL PAGE] 比赛ID:", competitionId);
-console.log("[COMPETITION DETAIL PAGE] 完整路径:", route.fullPath);
 
 // 参加比赛相关状态
 const showJoinModal = ref(false);

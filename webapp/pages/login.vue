@@ -66,11 +66,6 @@ const { login, isLoading, isLoggedIn } = useCustomAuth();
 const route = useRoute();
 const router = useRouter();
 
-// 添加调试日志
-console.log("[LOGIN PAGE] 页面加载，当前路由:", route.path);
-console.log("[LOGIN PAGE] 重定向参数:", route.query.redirect);
-console.log("[LOGIN PAGE] 是否已登录:", isLoggedIn.value);
-
 const form = reactive({
   identifier: "",
   password: "",
