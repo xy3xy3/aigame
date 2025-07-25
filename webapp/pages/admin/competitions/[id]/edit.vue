@@ -226,5 +226,5 @@ const handleSubmit = async () => {
   }
 }
 
-const { convertLocalToUTC } = useDateUtils()
+import { convertLocalToUTC } from '~/composables/useDateUtils'
 </script>

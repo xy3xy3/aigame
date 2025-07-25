@@ -196,7 +196,7 @@ const isSubmitting = ref(false)
 const error = ref('')
 const success = ref(false)
 
-const { convertLocalToUTC } = useDateUtils()
+import { convertLocalToUTC } from '~/composables/useDateUtils'
 
 const handleSubmit = async () => {
   if (isSubmitting.value) return

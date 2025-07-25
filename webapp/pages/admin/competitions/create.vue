@@ -193,5 +193,5 @@ onMounted(() => {
   form.endTime = end.toISOString().slice(0, 16)
 })
 
-const { convertLocalToUTC } = useDateUtils()
+import { convertLocalToUTC } from '~/composables/useDateUtils'
 </script>
