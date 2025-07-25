@@ -59,7 +59,9 @@
 
     <!-- 加载状态 -->
     <div v-if="pending" class="text-center py-8">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+      ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
 
@@ -83,7 +85,7 @@
                 :class="{
                   'bg-yellow-100 text-yellow-800': problem.status === 'upcoming',
                   'bg-green-100 text-green-800': problem.status === 'ongoing',
-                  'bg-gray-100 text-gray-800': problem.status === 'ended'
+                  'bg-gray-100 text-gray-800': problem.status === 'ended',
                 }"
                 class="px-2 py-1 rounded-full text-xs font-medium"
               >
@@ -161,7 +163,10 @@
     </div>
 
     <!-- 分页 -->
-    <div v-if="data?.pagination && data.pagination.totalPages > 1" class="mt-8 flex justify-center">
+    <div
+      v-if="data?.pagination && data.pagination.totalPages > 1"
+      class="mt-8 flex justify-center"
+    >
       <nav class="flex space-x-2">
         <button
           v-for="page in data.pagination.totalPages"
@@ -169,7 +174,7 @@
           @click="goToPage(page)"
           :class="{
             'bg-indigo-600 text-white': page === currentPage,
-            'bg-white text-gray-700 hover:bg-gray-50': page !== currentPage
+            'bg-white text-gray-700 hover:bg-gray-50': page !== currentPage,
           }"
           class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium"
         >
@@ -182,110 +187,115 @@
 
 <script setup lang="ts">
 interface Competition {
-  id: string
-  title: string
+  id: string;
+  title: string;
 }
 
 interface Problem {
-  id: string
-  title: string
-  shortDescription: string
-  startTime: string
-  endTime: string
-  status: string
-  datasetUrl?: string
-  judgingScriptUrl?: string
+  id: string;
+  title: string;
+  shortDescription: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  datasetUrl?: string;
+  judgingScriptUrl?: string;
   competition: {
-    id: string
-    title: string
-  }
+    id: string;
+    title: string;
+  };
   _count: {
-    submissions: number
-  }
+    submissions: number;
+  };
 }
 
 interface ProblemsResponse {
-  success: boolean
-  problems: Problem[]
+  success: boolean;
+  problems: Problem[];
   pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 interface CompetitionsResponse {
-  success: boolean
-  competitions: Competition[]
+  success: boolean;
+  competitions: Competition[];
 }
 
 definePageMeta({
-  middleware: 'auth'
-})
+  middleware: "auth",
+});
 
 // 筛选状态
-const selectedStatus = ref<string>('')
-const selectedCompetition = ref<string>('')
-const currentPage = ref<number>(1)
+const selectedStatus = ref<string>("");
+const selectedCompetition = ref<string>("");
+const currentPage = ref<number>(1);
 
 // 获取竞赛列表用于筛选
-const { data: competitionsData } = await useFetch<CompetitionsResponse>('/api/competitions/simple')
-const competitions = computed(() => competitionsData.value?.competitions || [])
+const { data: competitionsData } = await useFetch<CompetitionsResponse>(
+  "/api/competitions/simple"
+);
+const competitions = computed(() => competitionsData.value?.competitions || []);
 
 // 获取题目列表
-const { data, pending, error, refresh } = await useFetch<ProblemsResponse>('/api/problems', {
-  query: {
-    status: selectedStatus,
-    competitionId: selectedCompetition,
-    page: currentPage,
-    limit: 20 // 管理页面显示更多
+const { data, pending, error, refresh } = await useFetch<ProblemsResponse>(
+  "/api/problems",
+  {
+    query: {
+      status: selectedStatus,
+      competitionId: selectedCompetition,
+      page: currentPage,
+      limit: 20, // 管理页面显示更多
+    },
   }
-})
+);
 
 const fetchProblems = () => {
-  currentPage.value = 1
-  refresh()
-}
+  currentPage.value = 1;
+  refresh();
+};
 
 const goToPage = (page: number) => {
-  currentPage.value = page
-  refresh()
-}
+  currentPage.value = page;
+  refresh();
+};
 
 const getStatusText = (status: string): string => {
   const statusMap: Record<string, string> = {
-    'upcoming': '即将开始',
-    'ongoing': '进行中',
-    'ended': '已结束'
-  }
-  return statusMap[status] || status
-}
+    upcoming: "即将开始",
+    ongoing: "进行中",
+    ended: "已结束",
+  };
+  return statusMap[status] || status;
+};
 
 const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleString('zh-CN')
-}
+  return new Date(dateString).toLocaleString("zh-CN");
+};
 
 const deleteProblem = async (problemId: string) => {
-  if (!confirm('确定要删除这个题目吗？此操作不可撤销。')) {
-    return
+  if (!confirm("确定要删除这个题目吗？此操作不可撤销。")) {
+    return;
   }
 
   try {
     await $fetch(`/api/problems/${problemId}`, {
-      method: 'DELETE' as any
-    })
+      method: "DELETE" as any,
+    });
 
     // 刷新列表
-    await refresh()
+    await refresh();
 
     // 显示成功消息
-    alert('题目删除成功')
+    push.success("题目删除成功");
   } catch (error: any) {
-    console.error('删除题目失败:', error)
-    alert('删除题目失败: ' + (error.data?.message || error.message))
+    console.error("删除题目失败:", error);
+    push.error("删除题目失败: " + (error.data?.message || error.message));
   }
-}
+};
 </script>
 
 <style scoped>

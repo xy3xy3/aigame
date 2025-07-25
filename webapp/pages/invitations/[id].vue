@@ -1,25 +1,35 @@
 <template>
   <div class="max-w-2xl mx-auto py-12 px-4">
     <div v-if="pending" class="text-center py-8">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+      ></div>
       <p class="mt-2 text-gray-600">正在加载邀请信息...</p>
     </div>
 
-    <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-md p-6 text-center shadow-md">
+    <div
+      v-else-if="error"
+      class="bg-red-50 border border-red-200 rounded-md p-6 text-center shadow-md"
+    >
       <h1 class="text-2xl font-bold text-red-800">邀请无效</h1>
-      <p class="mt-2 text-red-700">{{ error.data?.message || '此邀请链接可能已失效或不存在。' }}</p>
+      <p class="mt-2 text-red-700">
+        {{ error.data?.message || "此邀请链接可能已失效或不存在。" }}
+      </p>
     </div>
 
     <div v-else-if="invitation" class="bg-white shadow-lg rounded-lg p-8 text-center">
       <h1 class="text-3xl font-bold text-gray-900 mb-4">您收到了一个邀请</h1>
       <p class="text-lg text-gray-700 mb-6">
         <template v-if="invitation.inviter">
-          <span class="font-semibold">{{ invitation.inviter.username }}</span> 邀请您加入队伍
-          <span class="font-semibold text-indigo-600">{{ invitation.team.name }}</span>。
+          <span class="font-semibold">{{ invitation.inviter.username }}</span>
+          邀请您加入队伍
+          <span class="font-semibold text-indigo-600">{{ invitation.team.name }}</span
+          >。
         </template>
         <template v-else>
           您被邀请加入队伍
-          <span class="font-semibold text-indigo-600">{{ invitation.team.name }}</span>。
+          <span class="font-semibold text-indigo-600">{{ invitation.team.name }}</span
+          >。
         </template>
       </p>
 
@@ -30,22 +40,28 @@
             :disabled="isProcessing"
             class="px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
           >
-            {{ isProcessing ? '处理中...' : '接受邀请' }}
+            {{ isProcessing ? "处理中..." : "接受邀请" }}
           </button>
           <button
             @click="rejectInvitation"
             :disabled="isProcessing"
             class="px-6 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            {{ isProcessing ? '处理中...' : '拒绝邀请' }}
+            {{ isProcessing ? "处理中..." : "拒绝邀请" }}
           </button>
         </div>
         <p v-if="actionError" class="text-red-600 text-sm mt-4">{{ actionError }}</p>
       </div>
 
       <div v-else class="mt-8">
-        <p class="text-xl font-medium" :class="{ 'text-green-600': invitation.status === 'ACCEPTED', 'text-red-600': invitation.status === 'REJECTED' }">
-          邀请已{{ invitation.status === 'ACCEPTED' ? '接受' : '拒绝' }}
+        <p
+          class="text-xl font-medium"
+          :class="{
+            'text-green-600': invitation.status === 'ACCEPTED',
+            'text-red-600': invitation.status === 'REJECTED',
+          }"
+        >
+          邀请已{{ invitation.status === "ACCEPTED" ? "接受" : "拒绝" }}
         </p>
         <NuxtLink
           v-if="invitation.status === 'ACCEPTED'"
@@ -61,51 +77,56 @@
 
 <script setup>
 definePageMeta({
-  middleware: 'auth'
-})
+  middleware: "auth",
+});
 
-const route = useRoute()
-const router = useRouter()
-const invitationId = route.params.id
+const route = useRoute();
+const router = useRouter();
+const invitationId = route.params.id;
 
-const isProcessing = ref(false)
-const actionError = ref('')
+const isProcessing = ref(false);
+const actionError = ref("");
 
-const { data: invitation, pending, error } = await useFetch(`/api/invitations/${invitationId}`, {
-  lazy: true,
-  server: false // Fetch on client side
-})
+const { data: invitation, pending, error } = await useFetch(
+  `/api/invitations/${invitationId}`,
+  {
+    lazy: true,
+    server: false, // Fetch on client side
+  }
+);
 
 const acceptInvitation = async () => {
-  isProcessing.value = true
-  actionError.value = ''
+  isProcessing.value = true;
+  actionError.value = "";
   try {
     const response = await $fetch(`/api/invitations/${invitationId}/accept`, {
-      method: 'POST'
-    })
-    alert('已成功加入队伍！')
-    await router.push(`/teams/${invitation.value.team.id}`)
+      method: "POST",
+    });
+    push.success("已成功加入队伍！");
+    await router.push(`/teams/${invitation.value.team.id}`);
   } catch (err) {
-    actionError.value = err.data?.message || '接受邀请失败'
-    isProcessing.value = false
+    actionError.value = err.data?.message || "接受邀请失败";
+    isProcessing.value = false;
   }
-}
+};
 
 const rejectInvitation = async () => {
-  isProcessing.value = true
-  actionError.value = ''
+  isProcessing.value = true;
+  actionError.value = "";
   try {
     await $fetch(`/api/invitations/${invitationId}/reject`, {
-      method: 'POST'
-    })
-    alert('已拒绝邀请。')
+      method: "POST",
+    });
+    push.success("已拒绝邀请。");
     // Refresh data to show updated status
-    const { data: updatedInvitation } = await useFetch(`/api/invitations/${invitationId}`)
-    invitation.value = updatedInvitation.value
+    const { data: updatedInvitation } = await useFetch(
+      `/api/invitations/${invitationId}`
+    );
+    invitation.value = updatedInvitation.value;
   } catch (err) {
-    actionError.value = err.data?.message || '拒绝邀请失败'
+    actionError.value = err.data?.message || "拒绝邀请失败";
   } finally {
-    isProcessing.value = false
+    isProcessing.value = false;
   }
-}
+};
 </script>

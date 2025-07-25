@@ -42,7 +42,9 @@
 
     <!-- 加载状态 -->
     <div v-if="pending" class="text-center py-8">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+      ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
 
@@ -66,7 +68,7 @@
                 :class="{
                   'bg-yellow-100 text-yellow-800': competition.status === 'upcoming',
                   'bg-green-100 text-green-800': competition.status === 'ongoing',
-                  'bg-gray-100 text-gray-800': competition.status === 'ended'
+                  'bg-gray-100 text-gray-800': competition.status === 'ended',
                 }"
                 class="px-2 py-1 rounded-full text-xs font-medium"
               >
@@ -147,7 +149,10 @@
     </div>
 
     <!-- 分页 -->
-    <div v-if="data?.pagination && data.pagination.totalPages > 1" class="mt-8 flex justify-center">
+    <div
+      v-if="data?.pagination && data.pagination.totalPages > 1"
+      class="mt-8 flex justify-center"
+    >
       <nav class="flex space-x-2">
         <button
           v-for="page in data.pagination.totalPages"
@@ -155,7 +160,7 @@
           @click="goToPage(page)"
           :class="{
             'bg-indigo-600 text-white': page === currentPage,
-            'bg-white text-gray-700 hover:bg-gray-50': page !== currentPage
+            'bg-white text-gray-700 hover:bg-gray-50': page !== currentPage,
           }"
           class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium"
         >
@@ -168,63 +173,63 @@
 
 <script setup>
 definePageMeta({
-  middleware: 'auth'
-})
+  middleware: "auth",
+});
 
-const selectedStatus = ref('')
-const currentPage = ref(1)
+const selectedStatus = ref("");
+const currentPage = ref(1);
 
-const { data, pending, error, refresh } = await useFetch('/api/competitions', {
+const { data, pending, error, refresh } = await useFetch("/api/competitions", {
   query: {
     status: selectedStatus,
     page: currentPage,
-    limit: 20 // 管理页面显示更多
-  }
-})
+    limit: 20, // 管理页面显示更多
+  },
+});
 
 const fetchCompetitions = () => {
-  currentPage.value = 1
-  refresh()
-}
+  currentPage.value = 1;
+  refresh();
+};
 
 const goToPage = (page) => {
-  currentPage.value = page
-  refresh()
-}
+  currentPage.value = page;
+  refresh();
+};
 
 const getStatusText = (status) => {
   const statusMap = {
-    'upcoming': '即将开始',
-    'ongoing': '进行中',
-    'ended': '已结束'
-  }
-  return statusMap[status] || status
-}
+    upcoming: "即将开始",
+    ongoing: "进行中",
+    ended: "已结束",
+  };
+  return statusMap[status] || status;
+};
 
 const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleString('zh-CN')
-}
+  return new Date(dateString).toLocaleString("zh-CN");
+};
 
 const deleteCompetition = async (competitionId) => {
-  if (!confirm('确定要删除这个比赛吗？此操作不可撤销。')) {
-    return
+  if (!confirm("确定要删除这个比赛吗？此操作不可撤销。")) {
+    return;
   }
 
   try {
     await $fetch(`/api/competitions/${competitionId}`, {
-      method: 'DELETE'
-    })
+      method: "DELETE",
+    });
 
     // 刷新列表
-    await refresh()
+    await refresh();
 
     // 显示成功消息
-    alert('比赛删除成功')
+    push.success("比赛删除成功");
   } catch (error) {
-    console.error('删除比赛失败:', error)
-    alert('删除比赛失败: ' + (error.data?.message || error.message))
+    console.error("删除比赛失败:", error);
+    push.error("删除比赛失败: " + (error.data?.message || error.message));
   }
-}
+};
 </script>
 
 <style scoped>
