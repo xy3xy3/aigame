@@ -28,6 +28,8 @@ model User {
   teamMemberships     TeamMember[]
   submissions         Submission[]
   createdCompetitions Competition[] @relation("CompetitionCreator")
+  sentInvitations     Invitation[]  @relation("Inviter")
+  receivedInvitations Invitation[]  @relation("Invitee")
 
   @@map("users")
 }
@@ -48,6 +50,7 @@ model Team {
   members            TeamMember[]
   submissions        Submission[]
   leaderboardEntries LeaderboardEntry[]
+  invitations        Invitation[]
 
   @@map("teams")
 }
@@ -171,4 +174,27 @@ model LeaderboardEntry {
 
   @@unique([leaderboardId, teamId])
   @@map("leaderboard_entries")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Invitation {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  teamId      String           @db.ObjectId
+  invitedById String           @db.ObjectId
+  inviteeId   String           @db.ObjectId
+  status      InvitationStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  team      Team @relation(fields: [teamId], references: [id])
+  invitedBy User @relation("Inviter", fields: [invitedById], references: [id])
+  invitee   User @relation("Invitee", fields: [inviteeId], references: [id])
+
+  @@map("invitations")
 }

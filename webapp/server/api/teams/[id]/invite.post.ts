@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { sendInvitationEmail } from '~/server/utils/email'
 
 const inviteSchema = z.object({
   email: z.string().email()
@@ -82,21 +83,35 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Check if user is already in another team for any active competitions
-    // For now, we'll allow users to be in multiple teams
-
-    // Add member to team
-    await $prisma.teamMember.create({
-      data: {
+    // Check if there is already a pending invitation
+    const existingInvitation = await $prisma.invitation.findFirst({
+      where: {
         teamId: team.id,
-        userId: userToInvite.id
+        inviteeId: userToInvite.id,
+        status: 'PENDING'
       }
     })
 
-    return {
-      success: true,
-      message: `Successfully invited ${userToInvite.username} to the team`
+    if (existingInvitation) {
+      throw createError({
+        statusCode: 409,
+        statusMessage: 'An invitation has already been sent to this user'
+      })
     }
+
+    // Create invitation
+    const invitation = await $prisma.invitation.create({
+      data: {
+        teamId: team.id,
+        invitedById: user.id,
+        inviteeId: userToInvite.id
+      }
+    })
+
+    // Send invitation email
+    await sendInvitationEmail(invitation.id, userToInvite.email)
+
+    return invitation
 
   } catch (error) {
     if (error instanceof z.ZodError) {

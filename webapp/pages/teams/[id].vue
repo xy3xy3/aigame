@@ -213,6 +213,30 @@
             {{ isInviting ? '邀请中...' : '发送邀请' }}
           </button>
         </form>
+
+        <!-- Generated Invitation Link -->
+        <div v-if="generatedInvitationLink" class="mt-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            邀请链接已生成
+          </label>
+          <div class="flex space-x-2">
+            <input
+              type="text"
+              readonly
+              :value="generatedInvitationLink"
+              class="flex-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            >
+            <button
+              @click="copyToClipboard"
+              class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              复制
+            </button>
+          </div>
+          <p v-if="copySuccess" class="text-green-600 text-sm mt-2">
+            链接已复制到剪贴板！
+          </p>
+        </div>
       </div>
     </div>
 
@@ -240,6 +264,8 @@ const inviteEmail = ref('')
 const isInviting = ref(false)
 const inviteError = ref('')
 const inviteSuccess = ref('')
+const generatedInvitationLink = ref('')
+const copySuccess = ref(false)
 
 // 编辑团队信息相关状态
 const isEditing = ref(false)
@@ -276,8 +302,15 @@ const inviteMember = async () => {
       body: { email: inviteEmail.value.trim() }
     })
 
-    inviteSuccess.value = response.message
+    inviteSuccess.value = '邀请已发送！'
     inviteEmail.value = ''
+
+    // 生成邀请链接
+    if (response.invitation && response.invitation.id) {
+      const baseUrl = window.location.origin
+      generatedInvitationLink.value = `${baseUrl}/invitations/${response.invitation.id}`
+    }
+
     await refresh()
   } catch (err) {
     inviteError.value = err.data?.message || err.statusMessage || '邀请失败'
@@ -298,6 +331,19 @@ const removeMember = async (userId) => {
     await refresh()
   } catch (err) {
     alert(err.data?.message || err.statusMessage || '移除成员失败')
+  }
+}
+
+const copyToClipboard = async () => {
+  try {
+    await navigator.clipboard.writeText(generatedInvitationLink.value)
+    copySuccess.value = true
+    setTimeout(() => {
+      copySuccess.value = false
+    }, 2000)
+  } catch (err) {
+    console.error('无法复制链接: ', err)
+    alert('复制链接失败')
   }
 }
 // 开始编辑团队信息
