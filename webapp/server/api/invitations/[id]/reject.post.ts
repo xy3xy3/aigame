@@ -1,4 +1,4 @@
-import prisma from '~/lib/prisma';
+import prisma from '~/server/utils/prisma';
 import { InvitationStatus } from '@prisma/client';
 
 export default defineEventHandler(async (event) => {

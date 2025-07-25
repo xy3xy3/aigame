@@ -1,4 +1,4 @@
-import prisma from '~/lib/prisma';
+import prisma from '~/server/utils/prisma';
 import type { Invitation, Team, User } from '@prisma/client';
 import { InvitationStatus } from '@prisma/client';
 

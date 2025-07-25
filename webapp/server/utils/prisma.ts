@@ -1,15 +1,15 @@
-import prisma from '../../lib/prisma'
+import { PrismaClient } from '@prisma/client'
 
-/**
- * 获取 Prisma 客户端实例
- * 这个函数提供了一个统一的方式来访问 Prisma 客户端
- * 在 Nuxt 3 服务端 API 路由中使用
- */
-export async function usePrisma() {
-  return {
-    $prisma: prisma
-  }
+const prismaClientSingleton = () => {
+  return new PrismaClient()
 }
 
-// 导出 Prisma 客户端类型，方便类型推断
-export type PrismaClient = typeof prisma
+declare const globalThis: {
+  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
+} & typeof global;
+
+const prisma = globalThis.prismaGlobal ?? prismaClientSingleton()
+
+export default prisma
+
+if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma
