@@ -134,14 +134,26 @@
           管理题目
         </NuxtLink>
         <NuxtLink
-          to="/admin/competitions/create"
+          to="/admin/users"
           class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-center font-medium"
+        >
+          管理用户
+        </NuxtLink>
+        <NuxtLink
+          to="/admin/teams"
+          class="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-md text-center font-medium"
+        >
+          管理队伍
+        </NuxtLink>
+        <NuxtLink
+          to="/admin/competitions/create"
+          class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-md text-center font-medium"
         >
           创建新比赛
         </NuxtLink>
         <NuxtLink
           to="/admin/problems/create"
-          class="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-md text-center font-medium"
+          class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-md text-center font-medium"
         >
           创建新题目
         </NuxtLink>

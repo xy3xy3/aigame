@@ -84,6 +84,20 @@
                     >
                       管理题目
                     </NuxtLink>
+                    <NuxtLink
+                      to="/admin/users"
+                      @click="closeAdminDropdown"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                    >
+                      管理用户
+                    </NuxtLink>
+                    <NuxtLink
+                      to="/admin/teams"
+                      @click="closeAdminDropdown"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                    >
+                      管理队伍
+                    </NuxtLink>
                   </div>
                 </Transition>
               </div>
