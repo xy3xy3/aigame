@@ -3,8 +3,8 @@ import { usePrisma } from '../../../utils/prisma'
 
 const updateProblemSchema = z.object({
   title: z.string().min(2).max(100),
-  shortDescription: z.string().min(10).max(500),
-  detailedDescription: z.string().min(50).max(10000),
+  shortDescription: z.string(),
+  detailedDescription: z.string(),
   datasetUrl: z.string().url().optional(),
   judgingScriptUrl: z.string().url().optional(),
   startTime: z.string().datetime(),
@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   if (event.method !== 'PUT') {
     throw createError({
       statusCode: 405,
-      statusMessage: 'Method not allowed'
+      statusMessage: '方法不被允许'
     })
   }
 
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
   if (!user) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Authentication required'
+      statusMessage: '需要身份验证'
     })
   }
 
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
     if (start >= end) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'End time must be after start time'
+        statusMessage: '结束时间必须在开始时间之后'
       })
     }
 
@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
     if (!existingProblem) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'Problem not found'
+        statusMessage: '题目未找到'
       })
     }
 
@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
       // TODO: 当添加角色系统后，检查是否为管理员
       throw createError({
         statusCode: 403,
-        statusMessage: 'Permission denied. Only the competition creator can edit this problem.'
+        statusMessage: '权限被拒绝。只有比赛创建者可以编辑此题目。'
       })
     }
 
@@ -82,7 +82,7 @@ export default defineEventHandler(async (event) => {
     if (duplicateProblem) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Problem with this title already exists in this competition'
+        statusMessage: '该比赛下已存在相同标题的题目'
       })
     }
 
@@ -122,7 +122,7 @@ export default defineEventHandler(async (event) => {
     if (error.name === 'ZodError') {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Validation failed',
+        statusMessage: '验证失败',
         data: error.issues
       })
     }
@@ -136,7 +136,7 @@ export default defineEventHandler(async (event) => {
     console.error('Update problem error:', error)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Failed to update problem',
+      statusMessage: '更新题目失败',
       data: error.message
     })
   }

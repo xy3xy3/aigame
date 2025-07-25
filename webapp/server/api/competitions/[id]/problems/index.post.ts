@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   if (event.method !== 'POST') {
     throw createError({
       statusCode: 405,
-      statusMessage: 'Method not allowed'
+      statusMessage: '方法不允许'
     })
   }
 
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
   if (!user) {
     throw createError({
       statusCode: 401,
-      statusMessage: 'Authentication required'
+      statusMessage: '需要身份验证'
     })
   }
 
@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
     if (!competition) {
       throw createError({
         statusCode: 404,
-        statusMessage: 'Competition not found'
+        statusMessage: '未找到比赛'
       })
     }
 
@@ -62,14 +62,14 @@ export default defineEventHandler(async (event) => {
     if (start >= end) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'End time must be after start time'
+        statusMessage: '结束时间必须在开始时间之后'
       })
     }
 
     if (start < competition.startTime || end > competition.endTime) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Problem time must be within competition time range'
+        statusMessage: '题目时间必须在比赛时间范围内'
       })
     }
 
@@ -84,7 +84,7 @@ export default defineEventHandler(async (event) => {
     if (existingProblem) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Problem with this title already exists in this competition'
+        statusMessage: '该比赛下已存在同名题目'
       })
     }
 
@@ -111,7 +111,7 @@ export default defineEventHandler(async (event) => {
     if (error.name === 'ZodError') {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Validation failed',
+        statusMessage: '验证失败',
         data: error.issues
       })
     }

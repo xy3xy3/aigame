@@ -62,9 +62,9 @@
           rows="3"
           required
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          placeholder="简要描述题目内容（10-500字符）"
+          placeholder="简要描述题目内容"
         ></textarea>
-        <p class="mt-1 text-sm text-gray-500">{{ form.shortDescription.length }}/500 字符</p>
+        <p class="mt-1 text-sm text-gray-500">{{ form.shortDescription.length }} 字符</p>
       </div>
 
       <!-- 详细描述 -->
@@ -78,9 +78,9 @@
           rows="8"
           required
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          placeholder="详细描述题目要求、数据格式、评分标准等（50-10000字符）"
+          placeholder="详细描述题目要求、数据格式、评分标准等"
         ></textarea>
-        <p class="mt-1 text-sm text-gray-500">{{ form.detailedDescription.length }}/10000 字符</p>
+        <p class="mt-1 text-sm text-gray-500">{{ form.detailedDescription.length }} 字符</p>
       </div>
 
       <!-- 数据集URL -->
@@ -214,13 +214,13 @@ const handleSubmit = async () => {
     }
 
     // 验证字符长度
-    if (form.shortDescription.length < 10 || form.shortDescription.length > 500) {
-      error.value = '简短描述必须在10-500字符之间'
+    if (form.shortDescription.length < 10) {
+      error.value = '简短描述至少需要10个字符'
       return
     }
 
-    if (form.detailedDescription.length < 50 || form.detailedDescription.length > 10000) {
-      error.value = '详细描述必须在50-10000字符之间'
+    if (form.detailedDescription.length < 50) {
+      error.value = '详细描述至少需要50个字符'
       return
     }
 
