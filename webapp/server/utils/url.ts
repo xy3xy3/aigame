@@ -59,3 +59,14 @@ export function processTeamData(team: any): any {
 
   return team
 }
+
+export function processBannerUrl(bannerUrl: string | null): string | null {
+  if (!bannerUrl) return null
+
+  try {
+    return getPublicFileUrl('banners', bannerUrl)
+  } catch (error) {
+    console.error('Error processing banner URL:', error)
+    return null
+  }
+}

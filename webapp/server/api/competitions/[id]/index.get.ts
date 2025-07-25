@@ -1,5 +1,6 @@
 import { getCachedCompetition, cacheCompetition } from '../../../utils/redis'
 import prisma from '../../../utils/prisma'
+import { processBannerUrl } from '../../../utils/url'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -27,18 +28,17 @@ export default defineEventHandler(async (event) => {
       // 如果有缓存，仍需要检查用户参赛状态
       let userParticipating = false
       if (user) {
-
         const userTeams = await prisma.team.findMany({
           where: {
             members: {
               some: {
-                userId: user.id
-              }
+                userId: user.id,
+              },
             },
             participatingIn: {
-              has: competitionId
-            }
-          }
+              has: competitionId,
+            },
+          },
         })
         userParticipating = userTeams.length > 0
       }
@@ -47,8 +47,9 @@ export default defineEventHandler(async (event) => {
         success: true,
         competition: {
           ...cachedCompetition,
-          userParticipating
-        }
+          bannerUrl: processBannerUrl(cachedCompetition.bannerUrl),
+          userParticipating,
+        },
       }
     }
   } catch (error) {
@@ -111,8 +112,9 @@ export default defineEventHandler(async (event) => {
 
   const competitionWithStatus = {
     ...competition,
+    bannerUrl: processBannerUrl(competition.bannerUrl),
     status,
-    userParticipating
+    userParticipating,
   }
 
   // 缓存结果（30分钟）- 如果Redis可用

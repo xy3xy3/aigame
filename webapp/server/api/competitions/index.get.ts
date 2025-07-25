@@ -1,4 +1,5 @@
 import prisma from '../../utils/prisma'
+import { processBannerUrl } from '../../utils/url'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -99,6 +100,7 @@ export default defineEventHandler(async (event) => {
 
     return {
       ...competition,
+      bannerUrl: processBannerUrl(competition.bannerUrl),
       status: competitionStatus,
       userParticipating: userParticipatingCompetitions.includes(competition.id)
     }

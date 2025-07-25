@@ -7,7 +7,9 @@
 
     <!-- 加载状态 -->
     <div v-if="pending" class="text-center py-8">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+      ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
 
@@ -74,16 +76,44 @@
           </div>
 
           <div>
-            <label for="bannerUrl" class="block text-sm font-medium text-gray-700 mb-1">
-              横幅图片URL（可选）
+            <label for="banner" class="block text-sm font-medium text-gray-700 mb-1">
+              比赛横幅
             </label>
-            <input
-              id="bannerUrl"
-              v-model="form.bannerUrl"
-              type="url"
-              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="https://example.com/banner.jpg"
-            />
+            <div class="mt-2 flex items-center space-x-4">
+              <div class="flex-shrink-0">
+                <img
+                  v-if="bannerPreview"
+                  :src="bannerPreview"
+                  alt="横幅预览"
+                  class="h-16 w-auto rounded-md object-cover"
+                />
+                <div
+                  v-else
+                  class="h-16 w-32 flex items-center justify-center rounded-md border-2 border-dashed border-gray-300 text-sm text-gray-400"
+                >
+                  图片预览
+                </div>
+              </div>
+              <div class="flex-grow">
+                <input
+                  id="banner"
+                  type="file"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleBannerUpload"
+                />
+                <label
+                  for="banner"
+                  class="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                >
+                  上传新图片
+                </label>
+                <p v-if="uploading" class="mt-1 text-sm text-gray-500">上传中...</p>
+                <p v-if="uploadError" class="mt-1 text-sm text-red-600">
+                  {{ uploadError }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -134,7 +164,7 @@
           :disabled="isSubmitting"
           class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium disabled:opacity-50"
         >
-          {{ isSubmitting ? '更新中...' : '更新比赛' }}
+          {{ isSubmitting ? "更新中..." : "更新比赛" }}
         </button>
       </div>
     </form>
@@ -143,88 +173,123 @@
 
 <script setup>
 definePageMeta({
-  middleware: 'auth'
-})
+  middleware: "auth",
+});
 
-const route = useRoute()
-const competitionId = route.params.id
+const route = useRoute();
+const competitionId = route.params.id;
 
 // 获取比赛数据
-const { data, pending, error } = await useFetch(`/api/competitions/${competitionId}`)
+const { data, pending, error } = await useFetch(`/api/competitions/${competitionId}`);
 
 const form = reactive({
-  title: '',
-  description: '',
-  rules: '',
-  bannerUrl: '',
-  startTime: '',
-  endTime: ''
-})
+  title: "",
+  description: "",
+  rules: "",
+  bannerUrl: "",
+  startTime: "",
+  endTime: "",
+});
 
-const isSubmitting = ref(false)
-const submitError = ref('')
-const success = ref(false)
+const isSubmitting = ref(false);
+const submitError = ref("");
+const success = ref(false);
+const bannerPreview = ref("");
+const uploading = ref(false);
+const uploadError = ref("");
+
+const handleBannerUpload = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  bannerPreview.value = URL.createObjectURL(file);
+  uploading.value = true;
+  uploadError.value = "";
+
+  const formData = new FormData();
+  formData.append("banner", file);
+
+  try {
+    const result = await $fetch("/api/competitions/banner/upload", {
+      method: "POST",
+      body: formData,
+    });
+    form.bannerUrl = result.url;
+  } catch (err) {
+    uploadError.value = err.data?.message || "上传失败";
+    // 如果上传失败，恢复到原始图片
+    bannerPreview.value = data.value?.competition?.bannerUrl || "";
+  } finally {
+    uploading.value = false;
+  }
+};
 
 // 当数据加载完成后，填充表单
-watch(data, (newData) => {
-  if (newData?.competition) {
-    const competition = newData.competition
-    form.title = competition.title
-    form.description = competition.description
-    form.rules = competition.rules
-    form.bannerUrl = competition.bannerUrl || ''
+watch(
+  data,
+  (newData) => {
+    if (newData?.competition) {
+      const competition = newData.competition;
+      form.title = competition.title;
+      form.description = competition.description;
+      form.rules = competition.rules;
+      form.bannerUrl = competition.bannerUrl || "";
+      if (competition.bannerUrl) {
+        bannerPreview.value = competition.bannerUrl;
+      }
 
-    // 转换时间格式为 datetime-local 输入框需要的格式
-    form.startTime = new Date(competition.startTime).toISOString().slice(0, 16)
-    form.endTime = new Date(competition.endTime).toISOString().slice(0, 16)
-  }
-}, { immediate: true })
+      // 转换时间格式为 datetime-local 输入框需要的格式
+      form.startTime = new Date(competition.startTime).toISOString().slice(0, 16);
+      form.endTime = new Date(competition.endTime).toISOString().slice(0, 16);
+    }
+  },
+  { immediate: true }
+);
 
 const handleSubmit = async () => {
-  if (isSubmitting.value) return
+  if (isSubmitting.value) return;
 
-  submitError.value = ''
-  success.value = false
-  isSubmitting.value = true
+  submitError.value = "";
+  success.value = false;
+  isSubmitting.value = true;
 
   try {
     // 验证时间
-    const startDate = new Date(form.startTime)
-    const endDate = new Date(form.endTime)
+    const startDate = new Date(form.startTime);
+    const endDate = new Date(form.endTime);
 
     if (startDate >= endDate) {
-      submitError.value = '结束时间必须晚于开始时间'
-      return
+      submitError.value = "结束时间必须晚于开始时间";
+      return;
     }
 
     const updateData = await $fetch(`/api/competitions/${competitionId}`, {
-      method: 'PUT',
+      method: "PUT",
       body: {
         title: form.title,
         description: form.description,
         rules: form.rules,
         bannerUrl: form.bannerUrl || undefined,
         startTime: convertLocalToUTC(form.startTime),
-        endTime: convertLocalToUTC(form.endTime)
-      }
-    })
+        endTime: convertLocalToUTC(form.endTime),
+      },
+    });
 
     if (updateData.success) {
-      success.value = true
+      success.value = true;
 
       // 3秒后跳转到比赛管理页面
       setTimeout(() => {
-        navigateTo('/admin/competitions')
-      }, 2000)
+        navigateTo("/admin/competitions");
+      }, 2000);
     }
-
   } catch (error) {
-    console.error('更新比赛失败:', error)
-    submitError.value = error.data?.message || error.message || '更新失败，请重试'
+    console.error("更新比赛失败:", error);
+    submitError.value = error.data?.message || error.message || "更新失败，请重试";
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
-}
+};
 
-import { convertLocalToUTC } from '~/composables/useDateUtils'
+import { convertLocalToUTC } from "~/composables/useDateUtils";
 </script>
