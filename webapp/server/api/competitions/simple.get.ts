@@ -14,7 +14,9 @@ export default defineEventHandler(async (event) => {
   const competitions = await $prisma.competition.findMany({
     select: {
       id: true,
-      title: true
+      title: true,
+      startTime: true,
+      endTime: true
     },
     orderBy: {
       createdAt: 'desc'

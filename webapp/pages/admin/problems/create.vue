@@ -164,6 +164,8 @@
 interface Competition {
   id: string
   title: string
+  startTime: string
+  endTime: string
 }
 
 interface CompetitionsResponse {
@@ -239,7 +241,7 @@ const handleSubmit = async () => {
       success.value = true
       // 重置表单
       Object.keys(form).forEach(key => {
-        form[key] = ''
+        (form as any)[key] = ''
       })
 
       // 3秒后跳转到题目列表
@@ -255,13 +257,26 @@ const handleSubmit = async () => {
   }
 }
 
-// 设置默认时间（当前时间+1小时作为开始时间，+25小时作为结束时间）
-onMounted(() => {
-  const now = new Date()
-  const start = new Date(now.getTime() + 60 * 60 * 1000) // +1小时
-  const end = new Date(now.getTime() + 25 * 60 * 60 * 1000) // +25小时
+// 监听比赛选择变化，设置默认时间为比赛的开始和结束时间
+watch(() => form.competitionId, (newCompetitionId) => {
+  if (newCompetitionId) {
+    const selectedCompetition = competitions.value.find(comp => comp.id === newCompetitionId)
+    if (selectedCompetition) {
+      form.startTime = new Date(selectedCompetition.startTime).toISOString().slice(0, 16)
+      form.endTime = new Date(selectedCompetition.endTime).toISOString().slice(0, 16)
+    }
+  }
+})
 
-  form.startTime = start.toISOString().slice(0, 16)
-  form.endTime = end.toISOString().slice(0, 16)
+// 设置默认时间（如果没有选择比赛，使用当前时间+1小时作为开始时间，+25小时作为结束时间）
+onMounted(() => {
+  if (!form.competitionId) {
+    const now = new Date()
+    const start = new Date(now.getTime() + 60 * 60 * 1000) // +1小时
+    const end = new Date(now.getTime() + 25 * 60 * 60 * 1000) // +25小时
+
+    form.startTime = start.toISOString().slice(0, 16)
+    form.endTime = end.toISOString().slice(0, 16)
+  }
 })
 </script>

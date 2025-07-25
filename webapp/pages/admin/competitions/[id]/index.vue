@@ -282,7 +282,7 @@ const { data, pending, error, refresh } = await useFetch<CompetitionResponse>(`/
 
 const problems = computed(() => {
   if (!data.value?.competition?.problems) return []
-  
+
   const now = new Date()
   return data.value.competition.problems.map(problem => {
     let status = 'upcoming'
@@ -351,9 +351,9 @@ const createProblem = async () => {
     if (result.success) {
       // 重置表单
       Object.keys(createForm).forEach(key => {
-        createForm[key] = ''
+        (createForm as any)[key] = ''
       })
-      
+
       showCreateForm.value = false
       await refresh() // 刷新数据
     }
@@ -383,15 +383,14 @@ const deleteProblem = async (problemId: string) => {
   }
 }
 
-// 设置默认时间
-onMounted(() => {
-  const now = new Date()
-  const start = new Date(now.getTime() + 60 * 60 * 1000) // +1小时
-  const end = new Date(now.getTime() + 25 * 60 * 60 * 1000) // +25小时
-
-  createForm.startTime = start.toISOString().slice(0, 16)
-  createForm.endTime = end.toISOString().slice(0, 16)
-})
+// 设置默认时间为比赛的开始和结束时间
+watch(data, (newData) => {
+  if (newData?.competition) {
+    const competition = newData.competition
+    createForm.startTime = new Date(competition.startTime).toISOString().slice(0, 16)
+    createForm.endTime = new Date(competition.endTime).toISOString().slice(0, 16)
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>
