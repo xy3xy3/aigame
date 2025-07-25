@@ -46,8 +46,25 @@ export default defineEventHandler(async (event) => {
     }
 
     // Delete team
-    await $prisma.team.delete({
-      where: { id: teamId }
+    await $prisma.$transaction(async (prisma) => {
+      // Delete all related data
+      await prisma.teamMember.deleteMany({
+        where: { teamId }
+      })
+      await prisma.invitation.deleteMany({
+        where: { teamId }
+      })
+      await prisma.submission.deleteMany({
+        where: { teamId }
+      })
+      await prisma.leaderboardEntry.deleteMany({
+        where: { teamId }
+      })
+
+      // Delete team
+      await prisma.team.delete({
+        where: { id: teamId }
+      })
     })
 
     return { success: true }
