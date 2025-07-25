@@ -197,17 +197,15 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    // 添加到评测队列 (暂时禁用，因为Redis未安装)
-    // await addEvaluationJob({
-    //   submissionId: submission.id,
-    //   problemId,
-    //   competitionId,
-    //   teamId,
-    //   userId: user.id,
-    //   submissionUrl: submission.submissionUrl
-    // })
-
-    console.log('Submission uploaded but evaluation queue is disabled')
+    // 添加到评测队列
+    await addEvaluationJob({
+      submissionId: submission.id,
+      problemId,
+      competitionId,
+      teamId,
+      userId: user.id,
+      submissionUrl: submission.submissionUrl
+    })
 
     return {
       success: true,

@@ -27,6 +27,7 @@ export default defineNuxtConfig({
     // 私有配置（仅服务端可用）
     mongodbUri: process.env.MONGODB_URI || 'mongodb://localhost:27017/aigame?replicaSet=rs0',
     redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
+    redisPassword: process.env.REDIS_PASSWORD,
     minioEndpoint: process.env.MINIO_ENDPOINT || 'localhost',
     minioPort: parseInt(process.env.MINIO_PORT || '9000'),
     minioAccessKey: process.env.MINIO_ACCESS_KEY || 'root',

@@ -16,17 +16,16 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // TODO: 添加管理员权限检查
-  // if (user.role !== 'admin') {
-  //   throw createError({
-  //     statusCode: 403,
-  //     statusMessage: 'Admin access required'
-  //   })
-  // }
+  if (user.role !== 'admin') {
+    throw createError({
+      statusCode: 403,
+      statusMessage: 'Admin access required'
+    })
+  }
 
   try {
     const stats = await getQueueStats()
-    
+
     return {
       success: true,
       stats
