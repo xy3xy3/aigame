@@ -9,8 +9,10 @@ export default defineEventHandler(async (event) => {
   }
 
   const competitionId = getRouterParam(event, 'id')
+  const { page = '1', limit = '10' } = getQuery(event)
 
-
+  const pageNum = parseInt(page as string, 10)
+  const limitNum = parseInt(limit as string, 10)
 
   // 验证比赛是否存在
   const competition = await prisma.competition.findUnique({
@@ -24,9 +26,15 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const totalProblems = await prisma.problem.count({
+    where: { competitionId }
+  })
+
   // 获取题目列表
   const problems = await prisma.problem.findMany({
     where: { competitionId },
+    skip: (pageNum - 1) * limitNum,
+    take: limitNum,
     orderBy: {
       startTime: 'asc'
     },
@@ -63,6 +71,12 @@ export default defineEventHandler(async (event) => {
 
   return {
     success: true,
-    problems: problemsWithStatus
+    problems: problemsWithStatus,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      total: totalProblems,
+      totalPages: Math.ceil(totalProblems / limitNum)
+    }
   }
 })

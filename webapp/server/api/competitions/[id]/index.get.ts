@@ -67,11 +67,6 @@ export default defineEventHandler(async (event) => {
           email: true
         }
       },
-      problems: {
-        orderBy: {
-          startTime: 'asc'
-        }
-      },
       _count: {
         select: {
           submissions: true

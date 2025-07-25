@@ -1,14 +1,19 @@
 <template>
   <div class="max-w-7xl mx-auto py-6 px-4">
     <!-- 加载状态 -->
-    <div v-if="pending" class="text-center py-8">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+    <div v-if="pending || problemsPending" class="text-center py-8">
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+      ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
 
     <!-- 错误状态 -->
-    <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-md p-4">
-      <p class="text-red-800">加载失败: {{ error.message }}</p>
+    <div
+      v-else-if="error || problemsError"
+      class="bg-red-50 border border-red-200 rounded-md p-4"
+    >
+      <p class="text-red-800">加载失败: {{ error?.message || problemsError?.message }}</p>
     </div>
 
     <!-- 竞赛详情和题目列表 -->
@@ -72,7 +77,7 @@
                     :class="{
                       'bg-yellow-100 text-yellow-800': problem.status === 'upcoming',
                       'bg-green-100 text-green-800': problem.status === 'ongoing',
-                      'bg-gray-100 text-gray-800': problem.status === 'ended'
+                      'bg-gray-100 text-gray-800': problem.status === 'ended',
                     }"
                     class="px-2 py-1 rounded-full text-xs font-medium"
                   >
@@ -80,7 +85,9 @@
                   </span>
                 </div>
 
-                <p class="text-gray-600 mb-3 line-clamp-2">{{ problem.shortDescription }}</p>
+                <p class="text-gray-600 mb-3 line-clamp-2">
+                  {{ problem.shortDescription }}
+                </p>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-500">
                   <div>
@@ -127,6 +134,16 @@
               </div>
             </div>
           </div>
+          <div class="mt-6">
+            <CommonPagination
+              :current-page="pagination.page"
+              :total-pages="pagination.totalPages"
+              :total-items="pagination.total"
+              :items-per-page="pagination.limit"
+              @page-change="handlePageChange"
+              @items-per-page-change="handleItemsPerPageChange"
+            />
+          </div>
         </div>
 
         <!-- 空状态 -->
@@ -145,13 +162,24 @@
     </div>
 
     <!-- 创建题目模态框 -->
-    <div v-if="showCreateForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div
+      v-if="showCreateForm"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
       <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-semibold">添加题目</h3>
-          <button @click="showCreateForm = false" class="text-gray-400 hover:text-gray-600">
+          <button
+            @click="showCreateForm = false"
+            class="text-gray-400 hover:text-gray-600"
+          >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
             </svg>
           </button>
         </div>
@@ -169,7 +197,7 @@
               required
               class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="输入题目标题"
-            >
+            />
           </div>
 
           <div>
@@ -196,22 +224,26 @@
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">开始时间 *</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >开始时间 *</label
+              >
               <input
                 v-model="createForm.startTime"
                 type="datetime-local"
                 required
                 class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
+              />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">结束时间 *</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >结束时间 *</label
+              >
               <input
                 v-model="createForm.endTime"
                 type="datetime-local"
                 required
                 class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
+              />
             </div>
           </div>
 
@@ -228,7 +260,7 @@
               :disabled="isCreating"
               class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md font-medium disabled:opacity-50"
             >
-              {{ isCreating ? '创建中...' : '创建题目' }}
+              {{ isCreating ? "创建中..." : "创建题目" }}
             </button>
           </div>
         </form>
@@ -238,165 +270,215 @@
 </template>
 
 <script setup lang="ts">
+import CommonPagination from "~/components/common/Pagination.vue";
+
 interface Competition {
-  id: string
-  title: string
-  description: string
-  startTime: string
-  endTime: string
+  id: string;
+  title: string;
+  description: string;
+  startTime: string;
+  endTime: string;
   creator: {
-    id: string
-    username: string
-  }
-  problems: Problem[]
+    id: string;
+    username: string;
+  };
 }
 
 interface Problem {
-  id: string
-  title: string
-  shortDescription: string
-  startTime: string
-  endTime: string
-  status: string
-  datasetUrl?: string
-  judgingScriptUrl?: string
+  id: string;
+  title: string;
+  shortDescription: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  datasetUrl?: string;
+  judgingScriptUrl?: string;
   _count: {
-    submissions: number
-  }
+    submissions: number;
+  };
+}
+
+interface ProblemsResponse {
+  success: boolean;
+  problems: Problem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 interface CompetitionResponse {
-  success: boolean
-  competition: Competition
+  success: boolean;
+  competition: Competition;
 }
 
 definePageMeta({
-  middleware: 'auth'
-})
+  middleware: "auth",
+});
 
-const route = useRoute()
-const competitionId = route.params.id as string
+const route = useRoute();
+const competitionId = route.params.id as string;
+
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
 
 // 获取竞赛数据
-const { data, pending, error, refresh } = await useFetch<CompetitionResponse>(`/api/competitions/${competitionId}`)
+const {
+  data,
+  pending,
+  error,
+  refresh: refreshCompetition,
+} = await useFetch<CompetitionResponse>(`/api/competitions/${competitionId}`);
 
-const problems = computed(() => {
-  if (!data.value?.competition?.problems) return []
+const {
+  data: problemsData,
+  pending: problemsPending,
+  error: problemsError,
+  refresh: refreshProblems,
+} = await useFetch<ProblemsResponse>(
+  () => `/api/competitions/${competitionId}/problems`,
+  {
+    query: {
+      page: currentPage,
+      limit: itemsPerPage,
+    },
+  }
+);
 
-  const now = new Date()
-  return data.value.competition.problems.map(problem => {
-    let status = 'upcoming'
-    if (problem.startTime <= now.toISOString() && problem.endTime > now.toISOString()) {
-      status = 'ongoing'
-    } else if (problem.endTime <= now.toISOString()) {
-      status = 'ended'
-    }
-    return { ...problem, status }
-  })
-})
+const problems = computed(() => problemsData.value?.problems || []);
+const pagination = computed(
+  () => problemsData.value?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 }
+);
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page;
+};
+
+const handleItemsPerPageChange = (limit: number) => {
+  itemsPerPage.value = limit;
+  currentPage.value = 1; // Reset to first page
+};
+
+const refresh = async () => {
+  await refreshCompetition();
+  await refreshProblems();
+};
 
 // 创建题目相关状态
-const showCreateForm = ref(false)
-const isCreating = ref(false)
-const createError = ref('')
+const showCreateForm = ref(false);
+const isCreating = ref(false);
+const createError = ref("");
 
 const createForm = reactive({
-  title: '',
-  shortDescription: '',
-  detailedDescription: '',
-  startTime: '',
-  endTime: ''
-})
+  title: "",
+  shortDescription: "",
+  detailedDescription: "",
+  startTime: "",
+  endTime: "",
+});
 
 const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleString('zh-CN')
-}
+  return new Date(dateString).toLocaleString("zh-CN");
+};
 
-import { convertLocalToUTC } from '~/composables/useDateUtils'
+import { convertLocalToUTC } from "~/composables/useDateUtils";
 
 const getStatusText = (status: string): string => {
   const statusMap: Record<string, string> = {
-    'upcoming': '即将开始',
-    'ongoing': '进行中',
-    'ended': '已结束'
-  }
-  return statusMap[status] || status
-}
+    upcoming: "即将开始",
+    ongoing: "进行中",
+    ended: "已结束",
+  };
+  return statusMap[status] || status;
+};
 
 const createProblem = async () => {
-  if (isCreating.value) return
+  if (isCreating.value) return;
 
-  createError.value = ''
-  isCreating.value = true
+  createError.value = "";
+  isCreating.value = true;
 
   try {
     // 验证时间
-    const startDate = new Date(createForm.startTime)
-    const endDate = new Date(createForm.endTime)
+    const startDate = new Date(createForm.startTime);
+    const endDate = new Date(createForm.endTime);
 
     if (startDate >= endDate) {
-      createError.value = '结束时间必须晚于开始时间'
-      return
+      createError.value = "结束时间必须晚于开始时间";
+      return;
     }
 
     const result = await $fetch(`/api/competitions/${competitionId}/problems`, {
-      method: 'POST',
+      method: "POST",
       body: {
         title: createForm.title,
         shortDescription: createForm.shortDescription,
         detailedDescription: createForm.detailedDescription,
         startTime: convertLocalToUTC(createForm.startTime),
-        endTime: convertLocalToUTC(createForm.endTime)
-      }
-    })
+        endTime: convertLocalToUTC(createForm.endTime),
+      },
+    });
 
     if (result.success) {
       // 重置表单
-      Object.keys(createForm).forEach(key => {
-        (createForm as any)[key] = ''
-      })
+      Object.keys(createForm).forEach((key) => {
+        (createForm as any)[key] = "";
+      });
 
-      showCreateForm.value = false
-      await refresh() // 刷新数据
+      showCreateForm.value = false;
+      await refreshProblems(); // 刷新数据
     }
-
   } catch (err: any) {
-    createError.value = err.data?.message || err.message || '创建题目失败'
+    createError.value = err.data?.message || err.message || "创建题目失败";
   } finally {
-    isCreating.value = false
+    isCreating.value = false;
   }
-}
+};
 
 const deleteProblem = async (problemId: string) => {
-  if (!confirm('确定要删除这个题目吗？此操作不可撤销。')) {
-    return
+  if (!confirm("确定要删除这个题目吗？此操作不可撤销。")) {
+    return;
   }
 
   try {
     await $fetch(`/api/problems/${problemId}`, {
-      method: 'DELETE'
-    })
+      method: "DELETE",
+    });
 
-    await refresh() // 刷新数据
-    alert('题目删除成功')
+    await refreshProblems(); // 刷新数据
+    alert("题目删除成功");
   } catch (error: any) {
-    console.error('删除题目失败:', error)
-    alert('删除题目失败: ' + (error.data?.message || error.message))
+    console.error("删除题目失败:", error);
+    alert("删除题目失败: " + (error.data?.message || error.message));
   }
-}
+};
 
 // 设置默认时间为比赛的开始和结束时间
-watch(data, (newData) => {
-  if (newData?.competition) {
-    const competition = newData.competition
-    const startDate = new Date(competition.startTime)
-    const endDate = new Date(competition.endTime)
+watch(
+  data,
+  (newData) => {
+    if (newData?.competition) {
+      const competition = newData.competition;
+      const startDate = new Date(competition.startTime);
+      const endDate = new Date(competition.endTime);
 
-    // 调整为本地时间显示
-    createForm.startTime = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
-    createForm.endTime = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
-  }
-}, { immediate: true })
+      // 调整为本地时间显示
+      createForm.startTime = new Date(
+        startDate.getTime() - startDate.getTimezoneOffset() * 60000
+      )
+        .toISOString()
+        .slice(0, 16);
+      createForm.endTime = new Date(
+        endDate.getTime() - endDate.getTimezoneOffset() * 60000
+      )
+        .toISOString()
+        .slice(0, 16);
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
