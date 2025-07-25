@@ -19,7 +19,7 @@
           <div class="ml-5 w-0 flex-1">
             <dl>
               <dt class="text-sm font-medium text-gray-500 truncate">总用户数</dt>
-              <dd class="text-lg font-medium text-gray-900">{{ stats.totalUsers || 0 }}</dd>
+              <dd class="text-lg font-medium text-gray-900">{{ stats.users || 0 }}</dd>
             </dl>
           </div>
         </div>
@@ -37,7 +37,7 @@
           <div class="ml-5 w-0 flex-1">
             <dl>
               <dt class="text-sm font-medium text-gray-500 truncate">总队伍数</dt>
-              <dd class="text-lg font-medium text-gray-900">{{ stats.totalTeams || 0 }}</dd>
+              <dd class="text-lg font-medium text-gray-900">{{ stats.teams || 0 }}</dd>
             </dl>
           </div>
         </div>
@@ -55,7 +55,7 @@
           <div class="ml-5 w-0 flex-1">
             <dl>
               <dt class="text-sm font-medium text-gray-500 truncate">总比赛数</dt>
-              <dd class="text-lg font-medium text-gray-900">{{ stats.totalCompetitions || 0 }}</dd>
+              <dd class="text-lg font-medium text-gray-900">{{ stats.competitions || 0 }}</dd>
             </dl>
           </div>
         </div>
@@ -73,7 +73,7 @@
           <div class="ml-5 w-0 flex-1">
             <dl>
               <dt class="text-sm font-medium text-gray-500 truncate">总提交数</dt>
-              <dd class="text-lg font-medium text-gray-900">{{ stats.totalSubmissions || 0 }}</dd>
+              <dd class="text-lg font-medium text-gray-900">{{ stats.submissions || 0 }}</dd>
             </dl>
           </div>
         </div>
@@ -181,10 +181,10 @@ definePageMeta({
 })
 
 const stats = ref({
-  totalUsers: 0,
-  totalTeams: 0,
-  totalCompetitions: 0,
-  totalSubmissions: 0
+  users: 0,
+  teams: 0,
+  competitions: 0,
+  submissions: 0
 })
 
 const queueStats = ref(null)
@@ -193,7 +193,8 @@ const isStartingWorker = ref(false)
 
 const fetchStats = async () => {
   try {
-    // TODO: 实现一个API来获取仪表板统计数据。
+    const data = await $fetch('/api/admin/stats')
+    stats.value = data
   } catch (error) {
     console.error('Failed to fetch stats:', error)
   }
