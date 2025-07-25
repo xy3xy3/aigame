@@ -7,7 +7,10 @@ import { usePrisma } from '../../utils/prisma'
 const registerSchema = z.object({
   username: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_-]+$/),
   email: z.string().email(),
-  password: z.string().min(6).max(100)
+  password: z.string().min(6).max(100),
+  phoneNumber: z.string().regex(/^1[3-9]\d{9}$/).optional(), // 中国手机号格式
+  studentId: z.string().min(6).max(20).optional(),           // 学号长度限制
+  realName: z.string().min(2).max(50).optional()             // 真实姓名长度限制
 })
 
 const loginSchema = z.object({
@@ -27,7 +30,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Validate request body
-    const { username, email, password } = registerSchema.parse(body)
+    const { username, email, password, phoneNumber, studentId, realName } = registerSchema.parse(body)
 
     const { $prisma } = await usePrisma()
 
@@ -57,7 +60,10 @@ export default defineEventHandler(async (event) => {
       data: {
         username,
         email,
-        passwordHash
+        passwordHash,
+        phoneNumber,  // 添加手机号
+        studentId,    // 添加学号
+        realName      // 添加真实姓名
       }
     })
 

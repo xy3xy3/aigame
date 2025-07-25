@@ -7,7 +7,7 @@
         </h2>
       </div>
       <form class="mt-8 space-y-6" @submit.prevent="handleRegister">
-        <div class="rounded-md shadow-sm -space-y-px">
+        <div class="rounded-md shadow-sm space-y-4">
           <div>
             <label for="username" class="sr-only">用户名</label>
             <input
@@ -16,7 +16,7 @@
               name="username"
               type="text"
               required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="用户名"
             >
           </div>
@@ -29,7 +29,7 @@
               type="email"
               autocomplete="email"
               required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="邮箱地址"
             >
           </div>
@@ -42,8 +42,41 @@
               type="password"
               autocomplete="new-password"
               required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
               placeholder="密码 (至少6位)"
+            >
+          </div>
+          <div>
+            <label for="realName" class="sr-only">真实姓名</label>
+            <input
+              id="realName"
+              v-model="form.realName"
+              name="realName"
+              type="text"
+              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="真实姓名"
+            >
+          </div>
+          <div>
+            <label for="studentId" class="sr-only">学号</label>
+            <input
+              id="studentId"
+              v-model="form.studentId"
+              name="studentId"
+              type="text"
+              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="学号"
+            >
+          </div>
+          <div>
+            <label for="phoneNumber" class="sr-only">手机号</label>
+            <input
+              id="phoneNumber"
+              v-model="form.phoneNumber"
+              name="phoneNumber"
+              type="tel"
+              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="手机号"
             >
           </div>
         </div>
@@ -82,7 +115,10 @@ const { register, isLoading } = useCustomAuth()
 const form = reactive({
   username: '',
   email: '',
-  password: ''
+  password: '',
+  realName: '',
+  studentId: '',
+  phoneNumber: ''
 })
 
 const error = ref('')
@@ -97,8 +133,26 @@ const handleRegister = async () => {
     return
   }
 
+  // 验证手机号格式（如果提供了手机号）
+  if (form.phoneNumber && !/^1[3-9]\d{9}$/.test(form.phoneNumber)) {
+    error.value = '请输入正确的手机号格式'
+    return
+  }
+
+  // 验证学号长度（如果提供了学号）
+  if (form.studentId && (form.studentId.length < 6 || form.studentId.length > 20)) {
+    error.value = '学号长度应在6-20个字符之间'
+    return
+  }
+
+  // 验证真实姓名长度（如果提供了真实姓名）
+  if (form.realName && (form.realName.length < 2 || form.realName.length > 50)) {
+    error.value = '真实姓名长度应在2-50个字符之间'
+    return
+  }
+
   try {
-    await register(form.username, form.email, form.password)
+    await register(form.username, form.email, form.password, form.phoneNumber, form.studentId, form.realName)
     // 注册成功会自动跳转到首页
   } catch (err) {
     error.value = err.statusMessage || err.message || '注册失败'

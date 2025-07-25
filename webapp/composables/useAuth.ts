@@ -36,12 +36,12 @@ export const useCustomAuth = () => {
     }
   }
 
-  const register = async (username: string, email: string, password: string) => {
+  const register = async (username: string, email: string, password: string, phoneNumber?: string, studentId?: string, realName?: string) => {
     isLoading.value = true
     try {
       const data = await $fetch<{ success: boolean; user: SafeUser; token: string }>('/api/auth/register', {
         method: 'POST',
-        body: { username, email, password }
+        body: { username, email, password, phoneNumber, studentId, realName }
       })
 
       if (data.success) {
