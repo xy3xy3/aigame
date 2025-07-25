@@ -160,8 +160,6 @@ model LeaderboardEntry {
   leaderboardId String         @db.ObjectId
   rank          Int
   teamId        String         @db.ObjectId
-  teamName      String
-  teamAvatarUrl String?
   totalScore    Float
   problemScores ProblemScore[]
 
