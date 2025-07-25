@@ -27,6 +27,35 @@ export async function ensureBucketExists(bucketName: string): Promise<void> {
   }
 }
 
+/**
+ * 设置存储桶为公共读取权限
+ * @param bucketName 存储桶名称
+ */
+export async function setBucketPublicRead(bucketName: string): Promise<void> {
+  const client = getMinioClient()
+
+  // 定义公共读取策略
+  const policy = {
+    Version: '2012-10-17',
+    Statement: [
+      {
+        Effect: 'Allow',
+        Principal: '*',
+        Action: ['s3:GetObject'],
+        Resource: [`arn:aws:s3:::${bucketName}/*`]
+      }
+    ]
+  }
+
+  try {
+    await client.setBucketPolicy(bucketName, JSON.stringify(policy))
+    console.log(`✅ 成功设置存储桶 ${bucketName} 为公共读取权限`)
+  } catch (error) {
+    console.error(`❌ 设置存储桶 ${bucketName} 公共读取权限失败:`, error)
+    throw error
+  }
+}
+
 export async function uploadFile(
   bucketName: string,
   objectName: string,
