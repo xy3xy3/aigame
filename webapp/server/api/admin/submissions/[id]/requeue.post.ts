@@ -3,7 +3,7 @@ import { usePrisma } from '../../../../utils/prisma'
 import { addEvaluationJob } from '~/server/utils/queue'
 
 const requeueParamsSchema = z.object({
-  id: z.string().cuid(),
+  id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ObjectId'),
 })
 
 export default defineEventHandler(async (event) => {

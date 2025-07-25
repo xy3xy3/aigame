@@ -208,8 +208,6 @@ async function updateLeaderboardScore(competitionId: string, teamId: string, sco
       data: {
         leaderboardId: leaderboard.id,
         teamId,
-        teamName: team?.name || 'Unknown Team',
-        teamAvatarUrl: team?.avatarUrl,
         totalScore: score,
         rank: 1, // 临时值，稍后会重新计算
         problemScores: [] // TODO: 实现题目分数跟踪
