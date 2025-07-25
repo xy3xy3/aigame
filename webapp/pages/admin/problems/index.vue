@@ -6,7 +6,10 @@
         <p class="mt-2 text-gray-600">管理所有竞赛题目</p>
       </div>
       <NuxtLink
-        to="/admin/problems/create"
+        :to="{
+          path: '/admin/problems/create',
+          query: selectedCompetition ? { competitionId: selectedCompetition } : {},
+        }"
         class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium"
       >
         创建新题目
@@ -155,7 +158,10 @@
       <h3 class="text-lg font-medium text-gray-900 mb-2">暂无题目</h3>
       <p class="text-gray-600 mb-6">开始创建你的第一个竞赛题目吧！</p>
       <NuxtLink
-        to="/admin/problems/create"
+        :to="{
+          path: '/admin/problems/create',
+          query: selectedCompetition ? { competitionId: selectedCompetition } : {},
+        }"
         class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium"
       >
         创建新题目
@@ -230,8 +236,9 @@ definePageMeta({
 });
 
 // 筛选状态
+const route = useRoute();
 const selectedStatus = ref<string>("");
-const selectedCompetition = ref<string>("");
+const selectedCompetition = ref<string>((route.query.competitionId as string) || "");
 const currentPage = ref<number>(1);
 
 // 获取竞赛列表用于筛选

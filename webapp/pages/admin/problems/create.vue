@@ -5,7 +5,10 @@
       <p class="mt-2 text-gray-600">为竞赛添加新的题目</p>
     </div>
 
-    <form @submit.prevent="handleSubmit" class="bg-white rounded-lg shadow-md p-6 space-y-6">
+    <form
+      @submit.prevent="handleSubmit"
+      class="bg-white rounded-lg shadow-md p-6 space-y-6"
+    >
       <div v-if="error" class="bg-red-50 border border-red-200 rounded-md p-4">
         <p class="text-red-800">{{ error }}</p>
       </div>
@@ -48,12 +51,15 @@
           required
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           placeholder="输入题目标题"
-        >
+        />
       </div>
 
       <!-- 简短描述 -->
       <div>
-        <label for="shortDescription" class="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          for="shortDescription"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
           简短描述 *
         </label>
         <textarea
@@ -69,7 +75,10 @@
 
       <!-- 详细描述 -->
       <div>
-        <label for="detailedDescription" class="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          for="detailedDescription"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
           详细描述 *
         </label>
         <textarea
@@ -80,7 +89,9 @@
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           placeholder="详细描述题目要求、数据格式、评分标准等"
         ></textarea>
-        <p class="mt-1 text-sm text-gray-500">{{ form.detailedDescription.length }} 字符</p>
+        <p class="mt-1 text-sm text-gray-500">
+          {{ form.detailedDescription.length }} 字符
+        </p>
       </div>
 
       <!-- 数据集URL -->
@@ -94,12 +105,15 @@
           type="url"
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           placeholder="https://example.com/dataset.zip"
-        >
+        />
       </div>
 
       <!-- 评测脚本URL -->
       <div>
-        <label for="judgingScriptUrl" class="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          for="judgingScriptUrl"
+          class="block text-sm font-medium text-gray-700 mb-2"
+        >
           评测脚本URL
         </label>
         <input
@@ -108,7 +122,7 @@
           type="url"
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           placeholder="https://example.com/judge.py"
-        >
+        />
       </div>
 
       <!-- 题目分数 -->
@@ -123,7 +137,7 @@
           min="1"
           class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           placeholder="输入题目分数"
-        >
+        />
         <p class="mt-1 text-sm text-gray-500">请输入正整数</p>
       </div>
 
@@ -139,7 +153,7 @@
             type="datetime-local"
             required
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
+          />
         </div>
 
         <div>
@@ -152,7 +166,7 @@
             type="datetime-local"
             required
             class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
+          />
         </div>
       </div>
 
@@ -169,7 +183,7 @@
           :disabled="isSubmitting"
           class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium disabled:opacity-50"
         >
-          {{ isSubmitting ? '创建中...' : '创建题目' }}
+          {{ isSubmitting ? "创建中..." : "创建题目" }}
         </button>
       </div>
     </form>
@@ -178,62 +192,66 @@
 
 <script setup lang="ts">
 interface Competition {
-  id: string
-  title: string
-  startTime: string
-  endTime: string
+  id: string;
+  title: string;
+  startTime: string;
+  endTime: string;
 }
 
 interface CompetitionsResponse {
-  success: boolean
-  competitions: Competition[]
+  success: boolean;
+  competitions: Competition[];
 }
 
 definePageMeta({
-  middleware: 'auth'
-})
+  middleware: "auth",
+});
 
 // 获取竞赛列表
-const { data: competitionsData } = await useFetch<CompetitionsResponse>('/api/competitions/simple')
-const competitions = computed(() => competitionsData.value?.competitions || [])
+const { data: competitionsData } = await useFetch<CompetitionsResponse>(
+  "/api/competitions/simple"
+);
+const competitions = computed(() => competitionsData.value?.competitions || []);
+
+const route = useRoute();
 
 const form = reactive({
-  competitionId: '',
-  title: '',
-  shortDescription: '',
-  detailedDescription: '',
-  datasetUrl: '',
-  judgingScriptUrl: '',
-  startTime: '',
-  endTime: '',
-  score: undefined
-})
+  competitionId: (route.query.competitionId as string) || "",
+  title: "",
+  shortDescription: "",
+  detailedDescription: "",
+  datasetUrl: "",
+  judgingScriptUrl: "",
+  startTime: "",
+  endTime: "",
+  score: undefined,
+});
 
-const isSubmitting = ref(false)
-const error = ref('')
-const success = ref(false)
+const isSubmitting = ref(false);
+const error = ref("");
+const success = ref(false);
 
-import { convertLocalToUTC } from '~/composables/useDateUtils'
+import { convertLocalToUTC } from "~/composables/useDateUtils";
 
 const handleSubmit = async () => {
-  if (isSubmitting.value) return
+  if (isSubmitting.value) return;
 
-  error.value = ''
-  success.value = false
-  isSubmitting.value = true
+  error.value = "";
+  success.value = false;
+  isSubmitting.value = true;
 
   try {
     // 验证时间
-    const startDate = new Date(form.startTime)
-    const endDate = new Date(form.endTime)
+    const startDate = new Date(form.startTime);
+    const endDate = new Date(form.endTime);
 
     if (startDate >= endDate) {
-      error.value = '结束时间必须晚于开始时间'
-      return
+      error.value = "结束时间必须晚于开始时间";
+      return;
     }
 
     const data = await $fetch(`/api/competitions/${form.competitionId}/problems`, {
-      method: 'POST',
+      method: "POST",
       body: {
         title: form.title,
         shortDescription: form.shortDescription,
@@ -242,56 +260,70 @@ const handleSubmit = async () => {
         judgingScriptUrl: form.judgingScriptUrl || undefined,
         startTime: convertLocalToUTC(form.startTime),
         endTime: convertLocalToUTC(form.endTime),
-        score: form.score ? parseInt(form.score) : undefined
-      }
-    })
+        score: form.score ? parseInt(form.score) : undefined,
+      },
+    });
 
     if (data.success) {
-      success.value = true
+      success.value = true;
       // 重置表单
-      Object.keys(form).forEach(key => {
-        (form as any)[key] = ''
-      })
+      Object.keys(form).forEach((key) => {
+        (form as any)[key] = "";
+      });
 
       // 3秒后跳转到题目列表
       setTimeout(() => {
-        navigateTo('/admin/problems')
-      }, 3000)
+        navigateTo("/admin/problems");
+      }, 3000);
     }
-
   } catch (err: any) {
-    error.value = err.data?.message || err.message || '创建题目失败'
+    error.value = err.data?.message || err.message || "创建题目失败";
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
-}
+};
 
 // 监听比赛选择变化，设置默认时间为比赛的开始和结束时间
-watch(() => form.competitionId, (newCompetitionId) => {
-  if (newCompetitionId) {
-    const selectedCompetition = competitions.value.find(comp => comp.id === newCompetitionId)
-    if (selectedCompetition) {
-      // 将 UTC 时间转换为本地时间格式用于 datetime-local 输入
-      const startDate = new Date(selectedCompetition.startTime)
-      const endDate = new Date(selectedCompetition.endTime)
+watch(
+  () => form.competitionId,
+  (newCompetitionId) => {
+    if (newCompetitionId) {
+      const selectedCompetition = competitions.value.find(
+        (comp) => comp.id === newCompetitionId
+      );
+      if (selectedCompetition) {
+        // 将 UTC 时间转换为本地时间格式用于 datetime-local 输入
+        const startDate = new Date(selectedCompetition.startTime);
+        const endDate = new Date(selectedCompetition.endTime);
 
-      // 调整为本地时间显示
-      form.startTime = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
-      form.endTime = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+        // 调整为本地时间显示
+        form.startTime = new Date(
+          startDate.getTime() - startDate.getTimezoneOffset() * 60000
+        )
+          .toISOString()
+          .slice(0, 16);
+        form.endTime = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000)
+          .toISOString()
+          .slice(0, 16);
+      }
     }
   }
-})
+);
 
 // 设置默认时间（如果没有选择比赛，使用当前时间+1小时作为开始时间，+25小时作为结束时间）
 onMounted(() => {
   if (!form.competitionId) {
-    const now = new Date()
-    const start = new Date(now.getTime() + 60 * 60 * 1000) // +1小时
-    const end = new Date(now.getTime() + 25 * 60 * 60 * 1000) // +25小时
+    const now = new Date();
+    const start = new Date(now.getTime() + 60 * 60 * 1000); // +1小时
+    const end = new Date(now.getTime() + 25 * 60 * 60 * 1000); // +25小时
 
     // 调整为本地时间显示
-    form.startTime = new Date(start.getTime() - start.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
-    form.endTime = new Date(end.getTime() - end.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+    form.startTime = new Date(start.getTime() - start.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
+    form.endTime = new Date(end.getTime() - end.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16);
   }
-})
+});
 </script>

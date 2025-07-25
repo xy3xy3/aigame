@@ -113,7 +113,7 @@
               编辑
             </NuxtLink>
             <NuxtLink
-              :to="`/admin/competitions/${competition.id}`"
+              :to="{ path: '/admin/problems', query: { competitionId: competition.id } }"
               class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center"
             >
               管理题目
