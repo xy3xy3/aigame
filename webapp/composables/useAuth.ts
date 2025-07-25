@@ -46,7 +46,7 @@ export const useCustomAuth = () => {
 
       if (data.success) {
         user.value = data.user
-        await navigateTo('/')
+        // Don't redirect here, let the page handle it
       }
 
       return { success: true }

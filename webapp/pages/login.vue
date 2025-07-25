@@ -65,7 +65,10 @@
 
 <script setup>
 // 使用认证状态管理
-const { login, isLoading } = useCustomAuth()
+// 使用认证状态管理
+const { login, isLoading, isLoggedIn } = useCustomAuth()
+const route = useRoute()
+const router = useRouter()
 
 const form = reactive({
   identifier: '',
@@ -74,6 +77,23 @@ const form = reactive({
 
 const error = ref('')
 
+const redirectTo = computed(() => {
+  if (route.query.redirect && typeof route.query.redirect === 'string') {
+    // Basic validation to prevent open redirects
+    if (route.query.redirect.startsWith('/')) {
+      return route.query.redirect
+    }
+  }
+  return '/'
+})
+
+// 如果用户已经登录，则重定向
+watch(isLoggedIn, (loggedIn) => {
+  if (loggedIn) {
+    router.push(redirectTo.value)
+  }
+}, { immediate: true })
+
 const handleLogin = async () => {
   if (isLoading.value) return
 
@@ -81,7 +101,7 @@ const handleLogin = async () => {
 
   try {
     await login(form.identifier, form.password)
-    // 登录成功会自动跳转到首页
+    // 登录成功后，isLoggedIn 会变为 true，watch 会触发重定向
   } catch (err) {
     error.value = err.statusMessage || err.message || '登录失败'
   }
