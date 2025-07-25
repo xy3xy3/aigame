@@ -3,8 +3,8 @@ import { usePrisma } from '../../../../utils/prisma'
 
 const createProblemSchema = z.object({
   title: z.string().min(2).max(100),
-  shortDescription: z.string().min(10).max(500),
-  detailedDescription: z.string().min(50).max(10000),
+  shortDescription: z.string(),
+  detailedDescription: z.string(),
   datasetUrl: z.string().url().optional(),
   judgingScriptUrl: z.string().url().optional(),
   startTime: z.string().datetime(),

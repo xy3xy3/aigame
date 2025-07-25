@@ -213,17 +213,6 @@ const handleSubmit = async () => {
       return
     }
 
-    // 验证字符长度
-    if (form.shortDescription.length < 10) {
-      error.value = '简短描述至少需要10个字符'
-      return
-    }
-
-    if (form.detailedDescription.length < 50) {
-      error.value = '详细描述至少需要50个字符'
-      return
-    }
-
     const data = await $fetch(`/api/competitions/${form.competitionId}/problems`, {
       method: 'POST',
       body: {
