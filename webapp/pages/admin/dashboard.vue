@@ -193,13 +193,7 @@ const isStartingWorker = ref(false)
 
 const fetchStats = async () => {
   try {
-    // 这里应该有一个专门的统计API，暂时模拟数据
-    stats.value = {
-      totalUsers: 42,
-      totalTeams: 15,
-      totalCompetitions: 3,
-      totalSubmissions: 128
-    }
+    // TODO: 实现一个API来获取仪表板统计数据。
   } catch (error) {
     console.error('Failed to fetch stats:', error)
   }
@@ -212,6 +206,7 @@ const refreshQueueStats = async () => {
     queueStats.value = data.stats
   } catch (error) {
     console.error('Failed to fetch queue stats:', error)
+    queueStats.value = null
   } finally {
     isRefreshingQueue.value = false
   }
