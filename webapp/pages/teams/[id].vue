@@ -306,9 +306,9 @@ const inviteMember = async () => {
     inviteEmail.value = ''
 
     // 生成邀请链接
-    if (response.invitation && response.invitation.id) {
+    if (response && response.id) {
       const baseUrl = window.location.origin
-      generatedInvitationLink.value = `${baseUrl}/invitations/${response.invitation.id}`
+      generatedInvitationLink.value = `${baseUrl}/invitations/${response.id}`
     }
 
     await refresh()
