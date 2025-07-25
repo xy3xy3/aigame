@@ -15,7 +15,7 @@ services:
     volumes:
       - ./data/mongo:/data/db  # 持久化数据目录
       - /etc/localtime:/etc/localtime:ro
-      - ./mongodb.key:/etc/mongo/mongodb.key:ro
+      - ./data/mongodb.key:/etc/mongo/mongodb.key:ro
     command:
       - "mongod"
       - "--replSet"
