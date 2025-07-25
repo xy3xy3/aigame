@@ -28,6 +28,12 @@ export default defineEventHandler(async (event) => {
   }
 
   const competitionId = getRouterParam(event, 'id')
+  if (!competitionId) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: '比赛ID不能为空'
+    })
+  }
   const body = await readBody(event)
 
   try {
@@ -56,8 +62,17 @@ export default defineEventHandler(async (event) => {
     // }
 
     // 验证时间逻辑
+    // 确保时间字符串被正确解析为 UTC 时间
     const start = new Date(startTime)
     const end = new Date(endTime)
+
+    // 确保解析后的时间是有效的
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: '无效的时间格式'
+      })
+    }
 
     if (start >= end) {
       throw createError({
@@ -66,10 +81,22 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    if (start < competition.startTime || end > competition.endTime) {
+    // 验证题目时间是否在比赛时间范围内（允许等于比赛的开始和结束时间）
+    // 确保在统一的时区下进行比较
+    const competitionStart = new Date(competition.startTime)
+    const competitionEnd = new Date(competition.endTime)
+
+    if (isNaN(competitionStart.getTime()) || isNaN(competitionEnd.getTime())) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: '比赛时间数据错误'
+      })
+    }
+
+    if (start < competitionStart || end > competitionEnd) {
       throw createError({
         statusCode: 400,
-        statusMessage: '题目时间必须在比赛时间范围内'
+        statusMessage: `题目时间必须在比赛时间范围内，比赛时间范围是 ${competitionStart.toISOString()} 到 ${competitionEnd.toISOString()}`
       })
     }
 

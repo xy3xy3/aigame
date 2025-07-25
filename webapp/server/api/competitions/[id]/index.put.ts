@@ -33,8 +33,17 @@ export default defineEventHandler(async (event) => {
     const { title, description, rules, bannerUrl, startTime, endTime } = updateCompetitionSchema.parse(body)
 
     // 验证时间逻辑
+    // 确保时间字符串被正确解析为 UTC 时间
     const start = new Date(startTime)
     const end = new Date(endTime)
+
+    // 确保解析后的时间是有效的
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Invalid time format'
+      })
+    }
 
     if (start >= end) {
       throw createError({

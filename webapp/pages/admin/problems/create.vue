@@ -196,6 +196,26 @@ const isSubmitting = ref(false)
 const error = ref('')
 const success = ref(false)
 
+// 将 datetime-local 的值（视为本地时间）正确转换为 UTC 时间字符串
+function convertLocalToUTC(localTimeString) {
+  // localTimeString 格式为 "YYYY-MM-DDTHH:mm"
+  const [datePart, timePart] = localTimeString.split('T')
+  const [year, month, day] = datePart.split('-')
+  const [hours, minutes] = timePart.split(':')
+
+  // 创建本地时间的 Date 对象
+  const localDate = new Date(
+    parseInt(year),
+    parseInt(month) - 1, // 月份从0开始
+    parseInt(day),
+    parseInt(hours),
+    parseInt(minutes)
+  )
+
+  // 转换为 ISO 字符串（UTC 时间）
+  return localDate.toISOString()
+}
+
 const handleSubmit = async () => {
   if (isSubmitting.value) return
 
@@ -221,8 +241,8 @@ const handleSubmit = async () => {
         detailedDescription: form.detailedDescription,
         datasetUrl: form.datasetUrl || undefined,
         judgingScriptUrl: form.judgingScriptUrl || undefined,
-        startTime: startDate.toISOString(),
-        endTime: endDate.toISOString()
+        startTime: convertLocalToUTC(form.startTime),
+        endTime: convertLocalToUTC(form.endTime)
       }
     })
 
@@ -251,8 +271,13 @@ watch(() => form.competitionId, (newCompetitionId) => {
   if (newCompetitionId) {
     const selectedCompetition = competitions.value.find(comp => comp.id === newCompetitionId)
     if (selectedCompetition) {
-      form.startTime = new Date(selectedCompetition.startTime).toISOString().slice(0, 16)
-      form.endTime = new Date(selectedCompetition.endTime).toISOString().slice(0, 16)
+      // 将 UTC 时间转换为本地时间格式用于 datetime-local 输入
+      const startDate = new Date(selectedCompetition.startTime)
+      const endDate = new Date(selectedCompetition.endTime)
+
+      // 调整为本地时间显示
+      form.startTime = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+      form.endTime = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
     }
   }
 })
@@ -264,8 +289,9 @@ onMounted(() => {
     const start = new Date(now.getTime() + 60 * 60 * 1000) // +1小时
     const end = new Date(now.getTime() + 25 * 60 * 60 * 1000) // +25小时
 
-    form.startTime = start.toISOString().slice(0, 16)
-    form.endTime = end.toISOString().slice(0, 16)
+    // 调整为本地时间显示
+    form.startTime = new Date(start.getTime() - start.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+    form.endTime = new Date(end.getTime() - end.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
   }
 })
 </script>

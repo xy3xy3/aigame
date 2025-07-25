@@ -31,7 +31,7 @@
       <!-- 基本信息 -->
       <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">基本信息</h2>
-        
+
         <div class="grid grid-cols-1 gap-6">
           <div>
             <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
@@ -91,7 +91,7 @@
       <!-- 时间设置 -->
       <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">时间设置</h2>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label for="startTime" class="block text-sm font-medium text-gray-700 mb-1">
@@ -173,7 +173,7 @@ watch(data, (newData) => {
     form.description = competition.description
     form.rules = competition.rules
     form.bannerUrl = competition.bannerUrl || ''
-    
+
     // 转换时间格式为 datetime-local 输入框需要的格式
     form.startTime = new Date(competition.startTime).toISOString().slice(0, 16)
     form.endTime = new Date(competition.endTime).toISOString().slice(0, 16)
@@ -204,14 +204,14 @@ const handleSubmit = async () => {
         description: form.description,
         rules: form.rules,
         bannerUrl: form.bannerUrl || undefined,
-        startTime: startDate.toISOString(),
-        endTime: endDate.toISOString()
+        startTime: convertLocalToUTC(form.startTime),
+        endTime: convertLocalToUTC(form.endTime)
       }
     })
 
     if (updateData.success) {
       success.value = true
-      
+
       // 3秒后跳转到比赛管理页面
       setTimeout(() => {
         navigateTo('/admin/competitions')
@@ -224,5 +224,24 @@ const handleSubmit = async () => {
   } finally {
     isSubmitting.value = false
   }
+}
+// 将 datetime-local 的值（视为本地时间）正确转换为 UTC 时间字符串
+function convertLocalToUTC(localTimeString) {
+  // localTimeString 格式为 "YYYY-MM-DDTHH:mm"
+  const [datePart, timePart] = localTimeString.split('T')
+  const [year, month, day] = datePart.split('-')
+  const [hours, minutes] = timePart.split(':')
+
+  // 创建本地时间的 Date 对象
+  const localDate = new Date(
+    parseInt(year),
+    parseInt(month) - 1, // 月份从0开始
+    parseInt(day),
+    parseInt(hours),
+    parseInt(minutes)
+  )
+
+  // 转换为 ISO 字符串（UTC 时间）
+  return localDate.toISOString()
 }
 </script>

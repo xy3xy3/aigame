@@ -312,6 +312,26 @@ const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleString('zh-CN')
 }
 
+// 将 datetime-local 的值（视为本地时间）正确转换为 UTC 时间字符串
+function convertLocalToUTC(localTimeString: string): string {
+  // localTimeString 格式为 "YYYY-MM-DDTHH:mm"
+  const [datePart, timePart] = localTimeString.split('T')
+  const [year, month, day] = datePart.split('-')
+  const [hours, minutes] = timePart.split(':')
+
+  // 创建本地时间的 Date 对象
+  const localDate = new Date(
+    parseInt(year),
+    parseInt(month) - 1, // 月份从0开始
+    parseInt(day),
+    parseInt(hours),
+    parseInt(minutes)
+  )
+
+  // 转换为 ISO 字符串（UTC 时间）
+  return localDate.toISOString()
+}
+
 const getStatusText = (status: string): string => {
   const statusMap: Record<string, string> = {
     'upcoming': '即将开始',
@@ -343,8 +363,8 @@ const createProblem = async () => {
         title: createForm.title,
         shortDescription: createForm.shortDescription,
         detailedDescription: createForm.detailedDescription,
-        startTime: startDate.toISOString(),
-        endTime: endDate.toISOString()
+        startTime: convertLocalToUTC(createForm.startTime),
+        endTime: convertLocalToUTC(createForm.endTime)
       }
     })
 
@@ -387,8 +407,12 @@ const deleteProblem = async (problemId: string) => {
 watch(data, (newData) => {
   if (newData?.competition) {
     const competition = newData.competition
-    createForm.startTime = new Date(competition.startTime).toISOString().slice(0, 16)
-    createForm.endTime = new Date(competition.endTime).toISOString().slice(0, 16)
+    const startDate = new Date(competition.startTime)
+    const endDate = new Date(competition.endTime)
+
+    // 调整为本地时间显示
+    createForm.startTime = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+    createForm.endTime = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
   }
 }, { immediate: true })
 </script>
