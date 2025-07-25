@@ -25,6 +25,13 @@
               </NuxtLink>
               <NuxtLink
                 v-if="isLoggedIn"
+                to="/profile"
+                class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
+              >
+                个人资料
+              </NuxtLink>
+              <NuxtLink
+                v-if="isLoggedIn"
                 to="/submissions"
                 class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
               >

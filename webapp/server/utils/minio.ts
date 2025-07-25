@@ -5,7 +5,7 @@ let minioClient: Client | null = null
 export function getMinioClient(): Client {
   if (!minioClient) {
     const config = useRuntimeConfig()
-    
+
     minioClient = new Client({
       endPoint: config.minioEndpoint,
       port: config.minioPort,
@@ -14,14 +14,14 @@ export function getMinioClient(): Client {
       secretKey: config.minioSecretKey,
     })
   }
-  
+
   return minioClient
 }
 
 export async function ensureBucketExists(bucketName: string): Promise<void> {
   const client = getMinioClient()
   const exists = await client.bucketExists(bucketName)
-  
+
   if (!exists) {
     await client.makeBucket(bucketName, 'us-east-1')
   }
@@ -35,9 +35,9 @@ export async function uploadFile(
 ): Promise<string> {
   const client = getMinioClient()
   await ensureBucketExists(bucketName)
-  
+
   await client.putObject(bucketName, objectName, buffer, buffer.length, metadata)
-  
+
   return `${bucketName}/${objectName}`
 }
 
@@ -47,7 +47,7 @@ export async function downloadFile(
 ): Promise<Buffer> {
   const client = getMinioClient()
   const stream = await client.getObject(bucketName, objectName)
-  
+
   const chunks: Buffer[] = []
   return new Promise((resolve, reject) => {
     stream.on('data', (chunk) => chunks.push(chunk))
@@ -63,4 +63,27 @@ export async function getFileUrl(
 ): Promise<string> {
   const client = getMinioClient()
   return await client.presignedGetObject(bucketName, objectName, expiry)
+}
+
+export function getPublicFileUrl(
+  bucketName: string,
+  objectName: string
+): string {
+  const config = useRuntimeConfig()
+  const baseUrl = config.minioPublicUrl
+
+  // 确保baseUrl以http://或https://开头
+  if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+    throw new Error('MINIO_PUBLIC_URL must start with http:// or https://')
+  }
+
+  // 移除baseUrl末尾的斜杠（如果有的话）
+  const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl
+
+  // 确保bucketName和objectName不以斜杠开头
+  const cleanBucketName = bucketName.startsWith('/') ? bucketName.slice(1) : bucketName
+  const cleanObjectName = objectName.startsWith('/') ? objectName.slice(1) : objectName
+
+  // 构建完整的URL
+  return `${cleanBaseUrl}/${cleanBucketName}/${cleanObjectName}`
 }
