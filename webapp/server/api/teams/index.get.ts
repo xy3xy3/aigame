@@ -1,4 +1,5 @@
 import { usePrisma } from '../../utils/prisma'
+import { processTeamData } from '../../utils/url'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -51,8 +52,11 @@ export default defineEventHandler(async (event) => {
     }
   })
 
+  // 处理团队数据，包括头像URL
+  const processedTeams = teams.map(team => processTeamData(team))
+
   return {
     success: true,
-    teams
+    teams: processedTeams
   }
 })

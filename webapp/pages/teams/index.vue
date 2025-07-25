@@ -55,7 +55,26 @@
             class="bg-white shadow rounded-lg p-6"
           >
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-semibold text-gray-900">{{ team.name }}</h3>
+              <div class="flex items-center space-x-3">
+                <!-- Team Avatar -->
+                <div class="flex-shrink-0">
+                  <img
+                    v-if="team.avatarUrl"
+                    :src="getAvatarUrl(team.avatarUrl)"
+                    :alt="team.name"
+                    class="w-10 h-10 rounded-full object-cover"
+                  >
+                  <div
+                    v-else
+                    class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center"
+                  >
+                    <span class="text-indigo-600 font-bold">
+                      {{ team.name.charAt(0).toUpperCase() }}
+                    </span>
+                  </div>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">{{ team.name }}</h3>
+              </div>
               <span
                 v-if="team.isLocked"
                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
@@ -63,7 +82,7 @@
                 已锁定
               </span>
             </div>
-            
+
             <div class="mb-4">
               <p class="text-sm text-gray-600 mb-2">队长: {{ team.captain.username }}</p>
               <p class="text-sm text-gray-600">成员数量: {{ team.members.length }}</p>
@@ -99,18 +118,23 @@ const createError = ref('')
 
 const { data, pending, error, refresh } = await useFetch('/api/teams')
 
+// 获取头像公共URL
+const getAvatarUrl = (avatarUrl) => {
+  return avatarUrl || ''
+}
+
 const createTeam = async () => {
   if (!newTeamName.value.trim()) return
-  
+
   isCreating.value = true
   createError.value = ''
-  
+
   try {
     await $fetch('/api/teams', {
       method: 'POST',
       body: { name: newTeamName.value.trim() }
     })
-    
+
     newTeamName.value = ''
     await refresh()
   } catch (err) {
