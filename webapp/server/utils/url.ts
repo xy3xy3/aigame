@@ -17,6 +17,23 @@ export function processTeamAvatarUrl(avatarUrl: string | null): string | null {
   }
 }
 
+export function processUserAvatarUrl(avatarUrl: string | null): string | null {
+  if (!avatarUrl) return null
+
+  try {
+    // 解析avatarUrl，格式为 "avatars/..."
+    const parts = avatarUrl.split('/')
+    const bucketName = parts[0]
+    const objectName = parts.slice(1).join('/')
+
+    // 生成公共URL
+    return getPublicFileUrl(bucketName, objectName)
+  } catch (error) {
+    console.error('Error processing user avatar URL:', error)
+    return null
+  }
+}
+
 export function processTeamData(team: any): any {
   if (!team) return team
 

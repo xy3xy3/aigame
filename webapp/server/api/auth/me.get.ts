@@ -1,5 +1,6 @@
 import { getUserFromToken } from '../../utils/jwt'
 import { excludePassword } from '../../utils/auth'
+import { processUserAvatarUrl } from '../../utils/url'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -10,16 +11,16 @@ export default defineEventHandler(async (event) => {
   }
 
   const token = getCookie(event, 'auth-token')
-  
+
   if (!token) {
     throw createError({
       statusCode: 401,
       statusMessage: 'Not authenticated'
     })
   }
-  
+
   const user = await getUserFromToken(token)
-  
+
   if (!user) {
     // Clear invalid token
     deleteCookie(event, 'auth-token')
@@ -28,9 +29,15 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Invalid token'
     })
   }
-  
+
+  // 处理用户头像URL
+  const processedUser = excludePassword(user)
+  if (processedUser.avatarUrl) {
+    processedUser.avatarUrl = processUserAvatarUrl(processedUser.avatarUrl)
+  }
+
   return {
     success: true,
-    user: excludePassword(user)
+    user: processedUser
   }
 })
