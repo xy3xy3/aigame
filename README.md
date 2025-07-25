@@ -12,6 +12,7 @@ sudo chown 998:998 ./data/mongodb.key
 sudo chmod 400 ./data/mongodb.key
 docker compose up -d mongo
 docker compose logs mongo
+docker compose exec mongo mongosh -u root -p password --authenticationDatabase admin --eval 'rs.initiate({ _id: "rs0", members: [ { _id: 0, host: "mongo:27017" } ]})'
 ```
 
 需要设置data权限
