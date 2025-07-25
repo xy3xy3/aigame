@@ -1,4 +1,4 @@
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { $prisma } = await usePrisma()
+
 
   // 获取查询参数
   const query = getQuery(event)
@@ -37,10 +37,10 @@ export default defineEventHandler(async (event) => {
   }
 
   // 获取队伍总数
-  const total = await $prisma.team.count({ where })
+  const total = await prisma.team.count({ where })
 
   // 获取队伍列表
-  const teams = await $prisma.team.findMany({
+  const teams = await prisma.team.findMany({
     where,
     skip,
     take: limit,

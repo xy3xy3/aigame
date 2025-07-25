@@ -1,4 +1,4 @@
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 import { processTeamData } from '../../../utils/url'
 
 export default defineEventHandler(async (event) => {
@@ -19,9 +19,9 @@ export default defineEventHandler(async (event) => {
 
   const teamId = getRouterParam(event, 'id')
 
-  const { $prisma } = await usePrisma()
 
-  const team = await $prisma.team.findUnique({
+
+  const team = await prisma.team.findUnique({
     where: { id: teamId },
     include: {
       captain: {

@@ -1,4 +1,4 @@
-import { usePrisma } from '../../utils/prisma'
+import prisma from '../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -8,10 +8,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { $prisma } = await usePrisma()
+
 
   // 获取所有竞赛的简化信息，用于筛选器
-  const competitions = await $prisma.competition.findMany({
+  const competitions = await prisma.competition.findMany({
     select: {
       id: true,
       title: true,

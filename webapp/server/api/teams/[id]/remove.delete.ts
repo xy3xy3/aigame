@@ -26,10 +26,10 @@ export default defineEventHandler(async (event) => {
   try {
     const { userId } = removeMemberSchema.parse(body)
 
-    const { $prisma } = await usePrisma()
+
 
     // Get team and verify user is captain
-    const team = await $prisma.team.findUnique({
+    const team = await prisma.team.findUnique({
       where: { id: teamId }
     })
 
@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
 
     // Remove member
     // Remove member
-    await $prisma.teamMember.delete({
+    await prisma.teamMember.delete({
       where: {
         teamId_userId: {
           teamId: team.id,

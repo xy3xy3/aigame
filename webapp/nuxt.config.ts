@@ -10,7 +10,6 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxtjs/color-mode',
     '@nuxt/image',
-    '@prisma/nuxt',
     'notivue/nuxt'
   ],
 

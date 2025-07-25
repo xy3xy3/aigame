@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 
 const updateCompetitionSchema = z.object({
   title: z.string().min(2).max(100),
@@ -52,10 +52,10 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const { $prisma } = await usePrisma()
+
 
     // 验证比赛是否存在
-    const existingCompetition = await $prisma.competition.findUnique({
+    const existingCompetition = await prisma.competition.findUnique({
       where: { id: competitionId }
     })
 
@@ -76,7 +76,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 检查是否有同名比赛（排除当前比赛）
-    const duplicateCompetition = await $prisma.competition.findFirst({
+    const duplicateCompetition = await prisma.competition.findFirst({
       where: {
         title,
         id: { not: competitionId }
@@ -91,7 +91,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 更新比赛
-    const competition = await $prisma.competition.update({
+    const competition = await prisma.competition.update({
       where: { id: competitionId },
       data: {
         title,

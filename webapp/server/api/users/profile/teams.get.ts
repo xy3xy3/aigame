@@ -1,4 +1,4 @@
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 import { processTeamData } from '../../../utils/url'
 
 export default defineEventHandler(async (event) => {
@@ -17,10 +17,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { $prisma } = await usePrisma()
+
 
   // 获取用户创建的团队
-  const createdTeams = await $prisma.team.findMany({
+  const createdTeams = await prisma.team.findMany({
     where: {
       captainId: user.id
     },
@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
   })
 
   // 获取用户加入的团队
-  const joinedTeams = await $prisma.team.findMany({
+  const joinedTeams = await prisma.team.findMany({
     where: {
       members: {
         some: {

@@ -1,5 +1,5 @@
 import { getMinioClient } from '~/server/utils/minio'
-import { usePrisma } from '~/server/utils/prisma'
+import prisma from '~/server/utils/prisma'
 
 export default defineEventHandler(async (event) => {
   const submissionId = event.context.params?.id
@@ -11,8 +11,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { $prisma } = await usePrisma()
-  const submission = await $prisma.submission.findUnique({
+
+  const submission = await prisma.submission.findUnique({
     where: { id: submissionId },
     select: { submissionUrl: true }
   })

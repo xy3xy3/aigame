@@ -21,38 +21,38 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event)
-  
+
   try {
     const { name } = createTeamSchema.parse(body)
-    
-    const { $prisma } = await usePrisma()
-    
+
+
+
     // Check if user is already captain of a team
-    const existingTeam = await $prisma.team.findFirst({
+    const existingTeam = await prisma.team.findFirst({
       where: { captainId: user.id }
     })
-    
+
     if (existingTeam) {
       throw createError({
         statusCode: 409,
         statusMessage: 'You are already a captain of a team'
       })
     }
-    
+
     // Check if team name is taken
-    const nameExists = await $prisma.team.findFirst({
+    const nameExists = await prisma.team.findFirst({
       where: { name }
     })
-    
+
     if (nameExists) {
       throw createError({
         statusCode: 409,
         statusMessage: 'Team name already taken'
       })
     }
-    
+
     // Create team and add captain as member
-    const team = await $prisma.team.create({
+    const team = await prisma.team.create({
       data: {
         name,
         captainId: user.id,
@@ -85,12 +85,12 @@ export default defineEventHandler(async (event) => {
         }
       }
     })
-    
+
     return {
       success: true,
       team
     }
-    
+
   } catch (error) {
     if (error instanceof z.ZodError) {
       throw createError({
@@ -99,7 +99,7 @@ export default defineEventHandler(async (event) => {
         data: error.issues
       })
     }
-    
+
     throw error
   }
 })

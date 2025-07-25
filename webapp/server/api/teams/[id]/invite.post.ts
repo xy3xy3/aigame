@@ -27,10 +27,10 @@ export default defineEventHandler(async (event) => {
   try {
     const { email } = inviteSchema.parse(body)
 
-    const { $prisma } = await usePrisma()
+
 
     // Get team and verify user is captain
-    const team = await $prisma.team.findUnique({
+    const team = await prisma.team.findUnique({
       where: { id: teamId },
       include: {
         members: {
@@ -63,7 +63,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Find user to invite
-    const userToInvite = await $prisma.user.findUnique({
+    const userToInvite = await prisma.user.findUnique({
       where: { email }
     })
 
@@ -84,7 +84,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Check if there is already a pending invitation
-    const existingInvitation = await $prisma.invitation.findFirst({
+    const existingInvitation = await prisma.invitation.findFirst({
       where: {
         teamId: team.id,
         inviteeId: userToInvite.id,
@@ -100,7 +100,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Create invitation
-    const invitation = await $prisma.invitation.create({
+    const invitation = await prisma.invitation.create({
       data: {
         teamId: team.id,
         invitedById: user.id,

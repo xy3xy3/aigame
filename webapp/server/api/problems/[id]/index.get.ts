@@ -1,5 +1,5 @@
 import { getCachedProblem, cacheProblem } from '../../../utils/redis'
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -24,9 +24,9 @@ export default defineEventHandler(async (event) => {
     console.log('Redis not available, skipping cache')
   }
 
-  const { $prisma } = await usePrisma()
 
-  const problem = await $prisma.problem.findUnique({
+
+  const problem = await prisma.problem.findUnique({
     where: { id: problemId },
     select: {
       id: true,

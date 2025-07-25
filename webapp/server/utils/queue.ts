@@ -1,6 +1,6 @@
 import { Queue, Worker, Job } from 'bullmq'
 import { getRedisClient } from './redis'
-import { usePrisma } from './prisma'
+import prisma from './prisma'
 
 // 评测任务队列
 let evaluationQueue: Queue | null = null
@@ -100,7 +100,7 @@ export function startEvaluationWorker(): Worker {
 }
 
 async function updateSubmissionStatus(submissionId: string, status: string, error?: string): Promise<void> {
-  const { $prisma } = await usePrisma()
+  const $prisma = prisma
 
   const updateData: any = {
     status,
@@ -115,14 +115,14 @@ async function updateSubmissionStatus(submissionId: string, status: string, erro
     updateData.judgedAt = new Date()
   }
 
-  await $prisma.submission.update({
+  await prisma.submission.update({
     where: { id: submissionId },
     data: updateData
   })
 }
 
 async function updateSubmissionResult(submissionId: string, result: EvaluationResult): Promise<void> {
-  const { $prisma } = await usePrisma()
+  const $prisma = prisma
 
   const updateData: any = {
     status: result.success ? 'COMPLETED' : 'ERROR',
@@ -142,7 +142,7 @@ async function updateSubmissionResult(submissionId: string, result: EvaluationRe
     updateData.executionLogs = result.error
   }
 
-  const submission = await $prisma.submission.update({
+  const submission = await prisma.submission.update({
     where: { id: submissionId },
     data: updateData,
     include: {
@@ -164,21 +164,21 @@ async function updateLeaderboardScore(competitionId: string, teamId: string, sco
   await updateLeaderboard(competitionId, teamId, score)
 
   // 更新数据库排行榜
-  const { $prisma } = await usePrisma()
+  const $prisma = prisma
 
   // 查找或创建排行榜
-  let leaderboard = await $prisma.leaderboard.findUnique({
+  let leaderboard = await prisma.leaderboard.findUnique({
     where: { competitionId }
   })
 
   if (!leaderboard) {
-    leaderboard = await $prisma.leaderboard.create({
+    leaderboard = await prisma.leaderboard.create({
       data: { competitionId }
     })
   }
 
   // 查找或创建排行榜条目
-  const existingEntry = await $prisma.leaderboardEntry.findUnique({
+  const existingEntry = await prisma.leaderboardEntry.findUnique({
     where: {
       leaderboardId_teamId: {
         leaderboardId: leaderboard.id,
@@ -187,14 +187,14 @@ async function updateLeaderboardScore(competitionId: string, teamId: string, sco
     }
   })
 
-  const team = await $prisma.team.findUnique({
+  const team = await prisma.team.findUnique({
     where: { id: teamId }
   })
 
   if (existingEntry) {
     // 更新现有条目（只有更高分数才更新）
     if (score > existingEntry.totalScore) {
-      await $prisma.leaderboardEntry.update({
+      await prisma.leaderboardEntry.update({
         where: { id: existingEntry.id },
         data: {
           totalScore: score,
@@ -204,7 +204,7 @@ async function updateLeaderboardScore(competitionId: string, teamId: string, sco
     }
   } else {
     // 创建新条目
-    await $prisma.leaderboardEntry.create({
+    await prisma.leaderboardEntry.create({
       data: {
         leaderboardId: leaderboard.id,
         teamId,
@@ -220,15 +220,15 @@ async function updateLeaderboardScore(competitionId: string, teamId: string, sco
 }
 
 async function recalculateRanks(leaderboardId: string): Promise<void> {
-  const { $prisma } = await usePrisma()
+  const $prisma = prisma
 
-  const entries = await $prisma.leaderboardEntry.findMany({
+  const entries = await prisma.leaderboardEntry.findMany({
     where: { leaderboardId },
     orderBy: { totalScore: 'desc' }
   })
 
   for (let i = 0; i < entries.length; i++) {
-    await $prisma.leaderboardEntry.update({
+    await prisma.leaderboardEntry.update({
       where: { id: entries[i].id },
       data: { rank: i + 1 }
     })

@@ -1,4 +1,4 @@
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -18,9 +18,9 @@ export default defineEventHandler(async (event) => {
 
   const submissionId = getRouterParam(event, 'id')
 
-  const { $prisma } = await usePrisma()
 
-  const submission = await $prisma.submission.findUnique({
+
+  const submission = await prisma.submission.findUnique({
     where: { id: submissionId },
     include: {
       problem: {
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // 验证用户是否有权限查看此提交
-  const teamMember = await $prisma.teamMember.findFirst({
+  const teamMember = await prisma.teamMember.findFirst({
     where: {
       teamId: submission.teamId,
       userId: user.id

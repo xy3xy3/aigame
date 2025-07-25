@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 
 const joinCompetitionSchema = z.object({
   teamId: z.string()
@@ -34,10 +34,10 @@ export default defineEventHandler(async (event) => {
   try {
     const { teamId } = joinCompetitionSchema.parse(body)
 
-    const { $prisma } = await usePrisma()
+
 
     // 验证比赛是否存在且正在进行
-    const competition = await $prisma.competition.findUnique({
+    const competition = await prisma.competition.findUnique({
       where: { id: competitionId }
     })
 
@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 验证队伍是否存在且用户是队伍成员
-    const team = await $prisma.team.findUnique({
+    const team = await prisma.team.findUnique({
       where: { id: teamId },
       include: {
         members: {
@@ -108,7 +108,7 @@ export default defineEventHandler(async (event) => {
     const memberIds = team.members.map(member => member.userId)
 
     // 检查是否有任何成员已经通过任何队伍参加了这个比赛
-    const existingParticipantTeam = await $prisma.team.findFirst({
+    const existingParticipantTeam = await prisma.team.findFirst({
       where: {
         participatingIn: {
           has: competitionId
@@ -131,7 +131,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 更新队伍信息：添加比赛ID到participatingIn数组，并锁定队伍
-    const updatedTeam = await $prisma.team.update({
+    const updatedTeam = await prisma.team.update({
       where: { id: teamId },
       data: {
         participatingIn: {

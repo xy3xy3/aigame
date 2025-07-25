@@ -1,4 +1,4 @@
-import { usePrisma } from '../../utils/prisma'
+import prisma from '../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -24,7 +24,7 @@ export default defineEventHandler(async (event) => {
   const teamId = query.teamId as string
   const status = query.status as string
 
-  const { $prisma } = await usePrisma()
+
 
   // 构建查询条件
   const where: any = {}
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
 
   // 如果没有指定teamId，则只显示用户所在队伍的提交
   if (!teamId) {
-    const userTeams = await $prisma.teamMember.findMany({
+    const userTeams = await prisma.teamMember.findMany({
       where: { userId: user.id },
       select: { teamId: true }
     })
@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
     }
   } else {
     // 验证用户是否属于指定队伍
-    const teamMember = await $prisma.teamMember.findFirst({
+    const teamMember = await prisma.teamMember.findFirst({
       where: {
         teamId,
         userId: user.id
@@ -78,7 +78,7 @@ export default defineEventHandler(async (event) => {
 
   // 获取提交列表
   const [submissions, total] = await Promise.all([
-    $prisma.submission.findMany({
+    prisma.submission.findMany({
       where,
       include: {
         problem: {
@@ -113,7 +113,7 @@ export default defineEventHandler(async (event) => {
       skip: (page - 1) * limit,
       take: limit
     }),
-    $prisma.submission.count({ where })
+    prisma.submission.count({ where })
   ])
 
   return {

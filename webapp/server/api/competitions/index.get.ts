@@ -1,4 +1,4 @@
-import { usePrisma } from '../../utils/prisma'
+import prisma from '../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
   // 获取用户信息（如果已登录）
   const user = event.context.user
 
-  const { $prisma } = await usePrisma()
+
 
   // 构建查询条件
   const where: any = {}
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
 
   // 获取比赛列表
   const [competitions, total] = await Promise.all([
-    $prisma.competition.findMany({
+    prisma.competition.findMany({
       where,
       include: {
         creator: {
@@ -65,13 +65,13 @@ export default defineEventHandler(async (event) => {
       skip: (page - 1) * limit,
       take: limit
     }),
-    $prisma.competition.count({ where })
+    prisma.competition.count({ where })
   ])
 
   // 获取用户参加的比赛信息（如果已登录）
   let userParticipatingCompetitions: string[] = []
   if (user) {
-    const userTeams = await $prisma.team.findMany({
+    const userTeams = await prisma.team.findMany({
       where: {
         members: {
           some: {

@@ -12,11 +12,11 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const limit = parseInt(query.limit as string) || 100
   const useCache = query.cache !== 'false'
-  
-  const { $prisma } = await usePrisma()
-  
+
+
+
   // 验证比赛是否存在
-  const competition = await $prisma.competition.findUnique({
+  const competition = await prisma.competition.findUnique({
     where: { id: competitionId },
     select: {
       id: true,
@@ -25,25 +25,25 @@ export default defineEventHandler(async (event) => {
       endTime: true
     }
   })
-  
+
   if (!competition) {
     throw createError({
       statusCode: 404,
       statusMessage: 'Competition not found'
     })
   }
-  
+
   try {
     let leaderboardData = []
-    
+
     if (useCache) {
       // 尝试从Redis获取排行榜
       const redisLeaderboard = await getLeaderboard(competitionId, limit)
-      
+
       if (redisLeaderboard.length > 0) {
         // 获取队伍详细信息
         const teamIds = redisLeaderboard.map(entry => entry.teamId)
-        const teams = await $prisma.team.findMany({
+        const teams = await prisma.team.findMany({
           where: { id: { in: teamIds } },
           select: {
             id: true,
@@ -56,9 +56,9 @@ export default defineEventHandler(async (event) => {
             }
           }
         })
-        
+
         const teamMap = new Map(teams.map(team => [team.id, team]))
-        
+
         leaderboardData = redisLeaderboard.map(entry => ({
           rank: entry.rank,
           team: teamMap.get(entry.teamId) || {
@@ -72,10 +72,10 @@ export default defineEventHandler(async (event) => {
         }))
       }
     }
-    
+
     // 如果Redis中没有数据，从数据库获取
     if (leaderboardData.length === 0) {
-      const dbLeaderboard = await $prisma.leaderboard.findUnique({
+      const dbLeaderboard = await prisma.leaderboard.findUnique({
         where: { competitionId },
         include: {
           rankings: {
@@ -98,7 +98,7 @@ export default defineEventHandler(async (event) => {
           }
         }
       })
-      
+
       if (dbLeaderboard) {
         leaderboardData = dbLeaderboard.rankings.map(entry => ({
           rank: entry.rank,
@@ -108,9 +108,9 @@ export default defineEventHandler(async (event) => {
         }))
       }
     }
-    
+
     // 获取比赛统计信息
-    const stats = await $prisma.submission.groupBy({
+    const stats = await prisma.submission.groupBy({
       by: ['teamId'],
       where: { competitionId },
       _count: {
@@ -120,12 +120,12 @@ export default defineEventHandler(async (event) => {
         score: true
       }
     })
-    
+
     const totalTeams = stats.length
-    const totalSubmissions = await $prisma.submission.count({
+    const totalSubmissions = await prisma.submission.count({
       where: { competitionId }
     })
-    
+
     return {
       success: true,
       leaderboard: leaderboardData,
@@ -136,7 +136,7 @@ export default defineEventHandler(async (event) => {
         lastUpdated: new Date()
       }
     }
-    
+
   } catch (error) {
     console.error('Error fetching leaderboard:', error)
     throw createError({

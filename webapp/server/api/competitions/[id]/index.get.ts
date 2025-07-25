@@ -1,5 +1,5 @@
 import { getCachedCompetition, cacheCompetition } from '../../../utils/redis'
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -27,8 +27,8 @@ export default defineEventHandler(async (event) => {
       // 如果有缓存，仍需要检查用户参赛状态
       let userParticipating = false
       if (user) {
-        const { $prisma } = await usePrisma()
-        const userTeams = await $prisma.team.findMany({
+
+        const userTeams = await prisma.team.findMany({
           where: {
             members: {
               some: {
@@ -55,9 +55,9 @@ export default defineEventHandler(async (event) => {
     console.log('Redis not available, skipping cache')
   }
 
-  const { $prisma } = await usePrisma()
 
-  const competition = await $prisma.competition.findUnique({
+
+  const competition = await prisma.competition.findUnique({
     where: { id: competitionId },
     include: {
       creator: {
@@ -99,7 +99,7 @@ export default defineEventHandler(async (event) => {
   // 检查用户参赛状态
   let userParticipating = false
   if (user) {
-    const userTeams = await $prisma.team.findMany({
+    const userTeams = await prisma.team.findMany({
       where: {
         members: {
           some: {

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { usePrisma } from '../../../../utils/prisma'
+import prisma from '../../../../utils/prisma'
 
 const createProblemSchema = z.object({
   title: z.string().min(2).max(100),
@@ -40,10 +40,10 @@ export default defineEventHandler(async (event) => {
   try {
     const { title, shortDescription, detailedDescription, datasetUrl, judgingScriptUrl, startTime, endTime, score } = createProblemSchema.parse(body)
 
-    const { $prisma } = await usePrisma()
+
 
     // 验证比赛是否存在且用户有权限
-    const competition = await $prisma.competition.findUnique({
+    const competition = await prisma.competition.findUnique({
       where: { id: competitionId }
     })
 
@@ -102,7 +102,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 检查是否已存在同名题目
-    const existingProblem = await $prisma.problem.findFirst({
+    const existingProblem = await prisma.problem.findFirst({
       where: {
         competitionId,
         title
@@ -117,7 +117,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 创建题目
-    const problem = await $prisma.problem.create({
+    const problem = await prisma.problem.create({
       data: {
         title,
         shortDescription,

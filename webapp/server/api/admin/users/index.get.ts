@@ -1,4 +1,4 @@
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 import { excludePassword } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
   const limit = parseInt(query.limit as string) || 10
   const search = query.search as string || ''
 
-  const { $prisma } = await usePrisma()
+
 
   // 构建查询条件
   const where: any = {}
@@ -44,7 +44,7 @@ export default defineEventHandler(async (event) => {
 
   // 获取用户列表
   const [users, total] = await Promise.all([
-    $prisma.user.findMany({
+    prisma.user.findMany({
       where,
       select: {
         id: true,
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
       skip: (page - 1) * limit,
       take: limit
     }),
-    $prisma.user.count({ where })
+    prisma.user.count({ where })
   ])
 
   // 移除密码字段

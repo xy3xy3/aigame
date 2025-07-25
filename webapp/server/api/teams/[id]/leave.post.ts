@@ -17,10 +17,10 @@ export default defineEventHandler(async (event) => {
   const teamId = getRouterParam(event, 'id')
 
   try {
-    const { $prisma } = await usePrisma()
+
 
     // Get team and verify user is a member but not the captain
-    const team = await $prisma.team.findUnique({
+    const team = await prisma.team.findUnique({
       where: { id: teamId },
       include: {
         members: true
@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Remove user from team
-    await $prisma.teamMember.delete({
+    await prisma.teamMember.delete({
       where: {
         teamId_userId: {
           teamId: team.id,

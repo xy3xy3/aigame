@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken'
 import type { User } from '@prisma/client'
-import { usePrisma } from './prisma'
 
 export interface JwtPayload {
   userId: string
@@ -39,10 +38,10 @@ export async function getUserFromToken(token: string): Promise<User | null> {
   const payload = verifyToken(token)
   if (!payload) return null
 
-  const { $prisma } = await usePrisma()
+
 
   try {
-    const user = await $prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: payload.userId }
     })
     return user

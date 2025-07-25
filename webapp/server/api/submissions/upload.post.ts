@@ -2,7 +2,7 @@ import multer from 'multer'
 import { z } from 'zod'
 import { uploadFile } from '../../utils/minio'
 import { addEvaluationJob } from '../../utils/queue'
-import { usePrisma } from '../../utils/prisma'
+import prisma from '../../utils/prisma'
 
 // 配置multer使用内存存储
 const upload = multer({
@@ -81,10 +81,10 @@ export default defineEventHandler(async (event) => {
     // 验证请求参数
     const { problemId, competitionId, teamId } = submitSchema.parse(body)
 
-    const { $prisma } = await usePrisma()
+
 
     // 验证比赛和题目是否存在
-    const problem = await $prisma.problem.findUnique({
+    const problem = await prisma.problem.findUnique({
       where: { id: problemId },
       include: {
         competition: true
@@ -106,7 +106,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 验证用户是否属于该队伍
-    const teamMember = await $prisma.teamMember.findFirst({
+    const teamMember = await prisma.teamMember.findFirst({
       where: {
         teamId,
         userId: user.id
@@ -169,7 +169,7 @@ export default defineEventHandler(async (event) => {
     })
 
     // 创建提交记录
-    const submission = await $prisma.submission.create({
+    const submission = await prisma.submission.create({
       data: {
         problemId,
         competitionId,

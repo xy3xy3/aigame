@@ -1,4 +1,4 @@
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'DELETE') {
@@ -10,10 +10,10 @@ export default defineEventHandler(async (event) => {
 
   const problemId = getRouterParam(event, 'id')
 
-  const { $prisma } = await usePrisma()
+
 
   // 验证题目是否存在
-  const problem = await $prisma.problem.findUnique({
+  const problem = await prisma.problem.findUnique({
     where: { id: problemId },
     include: {
       _count: {
@@ -41,7 +41,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     // 删除题目
-    await $prisma.problem.delete({
+    await prisma.problem.delete({
       where: { id: problemId }
     })
 

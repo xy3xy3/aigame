@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { verifyPassword, excludePassword } from '../../utils/auth'
 import { generateToken } from '../../utils/jwt'
-import { usePrisma } from '../../utils/prisma'
+import prisma from '../../utils/prisma'
 
 const loginSchema = z.object({
   identifier: z.string().min(1), // 可以是邮箱或用户名
@@ -21,13 +21,13 @@ export default defineEventHandler(async (event) => {
   try {
     const { identifier, password } = loginSchema.parse(body)
 
-    const { $prisma } = await usePrisma()
+
 
     // 判断输入的是邮箱还是用户名
     const isEmail = identifier.includes('@')
 
     // 根据输入类型查找用户
-    const user = await $prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: isEmail ? { email: identifier } : { username: identifier }
     })
 

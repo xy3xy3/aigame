@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 
 const updateProblemSchema = z.object({
   title: z.string().min(2).max(100),
@@ -44,10 +44,10 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    const { $prisma } = await usePrisma()
+
 
     // 验证题目是否存在
-    const existingProblem = await $prisma.problem.findUnique({
+    const existingProblem = await prisma.problem.findUnique({
       where: { id: problemId },
       include: {
         competition: true
@@ -71,7 +71,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 检查是否有同名题目（排除当前题目）
-    const duplicateProblem = await $prisma.problem.findFirst({
+    const duplicateProblem = await prisma.problem.findFirst({
       where: {
         title,
         competitionId: existingProblem.competitionId,
@@ -87,7 +87,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 更新题目
-    const problem = await $prisma.problem.update({
+    const problem = await prisma.problem.update({
       where: { id: problemId },
       data: {
         title,

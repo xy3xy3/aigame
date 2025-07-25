@@ -1,4 +1,4 @@
-import { usePrisma } from '../../utils/prisma'
+import prisma from '../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   const status = query.status as string // 'upcoming', 'ongoing', 'ended'
   const competitionId = query.competitionId as string
 
-  const { $prisma } = await usePrisma()
+
 
   // 构建查询条件
   const where: any = {}
@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
 
   // 获取题目列表
   const [problems, total] = await Promise.all([
-    $prisma.problem.findMany({
+    prisma.problem.findMany({
       where,
       include: {
         competition: {
@@ -62,7 +62,7 @@ export default defineEventHandler(async (event) => {
       skip: (page - 1) * limit,
       take: limit
     }),
-    $prisma.problem.count({ where })
+    prisma.problem.count({ where })
   ])
 
   // 添加状态信息

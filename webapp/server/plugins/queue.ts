@@ -1,4 +1,3 @@
-import { usePrisma } from '../utils/prisma'
 import { hashPassword } from '../utils/auth'
 import { startEvaluationWorker } from '../utils/queue'
 
@@ -15,10 +14,10 @@ export default async () => {
   // 尝试创建默认管理员账户
   try {
     console.log('Checking for admin user...')
-    const { $prisma } = await usePrisma()
+
 
     // 检查是否已存在管理员账户
-    const adminUser = await $prisma.user.findFirst({
+    const adminUser = await prisma.user.findFirst({
       where: {
         role: 'admin'
       }
@@ -30,7 +29,7 @@ export default async () => {
     }
 
     // 检查是否已存在用户名为admin的账户
-    const existingAdmin = await $prisma.user.findUnique({
+    const existingAdmin = await prisma.user.findUnique({
       where: {
         username: 'admin'
       }
@@ -45,7 +44,7 @@ export default async () => {
     const defaultPassword = '123456'
     const hashedPassword = await hashPassword(defaultPassword)
 
-    const newAdmin = await $prisma.user.create({
+    const newAdmin = await prisma.user.create({
       data: {
         username: 'admin',
         email: 'admin@example.com',

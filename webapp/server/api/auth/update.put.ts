@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import multer from 'multer'
-import { usePrisma } from '../../utils/prisma'
+import prisma from '../../utils/prisma'
 import { uploadFile } from '../../utils/minio'
 import { excludePassword } from '../../utils/auth'
 
@@ -121,7 +121,7 @@ export default defineEventHandler(async (event) => {
       return
     }
 
-    const { $prisma } = await usePrisma()
+
 
     // 准备更新数据
     const updateData: any = {}
@@ -196,7 +196,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 更新用户信息
-    const updatedUser = await $prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: updateData
     })

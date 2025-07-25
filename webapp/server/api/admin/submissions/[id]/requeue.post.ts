@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { usePrisma } from '../../../../utils/prisma'
+import prisma from '../../../../utils/prisma'
 import { addEvaluationJob } from '~/server/utils/queue'
 
 const requeueParamsSchema = z.object({
@@ -9,9 +9,9 @@ const requeueParamsSchema = z.object({
 export default defineEventHandler(async (event) => {
   const { id } = await getValidatedRouterParams(event, requeueParamsSchema.parse)
 
-  const { $prisma } = await usePrisma()
 
-  const submission = await $prisma.submission.findUnique({
+
+  const submission = await prisma.submission.findUnique({
     where: { id },
     include: {
       problem: true,
@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
   })
 
   // Update the submission status to PENDING
-  await $prisma.submission.update({
+  await prisma.submission.update({
     where: { id },
     data: {
       status: 'PENDING',

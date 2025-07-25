@@ -1,4 +1,4 @@
-import { usePrisma } from '../../utils/prisma'
+import prisma from '../../utils/prisma'
 import { processTeamData } from '../../utils/url'
 
 export default defineEventHandler(async (event) => {
@@ -17,10 +17,10 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const { $prisma } = await usePrisma()
+
 
   // Get teams where user is a member
-  const teams = await $prisma.team.findMany({
+  const teams = await prisma.team.findMany({
     where: {
       members: {
         some: {

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { hashPassword, verifyPassword, excludePassword } from '../../utils/auth'
 import { generateToken } from '../../utils/jwt'
-import { usePrisma } from '../../utils/prisma'
+import prisma from '../../utils/prisma'
 
 // Validation schemas
 const registerSchema = z.object({
@@ -32,10 +32,10 @@ export default defineEventHandler(async (event) => {
     // Validate request body
     const { username, email, password, phoneNumber, studentId, realName } = registerSchema.parse(body)
 
-    const { $prisma } = await usePrisma()
+
 
     // Check if user already exists
-    const existingUser = await $prisma.user.findFirst({
+    const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
           { email },
@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
     // Hash password and create user
     const passwordHash = await hashPassword(password)
 
-    const user = await $prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         username,
         email,

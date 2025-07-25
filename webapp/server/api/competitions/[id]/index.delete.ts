@@ -1,4 +1,4 @@
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'DELETE') {
@@ -27,10 +27,10 @@ export default defineEventHandler(async (event) => {
   const competitionId = getRouterParam(event, 'id')
 
   try {
-    const { $prisma } = await usePrisma()
+
 
     // 验证比赛是否存在
-    const competition = await $prisma.competition.findUnique({
+    const competition = await prisma.competition.findUnique({
       where: { id: competitionId },
       include: {
         problems: true,
@@ -65,7 +65,7 @@ export default defineEventHandler(async (event) => {
 
     // 删除相关数据（级联删除）
     // 注意：由于Prisma的级联删除配置，相关的problems和submissions会自动删除
-    await $prisma.competition.delete({
+    await prisma.competition.delete({
       where: { id: competitionId }
     })
 

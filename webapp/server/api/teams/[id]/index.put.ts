@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import multer from 'multer'
-import { usePrisma } from '../../../utils/prisma'
+import prisma from '../../../utils/prisma'
 import { uploadFile } from '../../../utils/minio'
 import { processTeamData } from '../../../utils/url'
 
@@ -125,10 +125,10 @@ export default defineEventHandler(async (event) => {
       return
     }
 
-    const { $prisma } = await usePrisma()
+
 
     // 获取团队信息并验证用户是否为队长
-    const team = await $prisma.team.findUnique({
+    const team = await prisma.team.findUnique({
       where: { id: teamId },
       include: {
         captain: true
@@ -212,7 +212,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 更新团队信息
-    const updatedTeam = await $prisma.team.update({
+    const updatedTeam = await prisma.team.update({
       where: { id: teamId },
       data: updateData,
       include: {
