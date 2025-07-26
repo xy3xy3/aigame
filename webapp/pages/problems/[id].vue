@@ -67,7 +67,7 @@
               data.problem.status === 'ongoing' &&
               !teamsPending &&
               !teamsError &&
-              userTeams?.length > 0
+              competitionTeamsData?.length > 0
             "
           >
             <h3 class="text-lg font-semibold text-gray-900 mb-2">提交解答</h3>
@@ -79,10 +79,14 @@
                 <select
                   v-model="selectedTeamId"
                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                  :disabled="teamsPending || teamsError || !userTeams?.length"
+                  :disabled="teamsPending || teamsError || !competitionTeamsData?.length"
                 >
                   <option value="">请选择队伍</option>
-                  <option v-for="team in userTeams" :key="team.id" :value="team.id">
+                  <option
+                    v-for="team in competitionTeamsData"
+                    :key="team.id"
+                    :value="team.id"
+                  >
                     {{ team.name }}
                   </option>
                 </select>
@@ -112,7 +116,7 @@
                   isSubmitting ||
                   teamsPending ||
                   teamsError ||
-                  !userTeams?.length
+                  !competitionTeamsData?.length
                 "
                 class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -151,7 +155,7 @@
             <p class="text-gray-600 mb-3">加载队伍信息失败: {{ teamsError.message }}</p>
           </div>
 
-          <div v-else-if="!userTeams?.length">
+          <div v-else-if="!competitionTeamsData?.length">
             <h3 class="text-lg font-semibold text-gray-900 mb-2">无法提交</h3>
             <p class="text-gray-600 mb-3">您没有已报名此比赛的团队</p>
             <NuxtLink
@@ -318,9 +322,40 @@ const problemId = route.params.id;
 // 获取题目信息
 const { data, pending, error } = await useFetch(`/api/problems/${problemId}`);
 
-// 获取用户的队伍列表
-const { data: teamsData } = await useFetch("/api/teams");
-const userTeams = computed(() => teamsData.value?.teams || []);
+// 获取参加当前比赛的队伍列表
+const {
+  data: competitionTeamsData,
+  pending: teamsPending,
+  error: teamsError,
+  refresh: refreshTeams,
+} = useAsyncData(
+  `competition-teams-${problemId}`,
+  async () => {
+    if (!data.value?.problem?.competitionId) {
+      return [];
+    }
+    try {
+      const response = await $fetch(
+        `/api/competitions/${data.value.problem.competitionId}/teams`
+      );
+      return response.teams || [];
+    } catch (err) {
+      console.error("获取比赛队伍列表失败:", err);
+      return [];
+    }
+  },
+  {
+    watch: [() => data.value?.problem?.competitionId],
+    immediate: false,
+  }
+);
+
+// 监听题目数据变化，当题目数据加载完成后，获取比赛队伍列表
+watch(data, (newData) => {
+  if (newData?.problem?.competitionId) {
+    refreshTeams();
+  }
+});
 
 // 获取提交记录
 const {
@@ -341,7 +376,7 @@ const submitError = ref("");
 const submitSuccess = ref(false);
 
 // 当团队列表加载完成后，如果列表不为空且未选择团队，则默认选择第一个
-watch(userTeams, (newTeams) => {
+watch(competitionTeamsData, (newTeams) => {
   if (newTeams && newTeams.length > 0 && !selectedTeamId.value) {
     selectedTeamId.value = newTeams[0].id;
   }
