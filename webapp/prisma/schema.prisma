@@ -205,3 +205,14 @@ model Invitation {
 
   @@map("invitations")
 }
+
+model Announcement {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  status    String   @default("HIDDEN")
+
+  @@map("announcements")
+}

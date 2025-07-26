@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-7xl mx-auto py-6 px-4">
     <div class="mb-6">
-      <h1 class="text-3xl font-bold text-gray-900">提交管理</h1>
+      <h1 class="text-3xl font-bold text-gray-900">管理提交</h1>
       <p class="mt-2 text-gray-600">查看和管理所有用户的提交记录</p>
     </div>
 

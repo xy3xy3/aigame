@@ -30,6 +30,13 @@
               >
                 我的提交
               </NuxtLink>
+              <NuxtLink
+                v-if="isLoggedIn"
+                to="/announcements"
+                class="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
+              >
+                公告
+              </NuxtLink>
               <div
                 v-if="isLoggedIn && user?.role === 'admin'"
                 class="relative inline-flex items-center"
@@ -120,7 +127,14 @@
                       @click="closeAdminDropdown"
                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                     >
-                      提交管理
+                      管理提交
+                    </NuxtLink>
+                    <NuxtLink
+                      to="/admin/announcements"
+                      @click="closeAdminDropdown"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                    >
+                      管理公告
                     </NuxtLink>
                   </div>
                 </Transition>
