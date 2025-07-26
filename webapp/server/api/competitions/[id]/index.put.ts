@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import prisma from '../../../utils/prisma'
+import { invalidateCompetitionCache } from '../../../utils/redis'
 
 // 提取横幅URL的相对路径部分
 function extractBannerPath(bannerUrl: string | undefined): string | undefined {
@@ -46,6 +47,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const competitionId = getRouterParam(event, 'id')
+
+  if (!competitionId) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Competition ID is required'
+    })
+  }
+
   const body = await readBody(event)
 
   try {
@@ -134,6 +143,9 @@ export default defineEventHandler(async (event) => {
         problems: true
       }
     })
+
+    // 清除缓存
+    await invalidateCompetitionCache(competitionId)
 
     return {
       success: true,

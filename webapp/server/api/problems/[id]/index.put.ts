@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import prisma from '../../../utils/prisma'
+import { invalidateProblemCache } from '../../../utils/redis'
 
 const updateProblemSchema = z.object({
   title: z.string().min(2).max(100),
@@ -28,6 +29,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const problemId = getRouterParam(event, 'id')
+  if (!problemId) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: '题目ID不能为空'
+    })
+  }
+
   const body = await readBody(event)
 
   try {
@@ -112,6 +120,13 @@ export default defineEventHandler(async (event) => {
         }
       }
     })
+
+    // 清除缓存
+    try {
+      await invalidateProblemCache(problemId)
+    } catch (error) {
+      console.log('Redis not available, skipping cache invalidation')
+    }
 
     return {
       success: true,

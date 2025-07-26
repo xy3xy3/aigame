@@ -1,4 +1,5 @@
 import prisma from '../../../utils/prisma'
+import { invalidateProblemCache } from '../../../utils/redis'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'DELETE') {
@@ -7,8 +8,13 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Method not allowed'
     })
   }
-
   const problemId = getRouterParam(event, 'id')
+  if (!problemId) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Problem ID is required'
+    })
+  }
 
 
 
@@ -44,6 +50,13 @@ export default defineEventHandler(async (event) => {
     await prisma.problem.delete({
       where: { id: problemId }
     })
+
+    // 清除缓存
+    try {
+      await invalidateProblemCache(problemId)
+    } catch (error) {
+      console.log('Redis not available, skipping cache invalidation')
+    }
 
     return {
       success: true,

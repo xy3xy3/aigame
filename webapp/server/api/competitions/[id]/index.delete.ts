@@ -1,4 +1,5 @@
 import prisma from '../../../utils/prisma'
+import { invalidateCompetitionCache } from '../../../utils/redis'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'DELETE') {
@@ -25,6 +26,13 @@ export default defineEventHandler(async (event) => {
   // }
 
   const competitionId = getRouterParam(event, 'id')
+
+  if (!competitionId) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Competition ID is required'
+    })
+  }
 
   try {
 
@@ -68,6 +76,9 @@ export default defineEventHandler(async (event) => {
     await prisma.competition.delete({
       where: { id: competitionId }
     })
+
+    // 清除缓存
+    await invalidateCompetitionCache(competitionId)
 
     return {
       success: true,
