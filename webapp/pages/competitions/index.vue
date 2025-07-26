@@ -104,15 +104,6 @@
             >
               参加比赛
             </button>
-            <NuxtLink
-              v-else-if="
-                competition.status === 'ongoing' && competition.userParticipating
-              "
-              :to="`/competitions/${competition.id}/leaderboard`"
-              class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gray-500 hover:bg-gray-600 transition-all duration-200"
-            >
-              已参加，查看排行榜
-            </NuxtLink>
           </div>
         </div>
       </div>

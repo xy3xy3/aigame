@@ -39,12 +39,6 @@
               {{ data.competition.title }}
             </h1>
             <div class="flex items-center space-x-2">
-              <NuxtLink
-                :to="`/competitions/${route.params.id}/leaderboard`"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-              >
-                排行榜
-              </NuxtLink>
               <span
                 :class="{
                   'bg-green-100 text-green-800': data.competition.status === 'ongoing',
@@ -98,23 +92,6 @@
                 >
                   参加比赛
                 </button>
-                <NuxtLink
-                  v-else-if="
-                    data.competition.status === 'ongoing' &&
-                    data.competition.userParticipating
-                  "
-                  :to="`/competitions/${route.params.id}/leaderboard`"
-                  class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gray-500 hover:bg-gray-600 transition-all duration-200"
-                >
-                  已参加，查看排行榜
-                </NuxtLink>
-                <NuxtLink
-                  v-else
-                  :to="`/competitions/${route.params.id}/leaderboard`"
-                  class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200"
-                >
-                  排行榜
-                </NuxtLink>
               </div>
             </div>
           </div>
@@ -173,7 +150,7 @@
                   v-if="problem.score !== null && problem.score !== undefined"
                   class="ml-3 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium"
                 >
-                  {{ problem.score }} 分 /
+                  {{ problem.score }} 分
                 </span>
                 <span
                   v-else
