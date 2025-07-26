@@ -32,7 +32,8 @@ const updateUserSchema = z.object({
   email: z.string().email().optional(),
   phoneNumber: z.string().max(20).optional(),
   studentId: z.string().max(50).optional(),
-  realName: z.string().max(50).optional()
+  realName: z.string().max(50).optional(),
+  education: z.enum(['BACHELOR', 'MASTER', 'DOCTORATE']).optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -113,7 +114,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 验证请求参数
-    const { username, email, phoneNumber, studentId, realName } = updateUserSchema.parse(body)
+    const { username, email, phoneNumber, studentId, realName, education } = updateUserSchema.parse(body)
 
     // 检查客户端连接状态
     if (event.node.res.writableEnded || event.node.res.destroyed) {
@@ -141,6 +142,9 @@ export default defineEventHandler(async (event) => {
     }
     if (realName !== undefined) {
       updateData.realName = realName
+    }
+    if (education !== undefined) {
+      updateData.education = education
     }
 
     // 检查客户端连接状态

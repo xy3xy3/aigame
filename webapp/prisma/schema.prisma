@@ -11,17 +11,18 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  username     String   @unique
-  email        String   @unique
+  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  username     String          @unique
+  email        String          @unique
   passwordHash String
   avatarUrl    String?
-  role         String   @default("user") // "admin" | "user"
+  role         String          @default("user") // "admin" | "user"
   phoneNumber  String? // 手机号
-  studentId    String?  @unique // 学号
+  studentId    String?         @unique // 学号
   realName     String? // 真实姓名
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  education    EducationLevel? // 学历
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   // Relations
   captainedTeams      Team[]        @relation("TeamCaptain")
@@ -180,6 +181,12 @@ enum InvitationStatus {
   PENDING
   ACCEPTED
   REJECTED
+}
+
+enum EducationLevel {
+  BACHELOR // 本科
+  MASTER // 硕士
+  DOCTORATE // 博士
 }
 
 model Invitation {

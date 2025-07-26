@@ -51,6 +51,10 @@ export default defineEventHandler(async (event) => {
         username: true,
         email: true,
         role: true,
+        phoneNumber: true,
+        studentId: true,
+        realName: true,
+        education: true,
         createdAt: true,
         updatedAt: true
       },
