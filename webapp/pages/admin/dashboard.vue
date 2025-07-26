@@ -193,18 +193,6 @@
         >
           队伍管理
         </NuxtLink>
-        <NuxtLink
-          to="/admin/competitions/create"
-          class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-md text-center font-medium"
-        >
-          创建新比赛
-        </NuxtLink>
-        <NuxtLink
-          to="/admin/problems/create"
-          class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-md text-center font-medium"
-        >
-          创建新题目
-        </NuxtLink>
         <button
           @click="startWorker"
           :disabled="isStartingWorker"
@@ -212,12 +200,6 @@
         >
           {{ isStartingWorker ? "启动中..." : "启动评测工作器" }}
         </button>
-        <NuxtLink
-          to="/competitions"
-          class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-md text-center font-medium"
-        >
-          查看所有比赛
-        </NuxtLink>
       </div>
     </div>
   </div>
