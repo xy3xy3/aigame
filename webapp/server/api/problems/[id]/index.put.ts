@@ -9,7 +9,8 @@ const updateProblemSchema = z.object({
   datasetUrl: z.string().url().optional(),
   judgingScriptUrl: z.string().url().optional(),
   startTime: z.string().datetime(),
-  endTime: z.string().datetime()
+  endTime: z.string().datetime(),
+  score: z.number().int().optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -39,7 +40,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   try {
-    const { title, shortDescription, detailedDescription, datasetUrl, judgingScriptUrl, startTime, endTime } = updateProblemSchema.parse(body)
+    const { title, shortDescription, detailedDescription, datasetUrl, judgingScriptUrl, startTime, endTime, score } = updateProblemSchema.parse(body)
 
     // 验证时间逻辑
     const start = new Date(startTime)
@@ -95,17 +96,24 @@ export default defineEventHandler(async (event) => {
     }
 
     // 更新题目
+    const updateData: any = {
+      title,
+      shortDescription,
+      detailedDescription,
+      datasetUrl,
+      judgingScriptUrl,
+      startTime: start,
+      endTime: end
+    }
+
+    // 只有当score在请求中存在时才更新它
+    if (score !== undefined) {
+      updateData.score = score
+    }
+
     const problem = await prisma.problem.update({
       where: { id: problemId },
-      data: {
-        title,
-        shortDescription,
-        detailedDescription,
-        datasetUrl,
-        judgingScriptUrl,
-        startTime: start,
-        endTime: end
-      },
+      data: updateData,
       include: {
         competition: {
           select: {
