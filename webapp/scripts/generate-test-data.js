@@ -32,7 +32,7 @@ async function main() {
                 create: {
                     username: 'admin',
                     email: 'admin.creator@example.com',
-                    passwordHash: await bcrypt.hash('123456', 10),
+                    passwordHash: await bcrypt.hash('123456', 12),
                     role: 'admin',
                 },
             },
@@ -72,7 +72,7 @@ async function main() {
                 data: {
                     username: `${teamName.replace('队', '').toLowerCase()}_user${i}`,
                     email: `${teamName.replace('队', '').toLowerCase()}_user${i}@example.com`,
-                    passwordHash: await bcrypt.hash('password123', 10),
+                    passwordHash: await bcrypt.hash('123456', 12),
                     realName: `${teamName}成员${i}`,
                 },
             });
