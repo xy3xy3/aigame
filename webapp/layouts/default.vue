@@ -31,7 +31,7 @@
                 我的提交
               </NuxtLink>
               <div
-                v-if="isLoggedIn"
+                v-if="isLoggedIn && user?.role === 'admin'"
                 class="relative inline-flex items-center"
                 ref="adminDropdownRef"
               >
