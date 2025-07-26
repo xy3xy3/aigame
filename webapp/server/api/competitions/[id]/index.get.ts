@@ -49,7 +49,6 @@ export default defineEventHandler(async (event) => {
         success: true,
         competition: {
           ...cachedCompetition,
-          bannerUrl: processBannerUrl(cachedCompetition.bannerUrl),
           userParticipating,
         },
       }

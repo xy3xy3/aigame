@@ -11,7 +11,13 @@ function extractBannerPath(bannerUrl: string | undefined): string | undefined {
     // 匹配格式：http://localhost:9000/banners/some-image.webp
     const match = bannerUrl.match(/\/banners\/(.+)$/)
     if (match) {
-      return match[1] // 返回文件名部分，如 "some-image.webp"
+      // 检查匹配的部分是否还是一个完整URL（防止URL累积）
+      const potentialFileName = match[1];
+      if (potentialFileName.startsWith('http://') || potentialFileName.startsWith('https://')) {
+        // 如果还是URL，递归处理直到得到真正的文件名
+        return extractBannerPath(potentialFileName);
+      }
+      return potentialFileName; // 返回文件名部分，如 "some-image.webp"
     }
     // 如果无法解析，返回原值
     return bannerUrl
