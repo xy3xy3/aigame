@@ -1,13 +1,15 @@
 <template>
-  <div class="max-w-4xl mx-auto py-8 px-4">
-    <div class="mb-8">
+  <div class="max-w-7xl mx-auto py-6 px-4">
+    <div class="mb-6">
       <h1 class="text-3xl font-bold text-gray-900">公告列表</h1>
       <p class="mt-2 text-gray-600">查看所有发布的公告</p>
     </div>
 
     <!-- 加载状态 -->
     <div v-if="pending" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+      ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
 
@@ -26,9 +28,14 @@
         <div class="p-6">
           <div class="flex justify-between items-start">
             <h2 class="text-xl font-semibold text-gray-900">{{ announcement.title }}</h2>
-            <span class="text-sm text-gray-500">{{ formatDate(announcement.createdAt) }}</span>
+            <span class="text-sm text-gray-500">{{
+              formatDate(announcement.createdAt)
+            }}</span>
           </div>
-          <div class="mt-4 prose max-w-none" v-html="renderMarkdown(announcement.content)"></div>
+          <div
+            class="mt-4 prose max-w-none"
+            v-html="renderMarkdown(announcement.content)"
+          ></div>
         </div>
       </div>
 
@@ -43,27 +50,27 @@
 </template>
 
 <script setup>
-import { marked } from 'marked'
+import { marked } from "marked";
 
 definePageMeta({
-  layout: 'default'
-})
+  layout: "default",
+});
 
-const { data, pending, error, refresh } = await useFetch('/api/announcements')
+const { data, pending, error, refresh } = await useFetch("/api/announcements");
 
 const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+  return new Date(dateString).toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 const renderMarkdown = (content) => {
-  return marked.parse(content)
-}
+  return marked.parse(content);
+};
 </script>
 
 <style scoped>
