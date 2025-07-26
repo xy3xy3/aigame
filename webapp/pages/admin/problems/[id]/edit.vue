@@ -208,7 +208,7 @@ interface ProblemResponse {
 }
 
 definePageMeta({
-  middleware: "auth",
+  middleware: "admin",
 });
 
 const route = useRoute();

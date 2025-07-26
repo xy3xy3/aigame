@@ -1,5 +1,6 @@
 import prisma from '../../../utils/prisma'
 import { invalidateCompetitionCache } from '../../../utils/redis'
+import { requireAdminRole } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'DELETE') {
@@ -16,14 +17,9 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Authentication required'
     })
   }
+  // Check admin role
+  requireAdminRole(user)
 
-  // TODO: 添加管理员权限检查
-  // if (user.role !== 'admin') {
-  //   throw createError({
-  //     statusCode: 403,
-  //     statusMessage: 'Admin access required'
-  //   })
-  // }
 
   const competitionId = getRouterParam(event, 'id')
 

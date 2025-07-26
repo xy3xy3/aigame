@@ -1,7 +1,19 @@
 import { getMinioClient } from '~/server/utils/minio'
 import prisma from '~/server/utils/prisma'
+import { requireAdminRole } from '~/server/utils/auth'
 
 export default defineEventHandler(async (event) => {
+  const user = event.context.user
+  if (!user) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Authentication required'
+    })
+  }
+
+  // Check admin role
+  requireAdminRole(user)
+
   const submissionId = event.context.params?.id
 
   if (!submissionId) {

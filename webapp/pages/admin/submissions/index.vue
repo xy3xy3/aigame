@@ -115,7 +115,7 @@
 
 <script setup lang="ts">
 definePageMeta({
-  middleware: "auth",
+  middleware: "admin",
 });
 
 const { data: submissions, pending, refresh } = useFetch("/api/admin/submissions");

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import prisma from '../../../utils/prisma'
 import { invalidateProblemCache } from '../../../utils/redis'
+import { requireAdminRole } from '../../../utils/auth'
 
 const updateProblemSchema = z.object({
   title: z.string().min(2).max(100),
@@ -70,13 +71,10 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // 检查权限（只有比赛创建者可以编辑题目）
+    // 检查权限（只有比赛创建者或管理员可以编辑题目）
     if (existingProblem.competition.createdBy !== user.id) {
-      // TODO: 当添加角色系统后，检查是否为管理员
-      throw createError({
-        statusCode: 403,
-        statusMessage: '权限被拒绝。只有比赛创建者可以编辑此题目。'
-      })
+      // Check admin role
+      requireAdminRole(user)
     }
 
     // 检查是否有同名题目（排除当前题目）

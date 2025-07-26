@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import prisma from '../../../utils/prisma'
 import { invalidateCompetitionCache } from '../../../utils/redis'
+import { requireAdminRole } from '../../../utils/auth'
 
 // 提取横幅URL的相对路径部分
 function extractBannerPath(bannerUrl: string | undefined): string | undefined {
@@ -103,15 +104,12 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // 检查权限（只有创建者可以编辑）
-    if (existingCompetition.createdBy !== user.id) {
-      // TODO: 当添加角色系统后，检查是否为管理员
-      throw createError({
-        statusCode: 403,
-        statusMessage: 'Permission denied. Only the creator can edit this competition.'
-      })
-    }
 
+    // 检查权限（只有创建者或管理员可以编辑）
+    if (existingCompetition.createdBy !== user.id) {
+      // Check admin role
+      requireAdminRole(user)
+    }
     // 检查是否有同名比赛（排除当前比赛）
     const duplicateCompetition = await prisma.competition.findFirst({
       where: {

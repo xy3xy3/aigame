@@ -232,7 +232,7 @@ interface CompetitionsResponse {
 }
 
 definePageMeta({
-  middleware: "auth",
+  middleware: "admin",
 });
 
 // 筛选状态

@@ -1,4 +1,5 @@
 import { startEvaluationWorker } from '../../../utils/queue'
+import { requireAdminRole } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'POST') {
@@ -16,17 +17,12 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // TODO: 添加管理员权限检查
-  // if (user.role !== 'admin') {
-  //   throw createError({
-  //     statusCode: 403,
-  //     statusMessage: 'Admin access required'
-  //   })
-  // }
+  // Check admin role
+  requireAdminRole(user)
 
   try {
     const worker = startEvaluationWorker()
-    
+
     return {
       success: true,
       message: 'Evaluation worker started successfully',

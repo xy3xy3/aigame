@@ -163,7 +163,7 @@
 
 <script setup>
 definePageMeta({
-  middleware: "auth",
+  middleware: "admin",
 });
 
 const route = useRoute();

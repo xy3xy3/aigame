@@ -1,5 +1,6 @@
 import prisma from '../../../utils/prisma'
 import { invalidateProblemCache } from '../../../utils/redis'
+import { requireAdminRole } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'DELETE') {
@@ -8,6 +9,18 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Method not allowed'
     })
   }
+
+  const user = event.context.user
+  if (!user) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Authentication required'
+    })
+  }
+
+  // Check admin role
+  requireAdminRole(user)
+
   const problemId = getRouterParam(event, 'id')
   if (!problemId) {
     throw createError({

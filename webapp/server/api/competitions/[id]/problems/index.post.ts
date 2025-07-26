@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import prisma from '../../../../utils/prisma'
+import { requireAdminRole } from '../../../../utils/auth'
 
 const createProblemSchema = z.object({
     title: z.string().min(2).max(100),
@@ -54,13 +55,8 @@ export default defineEventHandler(async (event) => {
             })
         }
 
-        // TODO: 添加管理员权限检查
-        // if (competition.createdBy !== user.id && user.role !== 'admin') {
-        //   throw createError({
-        //     statusCode: 403,
-        //     statusMessage: 'Permission denied'
-        //   })
-        // }
+        // Check admin role
+        requireAdminRole(user)
 
         // 验证时间逻辑
         // 确保时间字符串被正确解析为 UTC 时间

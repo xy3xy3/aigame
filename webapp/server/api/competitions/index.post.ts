@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import prisma from '../../utils/prisma'
+import { requireAdminRole } from '../../utils/auth'
 
 const createCompetitionSchema = z.object({
   title: z.string().min(2).max(100),
@@ -26,13 +27,8 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // TODO: 添加管理员权限检查
-  // if (user.role !== 'admin') {
-  //   throw createError({
-  //     statusCode: 403,
-  //     statusMessage: 'Admin access required'
-  //   })
-  // }
+  // Check admin role
+  requireAdminRole(user)
 
   const body = await readBody(event)
 

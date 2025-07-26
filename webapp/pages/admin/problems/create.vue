@@ -196,7 +196,7 @@ interface CompetitionsResponse {
 }
 
 definePageMeta({
-  middleware: "auth",
+  middleware: "admin",
 });
 
 // 获取竞赛列表

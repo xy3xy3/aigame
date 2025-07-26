@@ -9,7 +9,9 @@
     <div class="mb-6 bg-white rounded-lg shadow-md p-4">
       <div class="flex flex-wrap gap-4">
         <div class="flex-1 min-w-[200px]">
-          <label for="search" class="block text-sm font-medium text-gray-700 mb-1">搜索队伍</label>
+          <label for="search" class="block text-sm font-medium text-gray-700 mb-1"
+            >搜索队伍</label
+          >
           <input
             id="search"
             v-model="searchQuery"
@@ -32,7 +34,9 @@
 
     <!-- 加载状态 -->
     <div v-if="pending" class="text-center py-8">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+      ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
 
@@ -47,19 +51,34 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 队伍ID
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 队伍名称
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 队长
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 成员数量
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 创建时间
               </th>
             </tr>
@@ -109,51 +128,51 @@
 </template>
 
 <script setup>
-import Pagination from '../../../components/common/Pagination.vue'
+import Pagination from "../../../components/common/Pagination.vue";
 
 definePageMeta({
-  middleware: 'auth'
-})
+  middleware: "admin",
+});
 
-const searchQuery = ref('')
-const currentPage = ref(1)
-const itemsPerPage = ref(10)
+const searchQuery = ref("");
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
 
 // 构建查询参数
 const queryParams = computed(() => ({
   page: currentPage.value,
   limit: itemsPerPage.value,
-  search: searchQuery.value
-}))
+  search: searchQuery.value,
+}));
 
-const { data, pending, error, refresh } = await useFetch('/api/admin/teams', {
-  query: queryParams
-})
+const { data, pending, error, refresh } = await useFetch("/api/admin/teams", {
+  query: queryParams,
+});
 
 const searchTeams = () => {
-  currentPage.value = 1
-  refresh()
-}
+  currentPage.value = 1;
+  refresh();
+};
 
 const goToPage = (page) => {
-  currentPage.value = page
-  refresh()
-}
+  currentPage.value = page;
+  refresh();
+};
 
 const changeItemsPerPage = (newItemsPerPage) => {
-  itemsPerPage.value = newItemsPerPage
-  currentPage.value = 1
-  refresh()
-}
+  itemsPerPage.value = newItemsPerPage;
+  currentPage.value = 1;
+  refresh();
+};
 
 const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  })
-}
+  return new Date(dateString).toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+};
 </script>

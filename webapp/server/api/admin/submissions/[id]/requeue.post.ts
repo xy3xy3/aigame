@@ -1,12 +1,24 @@
 import { z } from 'zod'
 import prisma from '../../../../utils/prisma'
 import { addEvaluationJob } from '~/server/utils/queue'
+import { requireAdminRole } from '~/server/utils/auth'
 
 const requeueParamsSchema = z.object({
   id: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid ObjectId'),
 })
 
 export default defineEventHandler(async (event) => {
+  const user = event.context.user
+  if (!user) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Authentication required'
+    })
+  }
+
+  // Check admin role
+  requireAdminRole(user)
+
   const { id } = await getValidatedRouterParams(event, requeueParamsSchema.parse)
 
 
