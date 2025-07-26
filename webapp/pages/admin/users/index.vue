@@ -97,12 +97,6 @@
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                年龄
-              </th>
-              <th
-                scope="col"
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
                 角色
               </th>
               <th
@@ -135,9 +129,6 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {{ getEducationLabel(user.education) || "-" }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ calculateAge(user.createdAt) || "-" }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 <span
@@ -225,17 +216,6 @@ const formatDate = (dateString) => {
     minute: "2-digit",
     second: "2-digit",
   });
-};
-
-// 计算年龄（基于注册时间）
-const calculateAge = (dateString) => {
-  if (!dateString) return "-";
-  const createdDate = new Date(dateString);
-  const currentDate = new Date();
-  const diffTime = Math.abs(currentDate - createdDate);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  const diffYears = (diffDays / 365).toFixed(1);
-  return `${diffYears}年`;
 };
 
 // 获取学历标签
