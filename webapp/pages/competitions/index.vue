@@ -84,28 +84,35 @@
             <p>提交数量: {{ competition._count?.submissions || 0 }}</p>
           </div>
 
-          <div class="flex space-x-2">
+          <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
             <NuxtLink
               :to="`/competitions/${competition.id}`"
-              class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center"
+              class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
             >
               查看详情
+            </NuxtLink>
+            <NuxtLink
+              :to="`/competitions/${competition.id}/leaderboard`"
+              class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+            >
+              排行榜
             </NuxtLink>
             <button
               v-if="competition.status === 'ongoing' && !competition.userParticipating"
               @click="openJoinModal(competition)"
-              class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+              class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all duration-200 transform hover:scale-105"
             >
               参加比赛
             </button>
-            <div
+            <NuxtLink
               v-else-if="
                 competition.status === 'ongoing' && competition.userParticipating
               "
-              class="flex-1 bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium text-center cursor-not-allowed"
+              :to="`/competitions/${competition.id}/leaderboard`"
+              class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gray-500 hover:bg-gray-600 transition-all duration-200"
             >
-              已参加
-            </div>
+              已参加，查看排行榜
+            </NuxtLink>
           </div>
         </div>
       </div>
