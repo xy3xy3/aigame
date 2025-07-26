@@ -170,7 +170,9 @@ const route = useRoute();
 const competitionId = route.params.id;
 
 // 获取比赛数据
-const { data, pending, error } = await useFetch(`/api/competitions/${competitionId}`);
+const { data, pending, error, refresh } = await useFetch(
+  `/api/competitions/${competitionId}`
+);
 
 const form = reactive({
   title: "",
@@ -263,6 +265,9 @@ const handleSubmit = async () => {
 
     if (updateData.success) {
       push.success("比赛更新成功！");
+
+      // 刷新数据缓存
+      await refresh();
 
       // 3秒后跳转到比赛管理页面
       setTimeout(() => {

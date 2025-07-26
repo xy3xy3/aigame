@@ -3,6 +3,8 @@ import prisma from '../../../utils/prisma'
 import { processBannerUrl } from '../../../utils/url'
 
 export default defineEventHandler(async (event) => {
+  event.node.res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+
   if (event.method !== 'GET') {
     throw createError({
       statusCode: 405,

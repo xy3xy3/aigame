@@ -2,6 +2,8 @@ import { getCachedProblem, cacheProblem } from '../../../utils/redis'
 import prisma from '../../../utils/prisma'
 
 export default defineEventHandler(async (event) => {
+  event.node.res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+
   if (event.method !== 'GET') {
     throw createError({
       statusCode: 405,

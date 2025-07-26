@@ -215,7 +215,7 @@ const route = useRoute();
 const problemId = route.params.id as string;
 
 // 获取题目数据
-const { data, pending, error } = await useFetch<ProblemResponse>(
+const { data, pending, error, refresh } = await useFetch<ProblemResponse>(
   `/api/problems/${problemId}`
 );
 
@@ -288,6 +288,9 @@ const handleSubmit = async () => {
 
     if (updateData.success) {
       push.success("题目更新成功！");
+
+      // 刷新数据缓存
+      await refresh();
 
       // 2秒后跳转到题目管理页面
       setTimeout(() => {

@@ -1,6 +1,25 @@
 import { z } from 'zod'
 import prisma from '../../../utils/prisma'
 
+// 提取横幅URL的相对路径部分
+function extractBannerPath(bannerUrl: string | undefined): string | undefined {
+  if (!bannerUrl) return undefined
+
+  // 如果是完整URL，提取相对路径部分
+  if (bannerUrl.startsWith('http://') || bannerUrl.startsWith('https://')) {
+    // 匹配格式：http://localhost:9000/banners/some-image.webp
+    const match = bannerUrl.match(/\/banners\/(.+)$/)
+    if (match) {
+      return match[1] // 返回文件名部分，如 "some-image.webp"
+    }
+    // 如果无法解析，返回原值
+    return bannerUrl
+  }
+
+  // 如果已经是相对路径，直接返回
+  return bannerUrl
+}
+
 const updateCompetitionSchema = z.object({
   title: z.string().min(2).max(100),
   description: z.string().max(2000),
@@ -30,7 +49,10 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   try {
-    const { title, description, rules, bannerUrl, startTime, endTime } = updateCompetitionSchema.parse(body)
+    const { title, description, rules, bannerUrl: rawBannerUrl, startTime, endTime } = updateCompetitionSchema.parse(body)
+
+    // 处理横幅URL，确保保存的是相对路径
+    const bannerUrl = extractBannerPath(rawBannerUrl)
 
     // 验证时间逻辑
     // 确保时间字符串被正确解析为 UTC 时间
