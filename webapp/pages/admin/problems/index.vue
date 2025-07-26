@@ -170,28 +170,24 @@
 
     <!-- 分页 -->
     <div
-      v-if="data?.pagination && data.pagination.totalPages > 1"
-      class="mt-8 flex justify-center"
+      v-if="data?.pagination && data.pagination.total > data.pagination.limit"
+      class="mt-6"
     >
-      <nav class="flex space-x-2">
-        <button
-          v-for="page in data.pagination.totalPages"
-          :key="page"
-          @click="goToPage(page)"
-          :class="{
-            'bg-indigo-600 text-white': page === currentPage,
-            'bg-white text-gray-700 hover:bg-gray-50': page !== currentPage,
-          }"
-          class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium"
-        >
-          {{ page }}
-        </button>
-      </nav>
+      <Pagination
+        :current-page="data.pagination.page"
+        :total-pages="data.pagination.totalPages"
+        :total-items="data.pagination.total"
+        :items-per-page="data.pagination.limit"
+        @page-change="goToPage"
+        @items-per-page-change="changeItemsPerPage"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import Pagination from "~/components/common/Pagination.vue";
+
 interface Competition {
   id: string;
   title: string;
@@ -267,6 +263,13 @@ const fetchProblems = () => {
 
 const goToPage = (page: number) => {
   currentPage.value = page;
+  refresh();
+};
+
+const changeItemsPerPage = (newItemsPerPage: number) => {
+  // 设置新的每页显示数量，并回到第一页
+  data.value.pagination.limit = newItemsPerPage;
+  currentPage.value = 1;
   refresh();
 };
 

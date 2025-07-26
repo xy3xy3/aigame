@@ -43,7 +43,7 @@ async function main() {
     // 3. Create Problems
     console.log('Creating problems...');
     const problems = [];
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 15; i++) {
         const problem = await prisma.problem.create({
             data: {
                 title: `题目 ${i}`,
@@ -67,7 +67,7 @@ async function main() {
     for (const teamName of teamNames) {
         const teamUsers = [];
         // Create 3 users for each team
-        for (let i = 1; i <= 3; i++) {
+        for (let i = 1; i <= 10; i++) {
             const user = await prisma.user.create({
                 data: {
                     username: `${teamName.replace('队', '').toLowerCase()}_user${i}`,
@@ -107,13 +107,22 @@ async function main() {
 
     // 5. Create Submissions
     console.log('Creating submissions...');
-    const scores = [100, 90, 80];
+    // Generate 500 submission records for testing pagination
+    for (let i = 0; i < 500; i++) {
+        // Randomly select a team
+        const teamIndex = Math.floor(Math.random() * createdTeams.length);
+        const team = createdTeams[teamIndex];
 
-    for (let i = 0; i < createdTeams.length; i++) {
-        const team = createdTeams[i];
-        const user = team.members[0].user; // First user of the team
-        const problem = problems[i % problems.length]; // Cycle through problems
-        const score = scores[i];
+        // Randomly select a user from the team
+        const userIndex = Math.floor(Math.random() * team.members.length);
+        const user = team.members[userIndex].user;
+
+        // Randomly select a problem
+        const problemIndex = Math.floor(Math.random() * problems.length);
+        const problem = problems[problemIndex];
+
+        // Generate a random score between 0 and 100
+        const score = Math.floor(Math.random() * 101);
 
         await prisma.submission.create({
             data: {
@@ -127,8 +136,13 @@ async function main() {
                 judgedAt: new Date(),
             },
         });
-        console.log(`Submission created for "${team.name}" with score ${score}.`);
+
+        // Log progress every 50 submissions
+        if ((i + 1) % 50 === 0) {
+            console.log(`Created ${i + 1} submissions so far...`);
+        }
     }
+    console.log('500 submissions created.');
 
     console.log('Test data generation finished successfully.');
 }

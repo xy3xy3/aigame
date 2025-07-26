@@ -55,7 +55,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-if="pending" v-for="n in 5" :key="n">
+            <tr v-if="submissionsPending" v-for="n in 5" :key="n">
               <td class="px-6 py-4" colspan="7">
                 <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
               </td>
@@ -110,15 +110,45 @@
         </table>
       </div>
     </div>
+
+    <!-- 分页 -->
+    <div v-if="data?.pagination && data.pagination.totalPages > 1" class="mt-6">
+      <Pagination
+        :current-page="data.pagination.page"
+        :total-pages="data.pagination.totalPages"
+        :total-items="data.pagination.total"
+        :items-per-page="data.pagination.limit"
+        @page-change="goToPage"
+        @items-per-page-change="changeItemsPerPage"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import Pagination from "~/components/common/Pagination.vue";
+
 definePageMeta({
   middleware: "admin",
 });
 
-const { data: submissions, pending, refresh } = useFetch("/api/admin/submissions");
+// 分页状态
+const currentPage = ref(1);
+const itemsPerPage = ref(10);
+
+// 构建查询参数
+const queryParams = computed(() => ({
+  page: currentPage.value,
+  limit: itemsPerPage.value,
+}));
+
+// 数据获取
+const { data, pending, refresh } = useFetch("/api/admin/submissions", {
+  query: queryParams,
+});
+
+const submissionsPending = pending;
+const refreshSubmissions = refresh;
 
 function statusClass(status: string) {
   switch (status) {
@@ -144,10 +174,25 @@ async function requeueSubmission(submissionId: string) {
     });
     push.success("提交已成功重新入队！");
     // Refresh the list
-    await refresh();
+    await refreshSubmissions();
   } catch (error) {
     console.error("Failed to re-queue submission:", error);
     push.error("重新入队提交失败。");
   }
 }
+
+// 分页相关方法
+const goToPage = (page: number) => {
+  currentPage.value = page;
+  refreshSubmissions();
+};
+
+const changeItemsPerPage = (newItemsPerPage: number) => {
+  itemsPerPage.value = newItemsPerPage;
+  currentPage.value = 1;
+  refreshSubmissions();
+};
+
+// 计算属性，用于获取提交数据
+const submissions = computed(() => data.value?.submissions || []);
 </script>

@@ -172,6 +172,8 @@
 </template>
 
 <script setup>
+import Pagination from "~/components/common/Pagination.vue";
+
 definePageMeta({
   middleware: "admin",
 });
