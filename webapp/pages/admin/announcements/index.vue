@@ -1,12 +1,9 @@
 <template>
   <div class="max-w-7xl mx-auto py-6 px-4">
-    <div class="mb-6">
-      <h1 class="text-3xl font-bold text-gray-900">公告管理</h1>
-      <p class="mt-2 text-gray-600">管理系统中的所有公告</p>
-    </div>
-
-    <!-- 新增公告按钮 -->
-    <div class="mb-6 flex justify-end">
+    <div class="mb-6 flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">公告管理</h1>
+      </div>
       <button
         @click="openModal()"
         class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"

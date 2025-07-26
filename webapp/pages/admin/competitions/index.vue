@@ -3,13 +3,12 @@
     <div class="mb-6 flex justify-between items-center">
       <div>
         <h1 class="text-3xl font-bold text-gray-900">比赛管理</h1>
-        <p class="mt-2 text-gray-600">管理所有AI竞赛</p>
       </div>
       <button
         @click="openModal()"
         class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium"
       >
-        创建新比赛
+        新建比赛
       </button>
     </div>
 
@@ -116,7 +115,7 @@
               :to="{ path: '/admin/problems', query: { competitionId: competition.id } }"
               class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center"
             >
-              管理题目
+              题目管理
             </NuxtLink>
             <NuxtLink
               :to="`/competitions/${competition.id}/leaderboard`"

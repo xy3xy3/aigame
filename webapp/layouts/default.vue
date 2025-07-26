@@ -99,42 +99,42 @@
                       @click="closeAdminDropdown"
                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                     >
-                      管理比赛
+                      比赛管理
                     </NuxtLink>
                     <NuxtLink
                       to="/admin/problems"
                       @click="closeAdminDropdown"
                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                     >
-                      管理题目
+                      题目管理
                     </NuxtLink>
                     <NuxtLink
                       to="/admin/users"
                       @click="closeAdminDropdown"
                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                     >
-                      管理用户
+                      用户管理
                     </NuxtLink>
                     <NuxtLink
                       to="/admin/teams"
                       @click="closeAdminDropdown"
                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                     >
-                      管理队伍
+                      队伍管理
                     </NuxtLink>
                     <NuxtLink
                       to="/admin/submissions"
                       @click="closeAdminDropdown"
                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                     >
-                      管理提交
+                      提交管理
                     </NuxtLink>
                     <NuxtLink
                       to="/admin/announcements"
                       @click="closeAdminDropdown"
                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                     >
-                      管理公告
+                      公告管理
                     </NuxtLink>
                   </div>
                 </Transition>

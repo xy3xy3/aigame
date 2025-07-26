@@ -173,25 +173,25 @@
           to="/admin/competitions"
           class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md text-center font-medium"
         >
-          管理比赛
+          比赛管理
         </NuxtLink>
         <NuxtLink
           to="/admin/problems"
           class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-md text-center font-medium"
         >
-          管理题目
+          题目管理
         </NuxtLink>
         <NuxtLink
           to="/admin/users"
           class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-center font-medium"
         >
-          管理用户
+          用户管理
         </NuxtLink>
         <NuxtLink
           to="/admin/teams"
           class="bg-pink-600 hover:bg-pink-700 text-white px-6 py-3 rounded-md text-center font-medium"
         >
-          管理队伍
+          队伍管理
         </NuxtLink>
         <NuxtLink
           to="/admin/competitions/create"

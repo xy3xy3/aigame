@@ -34,7 +34,7 @@
           to="/teams"
           class="bg-white hover:bg-gray-50 text-indigo-600 border border-indigo-600 px-6 py-3 rounded-md text-lg font-medium"
         >
-          管理队伍
+          队伍管理
         </NuxtLink>
       </div>
     </div>
