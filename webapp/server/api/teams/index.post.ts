@@ -25,20 +25,6 @@ export default defineEventHandler(async (event) => {
   try {
     const { name } = createTeamSchema.parse(body)
 
-
-
-    // Check if user is already captain of a team
-    const existingTeam = await prisma.team.findFirst({
-      where: { captainId: user.id }
-    })
-
-    if (existingTeam) {
-      throw createError({
-        statusCode: 409,
-        statusMessage: 'You are already a captain of a team'
-      })
-    }
-
     // Check if team name is taken
     const nameExists = await prisma.team.findFirst({
       where: { name }
@@ -51,39 +37,42 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Create team and add captain as member
-    const team = await prisma.team.create({
-      data: {
-        name,
-        captainId: user.id,
-        members: {
-          create: {
-            userId: user.id
-          }
+    // Create team and add creator as member using transaction
+    const team = await prisma.$transaction(async (tx) => {
+      // Create the team
+      const newTeam = await tx.team.create({
+        data: {
+          name
         }
-      },
-      include: {
-        captain: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-            avatarUrl: true
-          }
-        },
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-                email: true,
-                avatarUrl: true
+      })
+
+      // Create the team membership for the creator
+      await tx.teamMembership.create({
+        data: {
+          teamId: newTeam.id,
+          userId: user.id,
+          role: 'CREATOR'
+        }
+      })
+
+      // Fetch the complete team data
+      return await tx.team.findUnique({
+        where: { id: newTeam.id },
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  email: true,
+                  avatarUrl: true
+                }
               }
             }
           }
         }
-      }
+      })
     })
 
     return {

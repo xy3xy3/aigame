@@ -19,9 +19,12 @@ export default defineEventHandler(async (event) => {
   try {
 
 
-    // Get team and verify user is captain
+    // Get team and verify user is creator
     const team = await prisma.team.findUnique({
-      where: { id: teamId }
+      where: { id: teamId },
+      include: {
+        members: true
+      }
     })
 
     if (!team) {
@@ -31,7 +34,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    if (team.captainId !== user.id) {
+    // Check if user is the creator of the team
+    const userMembership = team.members.find(member => member.userId === user.id);
+    if (!userMembership || userMembership.role !== 'CREATOR') {
       throw createError({
         statusCode: 403,
         statusMessage: '只有队长可以解散队伍'
@@ -48,7 +53,7 @@ export default defineEventHandler(async (event) => {
     // Delete team
     await prisma.$transaction(async (prisma) => {
       // Delete all related data
-      await prisma.teamMember.deleteMany({
+      await prisma.teamMembership.deleteMany({
         where: { teamId }
       })
       await prisma.invitation.deleteMany({

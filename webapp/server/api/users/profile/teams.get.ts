@@ -22,17 +22,14 @@ export default defineEventHandler(async (event) => {
   // 获取用户创建的团队
   const createdTeams = await prisma.team.findMany({
     where: {
-      captainId: user.id
+      members: {
+        some: {
+          userId: user.id,
+          role: 'CREATOR'
+        }
+      }
     },
     include: {
-      captain: {
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          avatarUrl: true
-        }
-      },
       members: {
         include: {
           user: {
@@ -53,22 +50,12 @@ export default defineEventHandler(async (event) => {
     where: {
       members: {
         some: {
-          userId: user.id
+          userId: user.id,
+          role: 'MEMBER'
         }
-      },
-      captainId: {
-        not: user.id
       }
     },
     include: {
-      captain: {
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          avatarUrl: true
-        }
-      },
       members: {
         include: {
           user: {

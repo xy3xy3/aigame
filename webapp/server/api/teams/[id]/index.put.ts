@@ -131,7 +131,7 @@ export default defineEventHandler(async (event) => {
     const team = await prisma.team.findUnique({
       where: { id: teamId },
       include: {
-        captain: true
+        members: true
       }
     })
 
@@ -143,7 +143,8 @@ export default defineEventHandler(async (event) => {
     }
 
     // 检查用户是否为队长
-    if (team.captainId !== user.id) {
+    const userMembership = team.members.find(member => member.userId === user.id);
+    if (!userMembership || userMembership.role !== 'CREATOR') {
       throw createError({
         statusCode: 403,
         statusMessage: '只有队长可以更新团队信息'
@@ -216,14 +217,6 @@ export default defineEventHandler(async (event) => {
       where: { id: teamId },
       data: updateData,
       include: {
-        captain: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-            avatarUrl: true
-          }
-        },
         members: {
           include: {
             user: {

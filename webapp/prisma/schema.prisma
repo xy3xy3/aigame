@@ -25,12 +25,11 @@ model User {
   updatedAt    DateTime        @updatedAt
 
   // Relations
-  captainedTeams      Team[]        @relation("TeamCaptain")
-  teamMemberships     TeamMember[]
+  teamMemberships     TeamMembership[]
   submissions         Submission[]
-  createdCompetitions Competition[] @relation("CompetitionCreator")
-  sentInvitations     Invitation[]  @relation("Inviter")
-  receivedInvitations Invitation[]  @relation("Invitee")
+  createdCompetitions Competition[]    @relation("CompetitionCreator")
+  sentInvitations     Invitation[]     @relation("Inviter")
+  receivedInvitations Invitation[]     @relation("Invitee")
 
   @@map("users")
 }
@@ -40,15 +39,13 @@ model Team {
   name            String
   description     String?
   avatarUrl       String?
-  captainId       String   @db.ObjectId
   isLocked        Boolean  @default(false)
   participatingIn String[] @db.ObjectId
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // Relations
-  captain            User               @relation("TeamCaptain", fields: [captainId], references: [id])
-  members            TeamMember[]
+  members            TeamMembership[]
   submissions        Submission[]
   leaderboardEntries LeaderboardEntry[]
   invitations        Invitation[]
@@ -56,10 +53,11 @@ model Team {
   @@map("teams")
 }
 
-model TeamMember {
+model TeamMembership {
   id       String   @id @default(auto()) @map("_id") @db.ObjectId
   teamId   String   @db.ObjectId
   userId   String   @db.ObjectId
+  role     String   @default("MEMBER") // "CREATOR" | "MEMBER"
   joinedAt DateTime @default(now())
 
   // Relations
@@ -67,7 +65,7 @@ model TeamMember {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
-  @@map("team_members")
+  @@map("team_memberships")
 }
 
 model Competition {

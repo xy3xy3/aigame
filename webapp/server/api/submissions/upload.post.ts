@@ -106,7 +106,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // 验证用户是否属于该队伍
-    const teamMember = await prisma.teamMember.findFirst({
+    const teamMember = await prisma.teamMembership.findFirst({
       where: {
         teamId,
         userId: user.id
@@ -151,6 +151,25 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         statusMessage: 'Problem submission deadline has passed'
+      })
+    }
+
+    // 验证团队是否参加了比赛
+    const team = await prisma.team.findUnique({
+      where: { id: teamId }
+    })
+
+    if (!team) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: 'Team not found'
+      })
+    }
+
+    if (!team.participatingIn.includes(competitionId)) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: '所选团队未参加此比赛'
       })
     }
 

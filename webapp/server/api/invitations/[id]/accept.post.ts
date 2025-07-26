@@ -45,10 +45,11 @@ export default defineEventHandler(async (event) => {
       data: { status: InvitationStatus.ACCEPTED },
     });
 
-    await tx.teamMember.create({
+    await tx.teamMembership.create({
       data: {
         teamId: invitation.teamId,
         userId: invitation.inviteeId,
+        role: 'MEMBER'
       },
     });
   });

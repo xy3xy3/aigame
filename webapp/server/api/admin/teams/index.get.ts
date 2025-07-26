@@ -48,14 +48,17 @@ export default defineEventHandler(async (event) => {
       createdAt: 'desc'
     },
     include: {
-      captain: {
-        select: {
-          id: true,
-          username: true,
-          email: true
+      members: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true
+            }
+          }
         }
-      },
-      members: true
+      }
     }
   })
 
@@ -67,10 +70,7 @@ export default defineEventHandler(async (event) => {
     teams: teams.map(team => ({
       id: team.id,
       name: team.name,
-      captain: {
-        id: team.captain.id,
-        username: team.captain.username
-      },
+      creator: team.members.find(member => member.role === 'CREATOR')?.user || null,
       memberCount: team.members.length,
       createdAt: team.createdAt
     })),

@@ -17,9 +17,7 @@ export default defineEventHandler(async (event) => {
   const teamId = getRouterParam(event, 'id')
 
   try {
-
-
-    // Get team and verify user is a member but not the captain
+    // Get team and verify user is a member
     const team = await prisma.team.findUnique({
       where: { id: teamId },
       include: {
@@ -49,20 +47,31 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    if (team.captainId === user.id) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: '队长不能退出队伍，只能解散队伍'
-      })
-    }
-
-    // Remove user from team
-    await prisma.teamMember.delete({
-      where: {
-        teamId_userId: {
-          teamId: team.id,
-          userId: user.id
+    // Use transaction to handle membership removal and potential team deletion
+    await prisma.$transaction(async (tx) => {
+      // Remove user from team
+      await tx.teamMembership.delete({
+        where: {
+          teamId_userId: {
+            teamId: team.id,
+            userId: user.id
+          }
         }
+      })
+
+      // Check if this was the last member and delete team if so
+      const remainingMembers = await tx.teamMembership.count({
+        where: {
+          teamId: team.id
+        }
+      })
+
+      if (remainingMembers === 0) {
+        await tx.team.delete({
+          where: {
+            id: team.id
+          }
+        })
       }
     })
 

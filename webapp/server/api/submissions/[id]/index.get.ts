@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // 验证用户是否有权限查看此提交
-  const teamMember = await prisma.teamMember.findFirst({
+  const teamMember = await prisma.teamMembership.findFirst({
     where: {
       teamId: submission.teamId,
       userId: user.id

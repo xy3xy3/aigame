@@ -29,14 +29,6 @@ export default defineEventHandler(async (event) => {
       }
     },
     include: {
-      captain: {
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          avatarUrl: true
-        }
-      },
       members: {
         include: {
           user: {

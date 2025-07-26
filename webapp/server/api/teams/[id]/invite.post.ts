@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
 
 
 
-    // Get team and verify user is captain
+    // Get team and verify user is creator
     const team = await prisma.team.findUnique({
       where: { id: teamId },
       include: {
@@ -48,7 +48,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    if (team.captainId !== user.id) {
+    // Check if user is the creator of the team
+    const userMembership = team.members.find(member => member.userId === user.id);
+    if (!userMembership || userMembership.role !== 'CREATOR') {
       throw createError({
         statusCode: 403,
         statusMessage: '只有队长可以邀请成员'

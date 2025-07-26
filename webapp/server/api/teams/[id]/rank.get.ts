@@ -30,7 +30,7 @@ export default defineEventHandler(async (event) => {
 
 
   // 验证用户是否属于该队伍
-  const teamMember = await prisma.teamMember.findFirst({
+  const teamMember = await prisma.teamMembership.findFirst({
     where: {
       teamId,
       userId: user.id

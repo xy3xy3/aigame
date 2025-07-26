@@ -140,13 +140,6 @@ export default defineEventHandler(async (event) => {
         isLocked: true
       },
       include: {
-        captain: {
-          select: {
-            id: true,
-            username: true,
-            email: true
-          }
-        },
         members: {
           include: {
             user: {

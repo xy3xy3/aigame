@@ -34,7 +34,9 @@
             </div>
             <div>
               <h1 class="text-3xl font-bold text-gray-900">{{ data.team.name }}</h1>
-              <p class="mt-2 text-gray-600">队长: {{ data.team.captain.username }}</p>
+              <p class="mt-2 text-gray-600">
+                队长: {{ teamCaptain?.username || "未知" }}
+              </p>
             </div>
           </div>
           <div>
@@ -336,6 +338,16 @@ const isMember = computed(() => {
   }
   const isTeamMember = data.value.team.members.some((m) => m.user.id === user.value.id);
   return isTeamMember && !isCaptain.value;
+});
+
+// 获取队长信息
+const teamCaptain = computed(() => {
+  if (!data.value?.team?.members) {
+    return null;
+  }
+  // 查找 role 为 CREATOR 的成员
+  const creator = data.value.team.members.find((member) => member.role === "CREATOR");
+  return creator?.user || null;
 });
 
 const inviteMember = async () => {

@@ -42,9 +42,12 @@ export function processTeamData(team: any): any {
     team.avatarUrl = processTeamAvatarUrl(team.avatarUrl)
   }
 
-  // 处理队长头像URL
-  if (team.captain && team.captain.avatarUrl) {
-    team.captain.avatarUrl = processTeamAvatarUrl(team.captain.avatarUrl)
+  // 处理创建者头像URL
+  if (team.members && Array.isArray(team.members)) {
+    const creator = team.members.find(member => member.role === 'CREATOR');
+    if (creator && creator.user && creator.user.avatarUrl) {
+      creator.user.avatarUrl = processTeamAvatarUrl(creator.user.avatarUrl);
+    }
   }
 
   // 处理成员头像URL

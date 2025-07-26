@@ -28,24 +28,31 @@ export default defineEventHandler(async (event) => {
 
 
 
-    // Get team and verify user is captain
-    const team = await prisma.team.findUnique({
-      where: { id: teamId }
+    // Get team and verify user is creator
+    const teamWithMembership = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: {
+        members: true
+      }
     })
 
-    if (!team) {
+    if (!teamWithMembership) {
       throw createError({
         statusCode: 404,
         statusMessage: 'Team not found'
       })
     }
 
-    if (team.captainId !== user.id) {
+    // Check if user is the creator of the team
+    const userMembership = teamWithMembership.members.find(member => member.userId === user.id);
+    if (!userMembership || userMembership.role !== 'CREATOR') {
       throw createError({
         statusCode: 403,
         statusMessage: '只有队长可以移除成员'
       })
     }
+
+    const team = teamWithMembership;
 
     if (team.isLocked) {
       throw createError({
@@ -54,8 +61,9 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Cannot remove captain
-    if (userId === team.captainId) {
+    // Cannot remove creator
+    const memberToRemove = team.members.find(member => member.userId === userId);
+    if (memberToRemove && memberToRemove.role === 'CREATOR') {
       throw createError({
         statusCode: 400,
         statusMessage: '不能移除队长'
@@ -63,8 +71,7 @@ export default defineEventHandler(async (event) => {
     }
 
     // Remove member
-    // Remove member
-    await prisma.teamMember.delete({
+    await prisma.teamMembership.delete({
       where: {
         teamId_userId: {
           teamId: team.id,

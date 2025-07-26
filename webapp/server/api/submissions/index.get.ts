@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
 
   // 如果没有指定teamId，则只显示用户所在队伍的提交
   if (!teamId) {
-    const userTeams = await prisma.teamMember.findMany({
+    const userTeams = await prisma.teamMembership.findMany({
       where: { userId: user.id },
       select: { teamId: true }
     })
@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
     }
   } else {
     // 验证用户是否属于指定队伍
-    const teamMember = await prisma.teamMember.findFirst({
+    const teamMember = await prisma.teamMembership.findFirst({
       where: {
         teamId,
         userId: user.id

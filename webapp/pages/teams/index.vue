@@ -6,7 +6,9 @@
     </div>
 
     <div v-if="pending" class="text-center py-8">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+      ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
 
@@ -30,7 +32,7 @@
               required
               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="输入队伍名称"
-            >
+            />
           </div>
           <div v-if="createError" class="text-red-600 text-sm">
             {{ createError }}
@@ -40,7 +42,7 @@
             :disabled="isCreating"
             class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
           >
-            {{ isCreating ? '创建中...' : '创建队伍' }}
+            {{ isCreating ? "创建中..." : "创建队伍" }}
           </button>
         </form>
       </div>
@@ -63,7 +65,7 @@
                     :src="getAvatarUrl(team.avatarUrl)"
                     :alt="team.name"
                     class="w-10 h-10 rounded-full object-cover"
-                  >
+                  />
                   <div
                     v-else
                     class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center"
@@ -84,7 +86,9 @@
             </div>
 
             <div class="mb-4">
-              <p class="text-sm text-gray-600 mb-2">队长: {{ team.captain.username }}</p>
+              <p class="text-sm text-gray-600 mb-2">
+                队长: {{ getCreatorUsername(team) }}
+              </p>
               <p class="text-sm text-gray-600">成员数量: {{ team.members.length }}</p>
             </div>
 
@@ -109,38 +113,48 @@
 
 <script setup>
 definePageMeta({
-  middleware: 'auth'
-})
+  middleware: "auth",
+});
 
-const newTeamName = ref('')
-const isCreating = ref(false)
-const createError = ref('')
+const newTeamName = ref("");
+const isCreating = ref(false);
+const createError = ref("");
 
-const { data, pending, error, refresh } = await useFetch('/api/teams')
+const { data, pending, error, refresh } = await useFetch("/api/teams");
 
 // 获取头像公共URL
 const getAvatarUrl = (avatarUrl) => {
-  return avatarUrl || ''
-}
+  return avatarUrl || "";
+};
+
+// 获取队伍创建者的用户名
+const getCreatorUsername = (team) => {
+  if (!team || !team.members || !Array.isArray(team.members)) {
+    return "未知";
+  }
+
+  const creator = team.members.find((member) => member.role === "CREATOR");
+  return creator && creator.user ? creator.user.username : "未知";
+};
 
 const createTeam = async () => {
-  if (!newTeamName.value.trim()) return
+  if (!newTeamName.value.trim()) return;
 
-  isCreating.value = true
-  createError.value = ''
+  isCreating.value = true;
+  createError.value = "";
 
   try {
-    await $fetch('/api/teams', {
-      method: 'POST',
-      body: { name: newTeamName.value.trim() }
-    })
+    await $fetch("/api/teams", {
+      method: "POST",
+      body: { name: newTeamName.value.trim() },
+    });
 
-    newTeamName.value = ''
-    await refresh()
+    newTeamName.value = "";
+    await refresh();
   } catch (err) {
-    createError.value = err.data?.message || err.statusMessage || '创建队伍失败'
+    createError.value = err.data?.message || err.statusMessage || "创建队伍失败";
   } finally {
-    isCreating.value = false
+    isCreating.value = false;
   }
-}
+};
 </script>

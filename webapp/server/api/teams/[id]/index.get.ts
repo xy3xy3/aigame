@@ -24,14 +24,6 @@ export default defineEventHandler(async (event) => {
   const team = await prisma.team.findUnique({
     where: { id: teamId },
     include: {
-      captain: {
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          avatarUrl: true
-        }
-      },
       members: {
         include: {
           user: {
