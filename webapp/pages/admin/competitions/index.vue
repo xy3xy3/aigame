@@ -5,12 +5,12 @@
         <h1 class="text-3xl font-bold text-gray-900">比赛管理</h1>
         <p class="mt-2 text-gray-600">管理所有AI竞赛</p>
       </div>
-      <NuxtLink
-        to="/admin/competitions/create"
+      <button
+        @click="openModal()"
         class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium"
       >
         创建新比赛
-      </NuxtLink>
+      </button>
     </div>
 
     <!-- 筛选器 -->
@@ -106,12 +106,12 @@
             >
               查看详情
             </NuxtLink>
-            <NuxtLink
-              :to="`/admin/competitions/${competition.id}/edit`"
+            <button
+              @click="openModal(competition)"
               class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center"
             >
               编辑
-            </NuxtLink>
+            </button>
             <NuxtLink
               :to="{ path: '/admin/problems', query: { competitionId: competition.id } }"
               class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center"
@@ -140,12 +140,12 @@
       <div class="text-gray-400 text-6xl mb-4">🏆</div>
       <h3 class="text-lg font-medium text-gray-900 mb-2">暂无比赛</h3>
       <p class="text-gray-600 mb-6">开始创建你的第一个AI竞赛吧！</p>
-      <NuxtLink
-        to="/admin/competitions/create"
+      <button
+        @click="openModal()"
         class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium"
       >
         创建新比赛
-      </NuxtLink>
+      </button>
     </div>
 
     <!-- 分页 -->
@@ -162,11 +162,197 @@
         @items-per-page-change="changeItemsPerPage"
       />
     </div>
+
+    <!-- 比赛模态框 -->
+    <div v-if="showModal" class="fixed inset-0 overflow-y-auto z-50">
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div @click="closeModal" class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
+        <div
+          class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+        >
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  {{ modalTitle }}
+                </h3>
+                <div class="mt-2">
+                  <form @submit.prevent="saveCompetition">
+                    <div class="mb-4">
+                      <label
+                        for="competition-title"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        比赛标题 *
+                      </label>
+                      <input
+                        id="competition-title"
+                        v-model="competitionForm.title"
+                        type="text"
+                        required
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="输入比赛标题"
+                      />
+                    </div>
+                    <div class="mb-4">
+                      <label
+                        for="competition-description"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        比赛描述 *
+                      </label>
+                      <textarea
+                        id="competition-description"
+                        v-model="competitionForm.description"
+                        rows="4"
+                        required
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="详细描述比赛内容和目标"
+                      ></textarea>
+                    </div>
+                    <div class="mb-4">
+                      <label
+                        for="competition-rules"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        比赛规则 *
+                      </label>
+                      <textarea
+                        id="competition-rules"
+                        v-model="competitionForm.rules"
+                        rows="6"
+                        required
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="详细说明比赛规则、评分标准等"
+                      ></textarea>
+                    </div>
+                    <div class="mb-4">
+                      <label
+                        for="competition-banner"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        比赛横幅
+                      </label>
+                      <div class="mt-2 flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                          <img
+                            v-if="bannerPreview"
+                            :src="bannerPreview"
+                            alt="横幅预览"
+                            class="h-16 w-auto rounded-md object-cover"
+                          />
+                          <div
+                            v-else
+                            class="h-16 w-32 flex items-center justify-center rounded-md border-2 border-dashed border-gray-300 text-sm text-gray-400"
+                          >
+                            图片预览
+                          </div>
+                        </div>
+                        <div class="flex-grow">
+                          <input
+                            id="competition-banner"
+                            type="file"
+                            accept="image/*"
+                            class="hidden"
+                            @change="handleBannerUpload"
+                          />
+                          <label
+                            for="competition-banner"
+                            class="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                          >
+                            上传图片
+                          </label>
+                          <p v-if="uploading" class="mt-1 text-sm text-gray-500">
+                            上传中...
+                          </p>
+                          <p v-if="uploadError" class="mt-1 text-sm text-red-600">
+                            {{ uploadError }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                      <div>
+                        <label
+                          for="competition-startTime"
+                          class="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          开始时间 *
+                        </label>
+                        <input
+                          id="competition-startTime"
+                          v-model="competitionForm.startTime"
+                          type="datetime-local"
+                          required
+                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          for="competition-endTime"
+                          class="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          结束时间 *
+                        </label>
+                        <input
+                          id="competition-endTime"
+                          v-model="competitionForm.endTime"
+                          type="datetime-local"
+                          required
+                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        />
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button
+              @click="saveCompetition"
+              type="button"
+              :disabled="isSubmitting"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+            >
+              {{
+                isSubmitting
+                  ? isEditing
+                    ? "更新中..."
+                    : "创建中..."
+                  : isEditing
+                  ? "更新比赛"
+                  : "创建比赛"
+              }}
+            </button>
+            <button
+              @click="closeModal"
+              type="button"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import Pagination from "~/components/common/Pagination.vue";
+import { convertLocalToUTC } from "~/composables/useDateUtils";
 
 definePageMeta({
   middleware: "admin",
@@ -231,6 +417,156 @@ const deleteCompetition = async (competitionId) => {
   } catch (error) {
     console.error("删除比赛失败:", error);
     push.error("删除比赛失败: " + (error.data?.message || error.message));
+  }
+};
+
+// 比赛表单相关
+const showModal = ref(false);
+const isEditing = ref(false);
+const isSubmitting = ref(false);
+const modalTitle = computed(() => (isEditing.value ? "编辑比赛" : "创建比赛"));
+
+const competitionForm = ref({
+  id: "",
+  title: "",
+  description: "",
+  rules: "",
+  bannerUrl: "",
+  startTime: "",
+  endTime: "",
+});
+
+const bannerPreview = ref("");
+const uploading = ref(false);
+const uploadError = ref("");
+
+const openModal = (competition = null) => {
+  if (competition) {
+    // 编辑模式
+    isEditing.value = true;
+    competitionForm.value = {
+      id: competition.id,
+      title: competition.title,
+      description: competition.description,
+      rules: competition.rules,
+      bannerUrl: competition.bannerUrl || "",
+      startTime: new Date(competition.startTime).toISOString().slice(0, 16),
+      endTime: new Date(competition.endTime).toISOString().slice(0, 16),
+    };
+    bannerPreview.value = competition.bannerUrl || "";
+  } else {
+    // 新增模式
+    isEditing.value = false;
+    competitionForm.value = {
+      id: "",
+      title: "",
+      description: "",
+      rules: "",
+      bannerUrl: "",
+      startTime: "",
+      endTime: "",
+    };
+    bannerPreview.value = "";
+
+    // 设置默认时间（当前时间+1小时作为开始时间，+25小时作为结束时间）
+    const now = new Date();
+    const start = new Date(now.getTime() + 60 * 60 * 1000); // +1小时
+    const end = new Date(now.getTime() + 25 * 60 * 60 * 1000); // +25小时
+
+    competitionForm.value.startTime = start.toISOString().slice(0, 16);
+    competitionForm.value.endTime = end.toISOString().slice(0, 16);
+  }
+  showModal.value = true;
+};
+
+const closeModal = () => {
+  showModal.value = false;
+};
+
+const handleBannerUpload = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  bannerPreview.value = URL.createObjectURL(file);
+  uploading.value = true;
+  uploadError.value = "";
+
+  const formData = new FormData();
+  formData.append("banner", file);
+
+  try {
+    const data = await $fetch("/api/competitions/banner/upload", {
+      method: "POST",
+      body: formData,
+    });
+    competitionForm.value.bannerUrl = data.url;
+  } catch (err) {
+    uploadError.value = err.data?.message || "上传失败";
+    bannerPreview.value = isEditing.value ? competitionForm.value.bannerUrl : ""; // 恢复到原始图片
+  } finally {
+    uploading.value = false;
+  }
+};
+
+const saveCompetition = async () => {
+  if (isSubmitting.value) return;
+
+  isSubmitting.value = true;
+
+  try {
+    // 验证时间
+    const startDate = new Date(competitionForm.value.startTime);
+    const endDate = new Date(competitionForm.value.endTime);
+
+    if (startDate >= endDate) {
+      push.error("结束时间必须晚于开始时间");
+      isSubmitting.value = false;
+      return;
+    }
+
+    let response;
+    if (isEditing.value) {
+      // 编辑比赛
+      response = await $fetch(`/api/competitions/${competitionForm.value.id}`, {
+        method: "PUT",
+        body: {
+          title: competitionForm.value.title,
+          description: competitionForm.value.description,
+          rules: competitionForm.value.rules,
+          bannerUrl: competitionForm.value.bannerUrl || undefined,
+          startTime: convertLocalToUTC(competitionForm.value.startTime),
+          endTime: convertLocalToUTC(competitionForm.value.endTime),
+        },
+      });
+    } else {
+      // 创建比赛
+      response = await $fetch("/api/competitions", {
+        method: "POST",
+        body: {
+          title: competitionForm.value.title,
+          description: competitionForm.value.description,
+          rules: competitionForm.value.rules,
+          bannerUrl: competitionForm.value.bannerUrl || undefined,
+          startTime: convertLocalToUTC(competitionForm.value.startTime),
+          endTime: convertLocalToUTC(competitionForm.value.endTime),
+        },
+      });
+    }
+
+    if (response.success) {
+      closeModal();
+      await refresh();
+
+      // 显示成功消息
+      push.success(isEditing.value ? "比赛更新成功" : "比赛创建成功");
+    } else {
+      push.error(isEditing.value ? "更新比赛失败" : "创建比赛失败");
+    }
+  } catch (err) {
+    console.error("保存比赛时出错:", err);
+    push.error("保存比赛时出错: " + (err.data?.message || err.message || "未知错误"));
+  } finally {
+    isSubmitting.value = false;
   }
 };
 </script>

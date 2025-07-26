@@ -5,15 +5,16 @@
         <h1 class="text-3xl font-bold text-gray-900">题目管理</h1>
         <p class="mt-2 text-gray-600">管理所有竞赛题目</p>
       </div>
-      <NuxtLink
-        :to="{
-          path: '/admin/problems/create',
-          query: selectedCompetition ? { competitionId: selectedCompetition } : {},
-        }"
-        class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium"
-      >
-        创建新题目
-      </NuxtLink>
+
+      <!-- 新增题目按钮 -->
+      <div class="mb-6 flex justify-end">
+        <button
+          @click="openModal()"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+        >
+          新增题目
+        </button>
+      </div>
     </div>
 
     <!-- 筛选器 -->
@@ -129,12 +130,12 @@
             >
               查看详情
             </NuxtLink>
-            <NuxtLink
-              :to="`/admin/problems/${problem.id}/edit`"
+            <button
+              @click="openModal(problem)"
               class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center"
             >
               编辑
-            </NuxtLink>
+            </button>
             <NuxtLink
               :to="`/competitions/${problem.competition.id}`"
               class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center"
@@ -181,6 +182,219 @@
         @page-change="goToPage"
         @items-per-page-change="changeItemsPerPage"
       />
+    </div>
+  </div>
+
+  <!-- 题目模态框 -->
+  <div v-if="showModal" class="fixed inset-0 overflow-y-auto z-50">
+    <div
+      class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+    >
+      <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+        <div @click="closeModal" class="absolute inset-0 bg-gray-500 opacity-75"></div>
+      </div>
+
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true"
+        >&#8203;</span
+      >
+
+      <div
+        class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+      >
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="sm:flex sm:items-start">
+            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                {{ modalTitle }}
+              </h3>
+              <div class="mt-2">
+                <form @submit.prevent="saveProblem">
+                  <div class="mb-4">
+                    <label
+                      for="problem-competition"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      关联竞赛 *
+                    </label>
+                    <select
+                      id="problem-competition"
+                      v-model="problemForm.competitionId"
+                      required
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="" disabled>请选择竞赛</option>
+                      <option
+                        v-for="competition in competitions"
+                        :key="competition.id"
+                        :value="competition.id"
+                      >
+                        {{ competition.title }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="problem-title"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      题目标题 *
+                    </label>
+                    <input
+                      id="problem-title"
+                      v-model="problemForm.title"
+                      type="text"
+                      required
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="输入题目标题"
+                    />
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="problem-shortDescription"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      简短描述 *
+                    </label>
+                    <input
+                      id="problem-shortDescription"
+                      v-model="problemForm.shortDescription"
+                      type="text"
+                      required
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="输入简短描述"
+                    />
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="problem-detailedDescription"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      详细描述
+                    </label>
+                    <textarea
+                      id="problem-detailedDescription"
+                      v-model="problemForm.detailedDescription"
+                      rows="4"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="详细描述题目内容和要求"
+                    ></textarea>
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="problem-datasetUrl"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      数据集URL
+                    </label>
+                    <input
+                      id="problem-datasetUrl"
+                      v-model="problemForm.datasetUrl"
+                      type="text"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="输入数据集下载链接"
+                    />
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="problem-judgingScriptUrl"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      评测脚本URL
+                    </label>
+                    <input
+                      id="problem-judgingScriptUrl"
+                      v-model="problemForm.judgingScriptUrl"
+                      type="text"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="输入评测脚本下载链接"
+                    />
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                    <div>
+                      <label
+                        for="problem-startTime"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        开始时间 *
+                      </label>
+                      <input
+                        id="problem-startTime"
+                        v-model="problemForm.startTime"
+                        type="datetime-local"
+                        required
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        for="problem-endTime"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        结束时间 *
+                      </label>
+                      <input
+                        id="problem-endTime"
+                        v-model="problemForm.endTime"
+                        type="datetime-local"
+                        required
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="problem-score"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      分数
+                    </label>
+                    <input
+                      id="problem-score"
+                      v-model.number="problemForm.score"
+                      type="number"
+                      min="0"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="输入题目分数"
+                    />
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button
+            @click="saveProblem"
+            type="button"
+            :disabled="isSubmitting"
+            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+          >
+            {{
+              isSubmitting
+                ? isEditing
+                  ? "更新中..."
+                  : "创建中..."
+                : isEditing
+                ? "更新题目"
+                : "创建题目"
+            }}
+          </button>
+          <button
+            @click="closeModal"
+            type="button"
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            取消
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -304,6 +518,145 @@ const deleteProblem = async (problemId: string) => {
   } catch (error: any) {
     console.error("删除题目失败:", error);
     push.error("删除题目失败: " + (error.data?.message || error.message));
+  }
+};
+
+// 题目表单相关
+const showModal = ref(false);
+const isEditing = ref(false);
+const isSubmitting = ref(false);
+const modalTitle = computed(() => (isEditing.value ? "编辑题目" : "新增题目"));
+
+const problemForm = ref({
+  id: "",
+  competitionId: "",
+  title: "",
+  shortDescription: "",
+  detailedDescription: "",
+  datasetUrl: "",
+  judgingScriptUrl: "",
+  startTime: "",
+  endTime: "",
+  score: undefined as number | undefined,
+});
+
+const openModal = (problem = null) => {
+  if (problem) {
+    // 编辑模式
+    isEditing.value = true;
+    problemForm.value = {
+      id: problem.id,
+      competitionId: problem.competition.id,
+      title: problem.title,
+      shortDescription: problem.shortDescription,
+      detailedDescription: problem.detailedDescription,
+      datasetUrl: problem.datasetUrl || "",
+      judgingScriptUrl: problem.judgingScriptUrl || "",
+      startTime: new Date(problem.startTime).toISOString().slice(0, 16),
+      endTime: new Date(problem.endTime).toISOString().slice(0, 16),
+      score: problem.score || undefined,
+    };
+  } else {
+    // 新增模式
+    isEditing.value = false;
+    problemForm.value = {
+      id: "",
+      competitionId: selectedCompetition.value || "",
+      title: "",
+      shortDescription: "",
+      detailedDescription: "",
+      datasetUrl: "",
+      judgingScriptUrl: "",
+      startTime: "",
+      endTime: "",
+      score: undefined,
+    };
+
+    // 设置默认时间（如果没有选择比赛，使用当前时间+1小时作为开始时间，+25小时作为结束时间）
+    const now = new Date();
+    const start = new Date(now.getTime() + 60 * 60 * 1000); // +1小时
+    const end = new Date(now.getTime() + 25 * 60 * 60 * 1000); // +25小时
+
+    problemForm.value.startTime = start.toISOString().slice(0, 16);
+    problemForm.value.endTime = end.toISOString().slice(0, 16);
+  }
+  showModal.value = true;
+};
+
+const closeModal = () => {
+  showModal.value = false;
+};
+
+const saveProblem = async () => {
+  if (isSubmitting.value) return;
+
+  isSubmitting.value = true;
+
+  try {
+    // 验证时间
+    const startDate = new Date(problemForm.value.startTime);
+    const endDate = new Date(problemForm.value.endTime);
+
+    if (startDate >= endDate) {
+      push.error("结束时间必须晚于开始时间");
+      isSubmitting.value = false;
+      return;
+    }
+
+    let response;
+    if (isEditing.value) {
+      // 编辑题目
+      response = await $fetch(`/api/problems/${problemForm.value.id}`, {
+        method: "PUT",
+        body: {
+          title: problemForm.value.title,
+          shortDescription: problemForm.value.shortDescription,
+          detailedDescription: problemForm.value.detailedDescription,
+          datasetUrl: problemForm.value.datasetUrl || undefined,
+          judgingScriptUrl: problemForm.value.judgingScriptUrl || undefined,
+          startTime: startDate.toISOString(),
+          endTime: endDate.toISOString(),
+          score: problemForm.value.score
+            ? parseInt(String(problemForm.value.score))
+            : undefined,
+        },
+      });
+    } else {
+      // 创建题目
+      response = await $fetch(
+        `/api/competitions/${problemForm.value.competitionId}/problems`,
+        {
+          method: "POST",
+          body: {
+            title: problemForm.value.title,
+            shortDescription: problemForm.value.shortDescription,
+            detailedDescription: problemForm.value.detailedDescription,
+            datasetUrl: problemForm.value.datasetUrl || undefined,
+            judgingScriptUrl: problemForm.value.judgingScriptUrl || undefined,
+            startTime: startDate.toISOString(),
+            endTime: endDate.toISOString(),
+            score: problemForm.value.score
+              ? parseInt(String(problemForm.value.score))
+              : undefined,
+          },
+        }
+      );
+    }
+
+    if (response.success) {
+      closeModal();
+      await refresh();
+
+      // 显示成功消息
+      push.success(isEditing.value ? "题目更新成功" : "题目创建成功");
+    } else {
+      push.error(isEditing.value ? "更新题目失败" : "创建题目失败");
+    }
+  } catch (err: any) {
+    console.error("保存题目时出错:", err);
+    push.error("保存题目时出错: " + (err.data?.message || err.message || "未知错误"));
+  } finally {
+    isSubmitting.value = false;
   }
 };
 </script>
