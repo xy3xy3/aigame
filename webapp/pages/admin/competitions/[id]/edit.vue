@@ -20,16 +20,6 @@
 
     <!-- 编辑表单 -->
     <form v-else-if="data?.competition" @submit.prevent="handleSubmit" class="space-y-6">
-      <!-- 成功消息 -->
-      <div v-if="success" class="bg-green-50 border border-green-200 rounded-md p-4">
-        <p class="text-green-800">比赛更新成功！</p>
-      </div>
-
-      <!-- 错误消息 -->
-      <div v-if="submitError" class="bg-red-50 border border-red-200 rounded-md p-4">
-        <p class="text-red-800">{{ submitError }}</p>
-      </div>
-
       <!-- 基本信息 -->
       <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">基本信息</h2>
@@ -192,8 +182,6 @@ const form = reactive({
 });
 
 const isSubmitting = ref(false);
-const submitError = ref("");
-const success = ref(false);
 const bannerPreview = ref("");
 const uploading = ref(false);
 const uploadError = ref("");
@@ -249,8 +237,6 @@ watch(
 const handleSubmit = async () => {
   if (isSubmitting.value) return;
 
-  submitError.value = "";
-  success.value = false;
   isSubmitting.value = true;
 
   try {
@@ -259,7 +245,7 @@ const handleSubmit = async () => {
     const endDate = new Date(form.endTime);
 
     if (startDate >= endDate) {
-      submitError.value = "结束时间必须晚于开始时间";
+      push.error("结束时间必须晚于开始时间");
       return;
     }
 
@@ -276,7 +262,7 @@ const handleSubmit = async () => {
     });
 
     if (updateData.success) {
-      success.value = true;
+      push.success("比赛更新成功！");
 
       // 3秒后跳转到比赛管理页面
       setTimeout(() => {
@@ -285,7 +271,7 @@ const handleSubmit = async () => {
     }
   } catch (error) {
     console.error("更新比赛失败:", error);
-    submitError.value = error.data?.message || error.message || "更新失败，请重试";
+    push.error(error.data?.message || error.message || "更新失败，请重试");
   } finally {
     isSubmitting.value = false;
   }

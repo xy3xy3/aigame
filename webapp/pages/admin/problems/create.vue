@@ -9,14 +9,6 @@
       @submit.prevent="handleSubmit"
       class="bg-white rounded-lg shadow-md p-6 space-y-6"
     >
-      <div v-if="error" class="bg-red-50 border border-red-200 rounded-md p-4">
-        <p class="text-red-800">{{ error }}</p>
-      </div>
-
-      <div v-if="success" class="bg-green-50 border border-green-200 rounded-md p-4">
-        <p class="text-green-800">题目创建成功！</p>
-      </div>
-
       <!-- 选择竞赛 -->
       <div>
         <label for="competitionId" class="block text-sm font-medium text-gray-700 mb-2">
@@ -228,16 +220,12 @@ const form = reactive({
 });
 
 const isSubmitting = ref(false);
-const error = ref("");
-const success = ref(false);
 
 import { convertLocalToUTC } from "~/composables/useDateUtils";
 
 const handleSubmit = async () => {
   if (isSubmitting.value) return;
 
-  error.value = "";
-  success.value = false;
   isSubmitting.value = true;
 
   try {
@@ -246,7 +234,7 @@ const handleSubmit = async () => {
     const endDate = new Date(form.endTime);
 
     if (startDate >= endDate) {
-      error.value = "结束时间必须晚于开始时间";
+      push.error("结束时间必须晚于开始时间");
       return;
     }
 
@@ -265,7 +253,7 @@ const handleSubmit = async () => {
     });
 
     if (data.success) {
-      success.value = true;
+      push.success("题目创建成功！");
       // 重置表单
       Object.keys(form).forEach((key) => {
         (form as any)[key] = "";
@@ -277,7 +265,7 @@ const handleSubmit = async () => {
       }, 3000);
     }
   } catch (err: any) {
-    error.value = err.data?.message || err.message || "创建题目失败";
+    push.error(err.data?.message || err.message || "创建题目失败");
   } finally {
     isSubmitting.value = false;
   }
