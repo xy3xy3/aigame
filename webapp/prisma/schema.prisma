@@ -12,55 +12,55 @@ datasource db {
 
 model User {
   id           String          @id @default(auto()) @map("_id") @db.ObjectId
-  username     String          @unique
-  email        String          @unique
-  passwordHash String
-  avatarUrl    String?
-  role         String          @default("user") // "admin" | "user"
+  username     String          @unique // 用户名，唯一
+  email        String          @unique // 邮箱地址，唯一
+  passwordHash String // 密码哈希值
+  avatarUrl    String? // 头像URL
+  role         String          @default("user") // 用户角色，"admin" | "user"
   phoneNumber  String? // 手机号
-  studentId    String?         @unique // 学号
+  studentId    String?         @unique // 学号，唯一
   realName     String? // 真实姓名
   education    EducationLevel? // 学历
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  createdAt    DateTime        @default(now()) // 创建时间
+  updatedAt    DateTime        @updatedAt // 更新时间
 
-  // Relations
-  teamMemberships     TeamMembership[]
-  submissions         Submission[]
-  createdCompetitions Competition[]    @relation("CompetitionCreator")
-  sentInvitations     Invitation[]     @relation("Inviter")
-  receivedInvitations Invitation[]     @relation("Invitee")
+  // 关系
+  teamMemberships     TeamMembership[] // 用户所属的团队成员关系
+  submissions         Submission[] // 用户提交的题目
+  createdCompetitions Competition[]    @relation("CompetitionCreator") // 用户创建的比赛
+  sentInvitations     Invitation[]     @relation("Inviter") // 用户发出的邀请
+  receivedInvitations Invitation[]     @relation("Invitee") // 用户收到的邀请
 
   @@map("users")
 }
 
 model Team {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  name            String
-  description     String?
-  avatarUrl       String?
-  isLocked        Boolean  @default(false)
-  participatingIn String[] @db.ObjectId
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  name            String // 团队名称
+  description     String? // 团队描述
+  avatarUrl       String? // 团队头像URL
+  isLocked        Boolean  @default(false) // 是否锁定团队
+  participatingIn String[] @db.ObjectId // 团队参与的比赛
+  createdAt       DateTime @default(now()) // 创建时间
+  updatedAt       DateTime @updatedAt // 更新时间
 
-  // Relations
-  members            TeamMembership[]
-  submissions        Submission[]
-  leaderboardEntries LeaderboardEntry[]
-  invitations        Invitation[]
+  // 关系
+  members            TeamMembership[] // 团队成员
+  submissions        Submission[] // 团队提交的题目
+  leaderboardEntries LeaderboardEntry[] // 团队在排行榜中的记录
+  invitations        Invitation[] // 团队相关的邀请
 
   @@map("teams")
 }
 
 model TeamMembership {
   id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  teamId   String   @db.ObjectId
-  userId   String   @db.ObjectId
-  role     String   @default("MEMBER") // "CREATOR" | "MEMBER"
-  joinedAt DateTime @default(now())
+  teamId   String   @db.ObjectId // 团队ID
+  userId   String   @db.ObjectId // 用户ID
+  role     String   @default("MEMBER") // 成员角色，"CREATOR" | "MEMBER"
+  joinedAt DateTime @default(now()) // 加入时间
 
-  // Relations
+  // 关系
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -70,43 +70,43 @@ model TeamMembership {
 
 model Competition {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  description String
-  rules       String
-  bannerUrl   String?
-  startTime   DateTime
-  endTime     DateTime
-  createdBy   String   @db.ObjectId
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  title       String // 比赛标题
+  description String // 比赛描述
+  rules       String // 比赛规则
+  bannerUrl   String? // 比赛横幅URL
+  startTime   DateTime // 比赛开始时间
+  endTime     DateTime // 比赛结束时间
+  createdBy   String   @db.ObjectId // 创建者ID
+  createdAt   DateTime @default(now()) // 创建时间
+  updatedAt   DateTime @updatedAt // 更新时间
 
-  // Relations
-  creator      User          @relation("CompetitionCreator", fields: [createdBy], references: [id])
-  problems     Problem[]
-  submissions  Submission[]
-  leaderboards Leaderboard[]
+  // 关系
+  creator      User          @relation("CompetitionCreator", fields: [createdBy], references: [id]) // 创建者
+  problems     Problem[] // 比赛中的题目
+  submissions  Submission[] // 比赛中的提交
+  leaderboards Leaderboard[] // 比赛的排行榜
 
   @@map("competitions")
 }
 
 model Problem {
   id                  String   @id @default(auto()) @map("_id") @db.ObjectId
-  title               String
-  shortDescription    String
-  detailedDescription String
-  competitionId       String   @db.ObjectId
-  datasetUrl          String?
-  judgingScriptUrl    String?
-  startTime           DateTime
-  endTime             DateTime
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  title               String // 题目标题
+  shortDescription    String // 简短描述
+  detailedDescription String // 详细描述
+  competitionId       String   @db.ObjectId // 所属比赛ID
+  datasetUrl          String? // 数据集URL
+  judgingScriptUrl    String? // 评测脚本URL
+  startTime           DateTime // 题目开始时间
+  endTime             DateTime // 题目结束时间
+  createdAt           DateTime @default(now()) // 创建时间
+  updatedAt           DateTime @updatedAt // 更新时间
   // 题目分值，表示完成该题目可获得的分数
   score               Int?
 
-  // Relations
-  competition Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  submissions Submission[]
+  // 关系
+  competition Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade) // 所属比赛
+  submissions Submission[] // 题目的提交
 
   @@map("problems")
 }
@@ -120,56 +120,56 @@ enum SubmissionStatus {
 
 model Submission {
   id            String           @id @default(auto()) @map("_id") @db.ObjectId
-  problemId     String           @db.ObjectId
-  competitionId String           @db.ObjectId
-  teamId        String           @db.ObjectId
-  userId        String           @db.ObjectId
-  submissionUrl String
-  status        SubmissionStatus @default(PENDING)
-  score         Float?
-  executionLogs String?
-  submittedAt   DateTime         @default(now())
-  judgedAt      DateTime?
-  updatedAt     DateTime         @updatedAt
+  problemId     String           @db.ObjectId // 题目ID
+  competitionId String           @db.ObjectId // 比赛ID
+  teamId        String           @db.ObjectId // 团队ID
+  userId        String           @db.ObjectId // 用户ID
+  submissionUrl String // 提交的URL
+  status        SubmissionStatus @default(PENDING) // 提交状态
+  score         Float? // 得分
+  executionLogs String? // 执行日志
+  submittedAt   DateTime         @default(now()) // 提交时间
+  judgedAt      DateTime? // 评测时间
+  updatedAt     DateTime         @updatedAt // 更新时间
 
-  // Relations
-  problem     Problem     @relation(fields: [problemId], references: [id], onDelete: Cascade)
-  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
-  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // 关系
+  problem     Problem     @relation(fields: [problemId], references: [id], onDelete: Cascade) // 提交的题目
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade) // 所属比赛
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade) // 提交的团队
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade) // 提交的用户
 
   @@map("submissions")
 }
 
 model Leaderboard {
   id            String             @id @default(auto()) @map("_id") @db.ObjectId
-  competitionId String             @unique @db.ObjectId
-  lastUpdated   DateTime           @default(now())
-  rankings      LeaderboardEntry[]
+  competitionId String             @unique @db.ObjectId // 所属比赛ID
+  lastUpdated   DateTime           @default(now()) // 最后更新时间
+  rankings      LeaderboardEntry[] // 排行榜条目
 
-  // Relations
-  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  // 关系
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade) // 所属比赛
 
   @@map("leaderboards")
 }
 
 type ProblemScore {
-  problemId   String   @db.ObjectId
-  score       Float
-  submittedAt DateTime
+  problemId   String   @db.ObjectId // 题目ID
+  score       Float // 题目得分
+  submittedAt DateTime // 提交时间
 }
 
 model LeaderboardEntry {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  leaderboardId String         @db.ObjectId
-  rank          Int
-  teamId        String         @db.ObjectId
-  totalScore    Float
-  problemScores ProblemScore[]
+  leaderboardId String         @db.ObjectId // 排行榜ID
+  rank          Int // 排名
+  teamId        String         @db.ObjectId // 团队ID
+  totalScore    Float // 总得分
+  problemScores ProblemScore[] // 题目得分详情
 
-  // Relations
-  leaderboard Leaderboard @relation(fields: [leaderboardId], references: [id], onDelete: Cascade)
-  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  // 关系
+  leaderboard Leaderboard @relation(fields: [leaderboardId], references: [id], onDelete: Cascade) // 所属排行榜
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade) // 团队
 
   @@unique([leaderboardId, teamId])
   @@map("leaderboard_entries")
@@ -189,14 +189,14 @@ enum EducationLevel {
 
 model Invitation {
   id          String           @id @default(auto()) @map("_id") @db.ObjectId
-  teamId      String           @db.ObjectId
-  invitedById String           @db.ObjectId
-  inviteeId   String           @db.ObjectId
-  status      InvitationStatus @default(PENDING)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  teamId      String           @db.ObjectId // 团队ID
+  invitedById String           @db.ObjectId // 邀请人ID
+  inviteeId   String           @db.ObjectId // 被邀请人ID
+  status      InvitationStatus @default(PENDING) // 邀请状态
+  createdAt   DateTime         @default(now()) // 创建时间
+  updatedAt   DateTime         @updatedAt // 更新时间
 
-  // Relations
+  // 关系
   team      Team @relation(fields: [teamId], references: [id])
   invitedBy User @relation("Inviter", fields: [invitedById], references: [id])
   invitee   User @relation("Invitee", fields: [inviteeId], references: [id])
@@ -206,11 +206,11 @@ model Invitation {
 
 model Announcement {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  status    String   @default("HIDDEN")
+  title     String // 公告标题
+  content   String // 公告内容
+  createdAt DateTime @default(now()) // 创建时间
+  updatedAt DateTime @updatedAt // 更新时间
+  status    String   @default("HIDDEN") // 公告状态
 
   @@map("announcements")
 }
