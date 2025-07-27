@@ -105,8 +105,9 @@ model Problem {
   score               Int?
 
   // 关系
-  competition Competition  @relation(fields: [competitionId], references: [id], onDelete: Cascade) // 所属比赛
-  submissions Submission[] // 题目的提交
+  competition   Competition    @relation(fields: [competitionId], references: [id], onDelete: Cascade) // 所属比赛
+  submissions   Submission[] // 题目的提交
+  problemScores ProblemScore[]
 
   @@map("problems")
 }
@@ -133,10 +134,11 @@ model Submission {
   updatedAt     DateTime         @updatedAt // 更新时间
 
   // 关系
-  problem     Problem     @relation(fields: [problemId], references: [id], onDelete: Cascade) // 提交的题目
-  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade) // 所属比赛
-  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade) // 提交的团队
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade) // 提交的用户
+  problem      Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade) // 提交的题目
+  competition  Competition    @relation(fields: [competitionId], references: [id], onDelete: Cascade) // 所属比赛
+  team         Team           @relation(fields: [teamId], references: [id], onDelete: Cascade) // 提交的团队
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade) // 提交的用户
+  ProblemScore ProblemScore[]
 
   @@map("submissions")
 }
@@ -153,10 +155,18 @@ model Leaderboard {
   @@map("leaderboards")
 }
 
-type ProblemScore {
-  problemId   String   @db.ObjectId // 题目ID
-  score       Float // 题目得分
-  submittedAt DateTime // 提交时间
+model ProblemScore {
+  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  problemId          String            @db.ObjectId // 题目ID
+  score              Float // 题目得分
+  submittedAt        DateTime // 提交时间
+  bestSubmissionId   String?           @db.ObjectId
+  bestSubmission     Submission?       @relation(fields: [bestSubmissionId], references: [id])
+  LeaderboardEntry   LeaderboardEntry? @relation(fields: [leaderboardEntryId], references: [id])
+  leaderboardEntryId String?           @db.ObjectId
+  problem            Problem           @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@map("problem_scores")
 }
 
 model LeaderboardEntry {

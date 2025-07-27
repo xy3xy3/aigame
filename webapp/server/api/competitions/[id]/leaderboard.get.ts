@@ -1,19 +1,31 @@
-import { Prisma } from '@prisma/client'
-
 // 定义返回给前端的队伍统计数据结构
-interface TeamLeaderboardEntry {
+interface LeaderboardEntryResponse {
   rank: number
   team: {
     id: string
     name: string
   }
-  problemsSolved: number
-  totalPenalty: number
-  problemStats: Record<string, {
-    attempts: number
-    solved: boolean
-    penalty: number
+  totalScore: number
+  problemScores: Array<{
+    problemId: string
+    problemTitle: string
+    score: number
+    bestSubmission?: {
+      id: string
+      submittedAt: Date
+      score?: number
+      user?: {
+        username: string
+        avatarUrl?: string
+      }
+    }
   }>
+}
+
+// 定义返回给前端的完整排行榜数据结构
+interface LeaderboardResponse {
+  competitionTitle: string
+  leaderboard: LeaderboardEntryResponse[]
 }
 
 export default defineEventHandler(async (event) => {
@@ -25,13 +37,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 1. 获取比赛和其包含的问题
+  // 1. 获取比赛标题
   const competition = await prisma.competition.findUnique({
-    where: { id: competitionId },
-    include: {
-      problems: {
-        select: { id: true }
-      }
+    where: {
+      id: competitionId
+    },
+    select: {
+      title: true
     }
   })
 
@@ -42,107 +54,76 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const problemIds = competition.problems.map(p => p.id)
-
-  // 2. 获取所有相关的提交记录
-  const submissions = await prisma.submission.findMany({
+  // 2. 获取排行榜条目，包含队伍信息和题目得分详情
+  const leaderboardEntries = await prisma.leaderboardEntry.findMany({
     where: {
-      competitionId: competitionId,
-      // 仅在比赛期间的提交有效
-      submittedAt: {
-        gte: competition.startTime,
-        lte: competition.endTime,
-      },
+      leaderboard: {
+        competitionId: competitionId
+      }
     },
-    select: {
-      id: true,
-      teamId: true,
-      problemId: true,
-      submittedAt: true,
-      score: true, // 假设 score > 0 代表正确
+    include: {
+      team: {
+        select: {
+          id: true,
+          name: true
+        }
+      },
+      problemScores: {
+        include: {
+          bestSubmission: {
+            include: {
+              user: {
+                select: {
+                  username: true,
+                  avatarUrl: true
+                }
+              }
+            }
+          },
+          // 包含题目信息以获取题目标题
+          problem: {
+            select: {
+              title: true
+            }
+          }
+        }
+      }
     },
     orderBy: {
-      submittedAt: 'asc', // 按提交时间升序处理
-    },
+      rank: 'asc'
+    }
   })
 
-  // 3. 获取所有参赛队伍信息
-  const teams = await prisma.team.findMany({
-    where: {
-      participatingIn: {
-        has: competitionId,
-      },
+  // 3. 转换数据结构以匹配前端需求
+  const finalLeaderboard: LeaderboardEntryResponse[] = leaderboardEntries.map(entry => ({
+    rank: entry.rank,
+    team: {
+      id: entry.team.id,
+      name: entry.team.name
     },
-    select: {
-      id: true,
-      name: true,
-    },
-  })
-
-  // 4. 计算每个队伍的排行榜数据
-  const leaderboardMap: Map<string, Omit<TeamLeaderboardEntry, 'rank' | 'team'> & { team: { id: string, name: string } }> = new Map()
-
-  // 初始化所有队伍的数据
-  for (const team of teams) {
-    leaderboardMap.set(team.id, {
-      team: { id: team.id, name: team.name },
-      problemsSolved: 0,
-      totalPenalty: 0,
-      problemStats: problemIds.reduce((acc, id) => {
-        acc[id] = { attempts: 0, solved: false, penalty: 0 }
-        return acc
-      }, {} as TeamLeaderboardEntry['problemStats']),
-    })
-  }
-
-
-  // 遍历提交记录进行计算
-  for (const submission of submissions) {
-    const teamStats = leaderboardMap.get(submission.teamId)
-    // 如果提交的队伍不在参赛队伍列表中，则忽略
-    if (!teamStats) {
-      continue
-    }
-
-    const problemStat = teamStats.problemStats[submission.problemId]
-    // 如果该问题已经解决，则忽略后续的提交
-    if (problemStat?.solved) {
-      continue
-    }
-
-    problemStat.attempts += 1
-
-    // 假设 score > 0 表示解答正确
-    const isCorrect = submission.score && submission.score > 0
-
-    if (isCorrect) {
-      problemStat.solved = true
-      const timeToSolve = Math.floor((submission.submittedAt.getTime() - competition.startTime.getTime()) / (1000 * 60))
-      const penaltyForIncorrect = (problemStat.attempts - 1) * 20
-      const problemPenalty = timeToSolve + penaltyForIncorrect
-
-      problemStat.penalty = problemPenalty
-      teamStats.problemsSolved += 1
-      teamStats.totalPenalty += problemPenalty
-    }
-  }
-
-
-  // 5. 排序
-  const sortedLeaderboard = Array.from(leaderboardMap.values()).sort((a, b) => {
-    // 首先按解题数降序
-    if (a.problemsSolved !== b.problemsSolved) {
-      return b.problemsSolved - a.problemsSolved
-    }
-    // 解题数相同，按总罚时升序
-    return a.totalPenalty - b.totalPenalty
-  })
-
-  // 6. 分配排名
-  const finalLeaderboard: TeamLeaderboardEntry[] = sortedLeaderboard.map((entry, index) => ({
-    ...entry,
-    rank: index + 1,
+    totalScore: entry.totalScore,
+    problemScores: entry.problemScores.map(problemScore => ({
+      problemId: problemScore.problemId,
+      // 添加题目标题
+      problemTitle: problemScore.problem?.title || 'Unknown Problem',
+      score: problemScore.score,
+      bestSubmission: problemScore.bestSubmission ? {
+        id: problemScore.bestSubmission.id,
+        submittedAt: problemScore.bestSubmission.submittedAt,
+        score: problemScore.bestSubmission.score,
+        user: problemScore.bestSubmission.user ? {
+          username: problemScore.bestSubmission.user.username,
+          avatarUrl: problemScore.bestSubmission.user.avatarUrl
+        } : undefined
+      } : undefined
+    }))
   }))
 
-  return finalLeaderboard
+  // 4. 返回包含比赛标题和排行榜条目的对象
+  const response: LeaderboardResponse = {
+    competitionTitle: competition.title,
+    leaderboard: finalLeaderboard
+  }
+
+  return response
 })

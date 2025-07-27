@@ -10,7 +10,7 @@ async function main() {
     console.log('Cleaning up existing data...');
     await prisma.submission.deleteMany({});
     await prisma.problem.deleteMany({});
-    await prisma.teamMember.deleteMany({});
+    await prisma.teamMembership.deleteMany({});
     await prisma.team.deleteMany({});
     await prisma.competition.deleteMany({});
     await prisma.user.deleteMany({});
@@ -61,12 +61,12 @@ async function main() {
 
     // 4. Create Teams and Users
     console.log('Creating teams and users...');
-    const teamNames = ['Alpha队', 'Beta队', 'Gamma队'];
+    const teamNames = Array.from({ length: 20 }, (_, i) => `队伍${i + 1}`);
     const createdTeams = [];
 
     for (const teamName of teamNames) {
         const teamUsers = [];
-        // Create 3 users for each team
+        // Create 10 users for each team
         for (let i = 1; i <= 10; i++) {
             const user = await prisma.user.create({
                 data: {
@@ -79,36 +79,43 @@ async function main() {
             teamUsers.push(user);
         }
 
-        // The first user created will be the captain
-        const captain = teamUsers[0];
-
+        // Create the team
         const team = await prisma.team.create({
             data: {
                 name: teamName,
                 description: `这是${teamName}的描述。`,
-                captainId: captain.id,
-                members: {
-                    create: teamUsers.map(user => ({
-                        userId: user.id,
-                    })),
-                },
             },
-            include: {
-                members: {
-                    include: {
-                        user: true,
-                    }
-                }
-            }
         });
-        createdTeams.push(team);
-        console.log(`Team "${team.name}" and its ${team.members.length} members created.`);
+
+        // Create team memberships
+        const teamMemberships = [];
+        for (let i = 0; i < teamUsers.length; i++) {
+            const membership = await prisma.teamMembership.create({
+                data: {
+                    teamId: team.id,
+                    userId: teamUsers[i].id,
+                    role: i === 0 ? 'CREATOR' : 'MEMBER', // First user is the creator
+                },
+            });
+            teamMemberships.push(membership);
+        }
+
+        // Add team with memberships to createdTeams array
+        createdTeams.push({
+            ...team,
+            members: teamMemberships.map((membership, index) => ({
+                user: teamUsers[index],
+                ...membership
+            }))
+        });
+
+        console.log(`Team "${team.name}" and its ${teamUsers.length} members created.`);
     }
 
     // 5. Create Submissions
     console.log('Creating submissions...');
-    // Generate 500 submission records for testing pagination
-    for (let i = 0; i < 500; i++) {
+    // Generate 2000 submission records for testing pagination
+    for (let i = 0; i < 2000; i++) {
         // Randomly select a team
         const teamIndex = Math.floor(Math.random() * createdTeams.length);
         const team = createdTeams[teamIndex];
@@ -142,7 +149,93 @@ async function main() {
             console.log(`Created ${i + 1} submissions so far...`);
         }
     }
-    console.log('500 submissions created.');
+    console.log('2000 submissions created.');
+
+    // 6. Generate leaderboard data
+    console.log('Generating leaderboard data...');
+
+    // Get all teams and problems for the competition
+    const allTeams = createdTeams;
+    const allProblems = problems;
+
+    // Create a leaderboard for the competition
+    const leaderboard = await prisma.leaderboard.create({
+        data: {
+            competitionId: competition.id,
+            lastUpdated: new Date(),
+        }
+    });
+
+    // Calculate team scores and create problem scores
+    const teamScores = [];
+
+    for (const team of allTeams) {
+        let totalScore = 0;
+        const problemScoresData = [];
+
+        // For each problem, find the best submission for this team
+        for (const problem of allProblems) {
+            const bestSubmission = await prisma.submission.findFirst({
+                where: {
+                    teamId: team.id,
+                    problemId: problem.id,
+                    competitionId: competition.id
+                },
+                orderBy: {
+                    score: 'desc'
+                }
+            });
+
+            if (bestSubmission) {
+                // Create a ProblemScore record
+                const problemScore = await prisma.problemScore.create({
+                    data: {
+                        problemId: problem.id,
+                        score: bestSubmission.score || 0,
+                        submittedAt: bestSubmission.submittedAt,
+                        bestSubmissionId: bestSubmission.id
+                    }
+                });
+
+                problemScoresData.push({
+                    id: problemScore.id,
+                    score: bestSubmission.score || 0
+                });
+
+                totalScore += bestSubmission.score || 0;
+            }
+        }
+
+        teamScores.push({
+            teamId: team.id,
+            totalScore: totalScore,
+            problemScoresData: problemScoresData
+        });
+    }
+
+    // Sort teams by total score in descending order
+    teamScores.sort((a, b) => b.totalScore - a.totalScore);
+
+    // Create leaderboard entries with ranks
+    for (let i = 0; i < teamScores.length; i++) {
+        const teamScore = teamScores[i];
+        const rank = i + 1;
+
+        // Create leaderboard entry
+        const leaderboardEntry = await prisma.leaderboardEntry.create({
+            data: {
+                leaderboardId: leaderboard.id,
+                rank: rank,
+                teamId: teamScore.teamId,
+                totalScore: teamScore.totalScore,
+                problemScores: {
+                    connect: teamScore.problemScoresData.map(ps => ({ id: ps.id }))
+                }
+            }
+        });
+    }
+
+    console.log(`Leaderboard data generated for ${teamScores.length} teams.`);
 
     console.log('Test data generation finished successfully.');
 }
