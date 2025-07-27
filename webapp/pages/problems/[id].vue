@@ -100,12 +100,10 @@
                   ref="fileInput"
                   type="file"
                   @change="handleFileSelect"
-                  accept=".zip,.py,.txt,.md,.json,.yaml,.yml"
+                  accept=".zip"
                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                 />
-                <p class="text-xs text-gray-500 mt-1">
-                  支持格式: .zip, .py, .txt, .md, .json, .yaml, .yml (最大50MB)
-                </p>
+                <p class="text-xs text-gray-500 mt-1">支持格式: .zip (最大50MB)</p>
               </div>
 
               <button
@@ -387,6 +385,17 @@ const handleFileSelect = (event) => {
   selectedFile.value = file;
   submitError.value = "";
   submitSuccess.value = false;
+
+  // 校验文件扩展名
+  if (file) {
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith(".zip")) {
+      submitError.value = "请选择 .zip 格式的文件";
+      selectedFile.value = null;
+      event.target.value = ""; // 清空文件输入框
+      return;
+    }
+  }
 };
 
 const submitFile = async () => {

@@ -11,23 +11,18 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB限制
   },
   fileFilter: (req, file, cb) => {
-    // 允许的文件类型
+    // 只允许ZIP文件
     const allowedTypes = [
       'application/zip',
-      'application/x-zip-compressed',
-      'application/octet-stream',
-      'text/plain',
-      'application/x-python-code',
-      'text/x-python'
+      'application/x-zip-compressed'
     ]
 
-    const allowedExtensions = ['.zip', '.py', '.txt', '.md', '.json', '.yaml', '.yml']
     const fileExtension = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'))
 
-    if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(fileExtension)) {
+    if (allowedTypes.includes(file.mimetype) || fileExtension === '.zip') {
       cb(null, true)
     } else {
-      cb(new Error('不支持的文件类型'), false)
+      cb(new Error('只接受.zip格式的文件'), false)
     }
   }
 })
@@ -251,6 +246,13 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         statusMessage: 'File too large (max 50MB)'
+      })
+    }
+
+    if (error.message === '只接受.zip格式的文件') {
+      throw createError({
+        statusCode: 400,
+        statusMessage: error.message
       })
     }
 
