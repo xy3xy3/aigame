@@ -1,4 +1,5 @@
 import prisma from '../../../utils/prisma'
+import { requireAdminRole } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -9,12 +10,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const user = event.context.user
-  if (!user || user.role !== 'admin') {
+  if (!user) {
     throw createError({
-      statusCode: 403,
-      statusMessage: '需要管理员权限'
+      statusCode: 401,
+      statusMessage: 'Authentication required'
     })
   }
+
+  requireAdminRole(user)
 
 
 

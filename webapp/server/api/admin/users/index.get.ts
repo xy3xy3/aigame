@@ -1,5 +1,5 @@
 import prisma from '../../../utils/prisma'
-import { excludePassword } from '../../../utils/auth'
+import { excludePassword, requireAdminRole } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -18,13 +18,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 检查用户是否为管理员
-  if (user.role !== 'admin') {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Forbidden: Admin access required'
-    })
-  }
+  requireAdminRole(user)
 
   const query = getQuery(event)
   const page = parseInt(query.page as string) || 1

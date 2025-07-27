@@ -8,7 +8,7 @@ export default defineNitroPlugin(async () => {
       console.log('🚀 正在初始化MinIO存储桶...')
 
       // 定义需要设置为公共读取的存储桶
-      const bucketsToMakePublic = ['avatars', 'banners']
+      const bucketsToMakePublic = ['avatars', 'banners', 'problems']
 
       // 确保存储桶存在并设置为公共读取
       for (const bucketName of bucketsToMakePublic) {

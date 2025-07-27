@@ -285,34 +285,84 @@
 
                   <div class="mb-4">
                     <label
-                      for="problem-datasetUrl"
+                      for="problem-dataset"
                       class="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      数据集URL
+                      数据集
                     </label>
-                    <input
-                      id="problem-datasetUrl"
-                      v-model="problemForm.datasetUrl"
-                      type="text"
-                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="输入数据集下载链接"
-                    />
+                    <div class="mt-2 flex items-center space-x-4">
+                      <div class="flex-grow">
+                        <input
+                          id="problem-dataset"
+                          type="file"
+                          accept=".zip,.tar,.gz,.tgz,application/zip,application/x-zip-compressed,application/x-tar,application/gzip,application/x-gzip"
+                          class="hidden"
+                          @change="handleDatasetUpload"
+                        />
+                        <label
+                          for="problem-dataset"
+                          class="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                        >
+                          上传数据集
+                        </label>
+                        <p v-if="datasetUploading" class="mt-1 text-sm text-gray-500">
+                          上传中...
+                        </p>
+                        <p v-if="datasetUploadError" class="mt-1 text-sm text-red-600">
+                          {{ datasetUploadError }}
+                        </p>
+                        <input
+                          v-if="problemForm.datasetUrl"
+                          id="problem-datasetUrl"
+                          v-model="problemForm.datasetUrl"
+                          type="text"
+                          class="w-full mt-2 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="数据集URL"
+                          readonly
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div class="mb-4">
                     <label
-                      for="problem-judgingScriptUrl"
+                      for="problem-script"
                       class="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      评测脚本URL
+                      评测脚本
                     </label>
-                    <input
-                      id="problem-judgingScriptUrl"
-                      v-model="problemForm.judgingScriptUrl"
-                      type="text"
-                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="输入评测脚本下载链接"
-                    />
+                    <div class="mt-2 flex items-center space-x-4">
+                      <div class="flex-grow">
+                        <input
+                          id="problem-script"
+                          type="file"
+                          accept=".zip,.tar,.gz,.tgz,application/zip,application/x-zip-compressed,application/x-tar,application/gzip,application/x-gzip"
+                          class="hidden"
+                          @change="handleScriptUpload"
+                        />
+                        <label
+                          for="problem-script"
+                          class="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                        >
+                          上传脚本
+                        </label>
+                        <p v-if="scriptUploading" class="mt-1 text-sm text-gray-500">
+                          上传中...
+                        </p>
+                        <p v-if="scriptUploadError" class="mt-1 text-sm text-red-600">
+                          {{ scriptUploadError }}
+                        </p>
+                        <input
+                          v-if="problemForm.judgingScriptUrl"
+                          id="problem-judgingScriptUrl"
+                          v-model="problemForm.judgingScriptUrl"
+                          type="text"
+                          class="w-full mt-2 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="评测脚本URL"
+                          readonly
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
@@ -411,11 +461,13 @@ interface Problem {
   id: string;
   title: string;
   shortDescription: string;
+  detailedDescription: string;
   startTime: string;
   endTime: string;
   status: string;
   datasetUrl?: string;
   judgingScriptUrl?: string;
+  score?: number;
   competition: {
     id: string;
     title: string;
@@ -540,7 +592,13 @@ const problemForm = ref({
   score: undefined as number | undefined,
 });
 
-const openModal = (problem = null) => {
+// 文件上传相关状态
+const datasetUploading = ref<boolean>(false);
+const datasetUploadError = ref<string>("");
+const scriptUploading = ref<boolean>(false);
+const scriptUploadError = ref<string>("");
+
+const openModal = (problem: Problem | null = null) => {
   if (problem) {
     // 编辑模式
     isEditing.value = true;
@@ -580,11 +638,66 @@ const openModal = (problem = null) => {
     problemForm.value.startTime = start.toISOString().slice(0, 16);
     problemForm.value.endTime = end.toISOString().slice(0, 16);
   }
+
+  // 重置上传状态
+  datasetUploading.value = false;
+  datasetUploadError.value = "";
+  scriptUploading.value = false;
+  scriptUploadError.value = "";
+
   showModal.value = true;
 };
 
 const closeModal = () => {
   showModal.value = false;
+};
+
+const handleDatasetUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  datasetUploading.value = true;
+  datasetUploadError.value = "";
+
+  const formData = new FormData();
+  formData.append("dataset", file);
+
+  try {
+    const data = await $fetch<{ url: string }>("/api/problems/dataset/upload", {
+      method: "POST",
+      body: formData,
+    });
+    problemForm.value.datasetUrl = data.url;
+  } catch (err: any) {
+    datasetUploadError.value = err.data?.message || "上传失败";
+  } finally {
+    datasetUploading.value = false;
+  }
+};
+
+const handleScriptUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  scriptUploading.value = true;
+  scriptUploadError.value = "";
+
+  const formData = new FormData();
+  formData.append("script", file);
+
+  try {
+    const data = await $fetch<{ url: string }>("/api/problems/script/upload", {
+      method: "POST",
+      body: formData,
+    });
+    problemForm.value.judgingScriptUrl = data.url;
+  } catch (err: any) {
+    scriptUploadError.value = err.data?.message || "上传失败";
+  } finally {
+    scriptUploading.value = false;
+  }
 };
 
 const saveProblem = async () => {

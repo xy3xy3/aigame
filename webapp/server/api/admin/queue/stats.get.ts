@@ -1,4 +1,5 @@
 import { getQueueStats } from '../../../utils/queue'
+import { requireAdminRole } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
@@ -16,12 +17,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (user.role !== 'admin') {
-    throw createError({
-      statusCode: 403,
-      statusMessage: 'Admin access required'
-    })
-  }
+  requireAdminRole(user)
 
   try {
     const stats = await getQueueStats()
