@@ -1,0 +1,21 @@
+[
+    {
+        "name": "item A",
+        "value": 15.5
+    },
+    {
+        "name": "item B",
+        "value": 10
+    },
+    {
+        "comment": "This one is invalid",
+        "value": "not_a_number"
+    },
+    {
+        "name": "item C",
+        "value": 27
+    },
+    {
+        "name": "item D"
+    }
+]
