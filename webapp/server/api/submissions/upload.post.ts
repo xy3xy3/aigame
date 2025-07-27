@@ -1,8 +1,8 @@
 import multer from 'multer'
 import { z } from 'zod'
 import { uploadFile } from '../../utils/minio'
-import { addEvaluationJob } from '../../utils/queue'
 import prisma from '../../utils/prisma'
+import { addEvaluationJob } from '../../utils/queue'
 
 // 配置multer使用内存存储
 const upload = multer({
@@ -212,14 +212,7 @@ export default defineEventHandler(async (event) => {
     })
 
     // 添加到评测队列
-    await addEvaluationJob({
-      submissionId: submission.id,
-      problemId,
-      competitionId,
-      teamId,
-      userId: user.id,
-      submissionUrl: submission.submissionUrl
-    })
+    await addEvaluationJob(submission.id)
 
     return {
       success: true,

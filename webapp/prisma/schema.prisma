@@ -120,18 +120,20 @@ enum SubmissionStatus {
 }
 
 model Submission {
-  id            String           @id @default(auto()) @map("_id") @db.ObjectId
-  problemId     String           @db.ObjectId // 题目ID
-  competitionId String           @db.ObjectId // 比赛ID
-  teamId        String           @db.ObjectId // 团队ID
-  userId        String           @db.ObjectId // 用户ID
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  problemId     String    @db.ObjectId // 题目ID
+  competitionId String    @db.ObjectId // 比赛ID
+  teamId        String    @db.ObjectId // 团队ID
+  userId        String    @db.ObjectId // 用户ID
   submissionUrl String // 提交的URL
-  status        SubmissionStatus @default(PENDING) // 提交状态
+  status        String    @default("PENDING") // 评测任务状态 (PENDING, RUNNING, SUCCESS, FAILED)
   score         Float? // 得分
+  stdout        String? // 评测脚本的标准输出
+  stderr        String? // 评测脚本的标准错误输出
   executionLogs String? // 执行日志
-  submittedAt   DateTime         @default(now()) // 提交时间
+  submittedAt   DateTime  @default(now()) // 提交时间
   judgedAt      DateTime? // 评测时间
-  updatedAt     DateTime         @updatedAt // 更新时间
+  updatedAt     DateTime  @updatedAt // 更新时间
 
   // 关系
   problem      Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade) // 提交的题目

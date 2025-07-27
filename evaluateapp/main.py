@@ -27,8 +27,8 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# 加载API路由，前缀简化为 /api
-app.include_router(evaluate.router, prefix="/api", tags=["Evaluation"])
+# 加载API路由，前缀为 /evaluate
+app.include_router(evaluate.router, prefix="/evaluate", tags=["Evaluation"])
 
 @app.get("/", tags=["Health Check"])
 def read_root():

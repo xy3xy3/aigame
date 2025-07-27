@@ -1,6 +1,12 @@
 from pydantic import BaseModel, Field
 from typing import Literal
 
+class EvaluationRequest(BaseModel):
+    """
+    评测请求模型。
+    """
+    submission_id: str = Field(..., description="提交ID")
+
 class EvaluationResponse(BaseModel):
     """
     评测结果的统一响应模型。

@@ -38,14 +38,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // Add the submission back to the queue
-  await addEvaluationJob({
-    submissionId: submission.id,
-    problemId: submission.problemId,
-    competitionId: submission.competitionId,
-    teamId: submission.teamId,
-    userId: submission.userId,
-    submissionUrl: submission.submissionUrl,
-  })
+  await addEvaluationJob(submission.id)
 
   // Update the submission status to PENDING
   await prisma.submission.update({

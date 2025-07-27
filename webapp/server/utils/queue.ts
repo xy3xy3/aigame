@@ -6,15 +6,6 @@ import prisma from './prisma'
 let evaluationQueue: Queue | null = null
 let evaluationWorker: Worker | null = null
 
-export interface EvaluationJobData {
-  submissionId: string
-  problemId: string
-  competitionId: string
-  teamId: string
-  userId: string
-  submissionUrl: string
-}
-
 export interface EvaluationResult {
   success: boolean
   score?: number
@@ -43,10 +34,12 @@ export function getEvaluationQueue(): Queue {
   return evaluationQueue
 }
 
-export async function addEvaluationJob(data: EvaluationJobData): Promise<Job> {
+export async function addEvaluationJob(submissionId: string): Promise<Job> {
   const queue = getEvaluationQueue()
 
-  return await queue.add('evaluate-submission', data, {
+  return await queue.add('evaluate', {
+    submissionId
+  }, {
     priority: 1,
     delay: 0,
   })
@@ -59,7 +52,7 @@ export function startEvaluationWorker(): Worker {
 
   const redisConnection = getRedisClient()
 
-  evaluationWorker = new Worker('evaluation', async (job: Job<EvaluationJobData>) => {
+  evaluationWorker = new Worker('evaluation', async (job: Job<{ submissionId: string }>) => {
     console.log(`Processing evaluation job ${job.id} for submission ${job.data.submissionId}`)
 
     try {
@@ -67,7 +60,7 @@ export function startEvaluationWorker(): Worker {
       await updateSubmissionStatus(job.data.submissionId, 'JUDGING')
 
       // 执行评测
-      const result = await evaluateSubmission(job.data)
+      const result = await evaluateSubmission(job.data.submissionId)
 
       // 更新提交结果
       await updateSubmissionResult(job.data.submissionId, result)
@@ -235,11 +228,11 @@ async function recalculateRanks(leaderboardId: string): Promise<void> {
   }
 }
 
-async function evaluateSubmission(data: EvaluationJobData): Promise<EvaluationResult> {
+async function evaluateSubmission(submissionId: string): Promise<EvaluationResult> {
   // 这里是模拟的评测逻辑
   // 在实际应用中，这里会调用外部评测服务或执行评测脚本
 
-  console.log(`Evaluating submission ${data.submissionId}`)
+  console.log(`Evaluating submission ${submissionId}`)
 
   // 模拟评测过程（2-5秒）
   const evaluationTime = Math.random() * 3000 + 2000
