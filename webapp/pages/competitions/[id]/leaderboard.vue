@@ -28,7 +28,10 @@
         <thead class="text-xs text-gray-700 uppercase bg-gray-50">
           <tr>
             <th scope="col" class="px-4 py-3 sticky left-0 bg-gray-50 z-20 w-16">排名</th>
-            <th scope="col" class="px-4 py-3 sticky left-16 bg-gray-50 z-10">队伍</th>
+            <th scope="col" class="pl-20 pr-4 py-3 sticky left-0 bg-gray-50 z-10 w-48">
+              队伍
+            </th>
+
             <th scope="col" class="px-4 py-3">总分</th>
             <th
               v-for="problem in problemsData?.problems || []"
@@ -52,7 +55,7 @@
               {{ entry.rank }}
             </td>
             <td
-              class="px-4 py-4 sticky left-16 bg-white z-10 cursor-pointer"
+              class="pl-20 pr-4 py-4 sticky left-0 bg-white z-10 cursor-pointer w-48"
               @click="openModal(entry)"
             >
               <div class="flex items-center gap-x-2">
@@ -117,71 +120,88 @@
                   {{ selectedTeam.team.name }} - 题目提交详情
                 </h3>
                 <div class="mt-2 w-full">
-                  <table class="min-w-full divide-y divide-gray-200" v-if="selectedTeam">
-                    <thead class="bg-gray-50">
-                      <tr>
-                        <th
-                          scope="col"
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          题目
-                        </th>
-                        <th
-                          scope="col"
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          得分
-                        </th>
-                        <th
-                          scope="col"
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          提交者
-                        </th>
-                        <th
-                          scope="col"
-                          class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          提交时间
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                      <tr
-                        v-for="problemScore in selectedTeam.problemScores"
-                        :key="problemScore.problemId"
-                      >
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {{ problemScore.problemTitle }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {{ problemScore.score }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div
-                            v-if="problemScore.bestSubmission?.user"
-                            class="flex items-center"
+                  <div class="overflow-x-auto">
+                    <table
+                      class="min-w-full divide-y divide-gray-200"
+                      v-if="selectedTeam"
+                    >
+                      <thead class="bg-gray-50">
+                        <tr>
+                          <th
+                            scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
-                            <img
-                              v-if="problemScore.bestSubmission.user.avatarUrl"
-                              :src="problemScore.bestSubmission.user.avatarUrl"
-                              :alt="problemScore.bestSubmission.user.username"
-                              class="w-6 h-6 rounded-full mr-2"
-                            />
-                            <span>{{ problemScore.bestSubmission.user.username }}</span>
-                          </div>
-                          <span v-else>-</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {{
-                            problemScore.bestSubmission?.submittedAt
-                              ? formatDate(problemScore.bestSubmission.submittedAt)
-                              : "-"
-                          }}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                            题目
+                          </th>
+                          <th
+                            scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            得分
+                          </th>
+                          <th
+                            scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            提交者
+                          </th>
+                          <th
+                            scope="col"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            提交时间
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody class="bg-white divide-y divide-gray-200">
+                        <tr
+                          v-for="problemScore in selectedTeam.problemScores"
+                          :key="problemScore.problemId"
+                        >
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ problemScore.problemTitle }}
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ problemScore.score }}
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div
+                              v-if="problemScore.bestSubmission?.user"
+                              class="flex items-center"
+                            >
+                              <img
+                                v-if="problemScore.bestSubmission.user.avatarUrl"
+                                :src="problemScore.bestSubmission.user.avatarUrl"
+                                :alt="problemScore.bestSubmission.user.username"
+                                class="w-6 h-6 rounded-full mr-2 object-cover"
+                              />
+                              <div
+                                v-else
+                                class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center mr-2"
+                              >
+                                <span class="text-indigo-600 font-bold text-xs">
+                                  {{
+                                    problemScore.bestSubmission.user.username
+                                      .charAt(0)
+                                      .toUpperCase()
+                                  }}
+                                </span>
+                              </div>
+                              <span>{{ problemScore.bestSubmission.user.username }}</span>
+                            </div>
+                            <span v-else>-</span>
+                          </td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{
+                              problemScore.bestSubmission?.submittedAt
+                                ? formatDate(problemScore.bestSubmission.submittedAt)
+                                : "-"
+                            }}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
