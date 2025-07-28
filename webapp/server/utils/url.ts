@@ -48,6 +48,11 @@ export function processTeamData(team: any): any {
     if (creator && creator.user && creator.user.avatarUrl) {
       creator.user.avatarUrl = processTeamAvatarUrl(creator.user.avatarUrl);
     }
+
+    // 添加队长ID
+    if (creator && creator.user) {
+      team.captainId = creator.user.id;
+    }
   }
 
   // 处理成员头像URL
