@@ -173,7 +173,7 @@ export default defineEventHandler(async (event) => {
     const fileName = `${timestamp}-${file.originalname}`
     const objectName = `submissions/${competitionId}/${problemId}/${teamId}/${fileName}`
 
-    const submissionUrl = await uploadFile('submissions', objectName, file.buffer, {
+    const submissionUrl = await uploadFile('aigame', objectName, file.buffer, {
       'Content-Type': file.mimetype,
       'Original-Name': file.originalname,
       'Uploaded-By': user.id,
@@ -189,7 +189,7 @@ export default defineEventHandler(async (event) => {
         competitionId,
         teamId,
         userId: user.id,
-        submissionUrl: `submissions/${objectName}`,
+        submissionUrl: `aigame/${objectName}`,
         status: 'PENDING'
       },
       include: {

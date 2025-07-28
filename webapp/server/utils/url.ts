@@ -67,7 +67,8 @@ export function processBannerUrl(bannerUrl: string | null): string | null {
   if (!bannerUrl) return null
 
   try {
-    return getPublicFileUrl('banners', bannerUrl)
+    // bannerUrl格式为 "banners/filename"
+    return getPublicFileUrl('aigame', bannerUrl)
   } catch (error) {
     console.error('Error processing banner URL:', error)
     return null

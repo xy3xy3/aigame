@@ -9,7 +9,7 @@ import { ofetch } from 'ofetch'
 function parseMinioUrl(url: string): { bucketName: string, objectName: string } {
   // 使用 URL 构造函数解析完整的 URL
   const parsedUrl = new URL(url);
-  // 获取路径部分，例如 "/submissions/path/to/file.zip"
+  // 获取路径部分，例如 "/aigame/submissions/path/to/file.zip"
   const pathname = parsedUrl.pathname;
   // 移除开头的斜杠并按斜杠分割
   const parts = pathname.substring(1).split('/');

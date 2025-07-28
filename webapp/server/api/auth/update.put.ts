@@ -177,9 +177,9 @@ export default defineEventHandler(async (event) => {
 
         console.log(`Uploading file: ${fileName}, size: ${fileSize}, user: ${user.id}`)
 
-        const filePath = await uploadFile('avatars', objectName, file.buffer, metadata)
+        const filePath = await uploadFile('aigame', objectName, file.buffer, metadata)
 
-        avatarUrl = `avatars/${objectName}`
+        avatarUrl = `aigame/${objectName}`
         updateData.avatarUrl = avatarUrl
 
         console.log(`File uploaded successfully: ${filePath}`)

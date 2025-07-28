@@ -74,14 +74,14 @@ export default defineEventHandler(async (event) => {
         const fileExtension = file.originalname.split('.').pop()
         const objectName = `problems/scripts/${randomUUID()}.${fileExtension}`
 
-        await uploadFile('problems', objectName, file.buffer, {
+        await uploadFile('aigame', objectName, file.buffer, {
             'Content-Type': file.mimetype,
             'Original-Name': file.originalname,
             'Uploaded-By': user.id,
         })
 
         // 生成完整的公共URL
-        const publicUrl = getPublicFileUrl('problems', objectName)
+        const publicUrl = getPublicFileUrl('aigame', objectName)
 
         return {
             url: publicUrl,

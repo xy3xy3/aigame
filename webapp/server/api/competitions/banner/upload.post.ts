@@ -59,9 +59,9 @@ export default defineEventHandler(async (event) => {
 
         // Upload file to Minio
         const fileExtension = file.originalname.split('.').pop()
-        const objectName = `${randomUUID()}.${fileExtension}`
+        const objectName = `banners/${randomUUID()}.${fileExtension}`
 
-        await uploadFile('banners', objectName, file.buffer, {
+        await uploadFile('aigame', objectName, file.buffer, {
             'Content-Type': file.mimetype,
             'Original-Name': file.originalname,
             'Uploaded-By': user.id,

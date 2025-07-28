@@ -26,7 +26,7 @@ async function initMinio() {
         console.log(`现有存储桶: ${buckets.map(b => b.name).join(', ')}`)
 
         // 定义需要设置为公共读取的存储桶
-        const bucketsToMakePublic = ['avatars']
+        const bucketsToMakePublic = ['aigame']
 
         // 确保存储桶存在并设置为公共读取
         for (const bucketName of bucketsToMakePublic) {
