@@ -7,11 +7,8 @@ import os
 import importlib.util
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-
-# prctl 需要 `uv pip install python-prctl`
 import prctl
-
-from ..schemas.evaluation import EvaluationResponse
+from schemas.evaluation import EvaluationResponse
 
 # 创建一个进程池，用于在隔离的进程中运行评测代码
 # max_workers 应该与信号量的大小匹配

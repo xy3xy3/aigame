@@ -5,8 +5,8 @@ from fastapi import APIRouter, UploadFile, File, Depends, Request, HTTPException
 from fastapi.responses import JSONResponse
 
 # 调整相对导入路径以适应新的结构
-from ..services import sandbox
-from ..schemas.evaluation import EvaluationResponse, EvaluationRequest
+from services import sandbox
+from schemas.evaluation import EvaluationResponse, EvaluationRequest
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

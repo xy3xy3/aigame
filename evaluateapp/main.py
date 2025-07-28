@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 # 导入简化后的API模块
-from .api import evaluate
+from api import evaluate
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -34,3 +34,8 @@ app.include_router(evaluate.router, prefix="/evaluate", tags=["Evaluation"])
 def read_root():
     """根路径，用于健康检查。"""
     return {"status": "EvaluateApp is running"}
+
+if __name__ == "__main__":
+    import uvicorn
+    # 启动FastAPI应用
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
