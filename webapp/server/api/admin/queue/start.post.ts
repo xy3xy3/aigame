@@ -1,4 +1,3 @@
-import { startEvaluationWorker } from '../../../utils/queue'
 import { requireAdminRole } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
@@ -20,19 +19,8 @@ export default defineEventHandler(async (event) => {
   // Check admin role
   requireAdminRole(user)
 
-  try {
-    const worker = startEvaluationWorker()
-
-    return {
-      success: true,
-      message: 'Evaluation worker started successfully',
-      workerId: worker.id
-    }
-  } catch (error) {
-    throw createError({
-      statusCode: 500,
-      statusMessage: 'Failed to start evaluation worker',
-      data: error.message
-    })
+  return {
+    success: true,
+    message: 'Evaluation worker is managed by the application startup process'
   }
 })

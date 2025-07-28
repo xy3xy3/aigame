@@ -1,4 +1,4 @@
-import { getQueueStats } from '../../../utils/queue'
+import { getQueueStats } from '../../../utils/queue-manager'
 import { requireAdminRole } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {

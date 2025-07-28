@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import prisma from '../../../../utils/prisma'
-import { addEvaluationJob } from '~/server/utils/queue'
+import { addEvaluationJob } from '../../../../utils/queue-manager'
 import { requireAdminRole } from '~/server/utils/auth'
 
 const requeueParamsSchema = z.object({
