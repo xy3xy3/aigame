@@ -1,11 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Literal
 
-class EvaluationRequest(BaseModel):
-    """
-    评测请求模型。
-    """
-    submission_id: str = Field(..., description="提交ID")
 
 class EvaluationResponse(BaseModel):
     """
@@ -18,7 +13,7 @@ class EvaluationResponse(BaseModel):
     class Config:
         # Pydantic v2 a.k.a. model_config
         # Pydantic v1 a.k.a. an inner class
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "status": "COMPLETED",
                 "score": 95.27,

@@ -27,7 +27,8 @@ def _execute_judge_code(
         # 1. 应用Seccomp安全策略！这是安全的核心！
         with open(seccomp_profile_path, 'r') as f:
             profile_data = f.read()
-        prctl.set_seccomp(True, profile_data)
+        # set_seccomp 函数是动态创建的，而不是静态写死的。
+        prctl.set_seccomp(True, profile_data) # type: ignore
 
         # 2. 更改工作目录，限制文件访问范围
         os.chdir(judge_dir)
