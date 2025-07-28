@@ -3,10 +3,10 @@ from pathlib import Path
 
 def evaluate(submission_path: str, judge_data_path: str) -> dict:
     """
-    对比用户提交的 predictions.json 和评测包中的 correct_labels.json。
+    对比用户提交的 data.json 和评测包中的 correct_labels.json。
     """
     logs = []
-    submission_file = Path(submission_path) / "predictions.json"
+    submission_file = Path(submission_path) / "data.json"
     correct_file = Path(judge_data_path) / "correct_labels.json"
 
     try:

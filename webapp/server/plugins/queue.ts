@@ -24,7 +24,6 @@ export default async () => {
   // 获取环境变量
   const config = useRuntimeConfig()
   const evaluateAppUrl = config.evaluateAppUrl
-  const minioConfig = config.minio
 
   // 创建 Redis 连接
   const redisConnection = getRedisClient()
@@ -54,7 +53,7 @@ export default async () => {
       // 预处理 submissionPath，确保它是绝对 URL
       const processedSubmissionPath = submissionPath.startsWith('http')
         ? submissionPath
-        : `http://${minioConfig.endPoint}:${minioConfig.port}/${submissionPath}`
+        : `http://${config.minioEndpoint}:${config.minioPort}/${submissionPath}`
       const { bucketName: submissionBucket, objectName: submissionObject } = parseMinioUrl(processedSubmissionPath)
 
       // 解析 judge script 文件路径
@@ -65,7 +64,7 @@ export default async () => {
       // 预处理 judgeScriptPath，确保它是绝对 URL
       const processedJudgeScriptPath = judgeScriptPath.startsWith('http')
         ? judgeScriptPath
-        : `http://${minioConfig.endPoint}:${minioConfig.port}/${judgeScriptPath}`
+        : `http://${config.minioEndpoint}:${config.minioPort}/${judgeScriptPath}`
       const { bucketName: judgeBucket, objectName: judgeObject } = parseMinioUrl(processedJudgeScriptPath)
 
       // 下载文件
