@@ -1,9 +1,12 @@
+import { processUserAvatarUrl, processTeamAvatarUrl } from '~/server/utils/url'
+
 // 定义返回给前端的队伍统计数据结构
 interface LeaderboardEntryResponse {
   rank: number
   team: {
     id: string
     name: string
+    avatarUrl?: string
   }
   totalScore: number
   problemScores: Array<{
@@ -65,7 +68,8 @@ export default defineEventHandler(async (event) => {
       team: {
         select: {
           id: true,
-          name: true
+          name: true,
+          avatarUrl: true
         }
       },
       problemScores: {
@@ -99,7 +103,8 @@ export default defineEventHandler(async (event) => {
     rank: entry.rank,
     team: {
       id: entry.team.id,
-      name: entry.team.name
+      name: entry.team.name,
+      avatarUrl: processTeamAvatarUrl(entry.team.avatarUrl) ?? undefined
     },
     totalScore: entry.totalScore,
     problemScores: entry.problemScores.map(problemScore => ({
@@ -110,10 +115,10 @@ export default defineEventHandler(async (event) => {
       bestSubmission: problemScore.bestSubmission ? {
         id: problemScore.bestSubmission.id,
         submittedAt: problemScore.bestSubmission.submittedAt,
-        score: problemScore.bestSubmission.score,
+        score: problemScore.bestSubmission.score ?? undefined,
         user: problemScore.bestSubmission.user ? {
           username: problemScore.bestSubmission.user.username,
-          avatarUrl: problemScore.bestSubmission.user.avatarUrl
+          avatarUrl: processUserAvatarUrl(problemScore.bestSubmission.user.avatarUrl) ?? undefined
         } : undefined
       } : undefined
     }))

@@ -246,6 +246,7 @@ interface TeamLeaderboardEntry {
   team: {
     id: string;
     name: string;
+    avatarUrl: string;
   };
   totalScore: number;
   problemScores: Array<{
@@ -258,7 +259,7 @@ interface TeamLeaderboardEntry {
       score?: number;
       user?: {
         username: string;
-        avatarUrl?: string;
+        avatarUrl: string;
       };
     };
   }>;
