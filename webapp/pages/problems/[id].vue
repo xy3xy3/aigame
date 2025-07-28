@@ -67,7 +67,7 @@
               data.problem.status === 'ongoing' &&
               !teamsPending &&
               !teamsError &&
-              competitionTeamsData?.length > 0
+              isTeamRegistered
             "
           >
             <h3 class="text-lg font-semibold text-gray-900 mb-2">提交解答</h3>
@@ -79,14 +79,10 @@
                 <select
                   v-model="selectedTeamId"
                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                  :disabled="teamsPending || teamsError || !competitionTeamsData?.length"
+                  :disabled="teamsPending || teamsError || !userTeamsData?.length"
                 >
                   <option value="">请选择队伍</option>
-                  <option
-                    v-for="team in competitionTeamsData"
-                    :key="team.id"
-                    :value="team.id"
-                  >
+                  <option v-for="team in userTeamsData" :key="team.id" :value="team.id">
                     {{ team.name }}
                   </option>
                 </select>
@@ -114,7 +110,7 @@
                   isSubmitting ||
                   teamsPending ||
                   teamsError ||
-                  !competitionTeamsData?.length
+                  !isTeamRegistered
                 "
                 class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -153,7 +149,7 @@
             <p class="text-gray-600 mb-3">加载队伍信息失败: {{ teamsError.message }}</p>
           </div>
 
-          <div v-else-if="!competitionTeamsData?.length">
+          <div v-else-if="!isTeamRegistered">
             <h3 class="text-lg font-semibold text-gray-900 mb-2">无法提交</h3>
             <p class="text-gray-600 mb-3">您没有已报名此比赛的团队</p>
             <NuxtLink
@@ -320,39 +316,40 @@ const problemId = route.params.id;
 // 获取题目信息
 const { data, pending, error } = await useFetch(`/api/problems/${problemId}`);
 
-// 获取参加当前比赛的队伍列表
+// 获取用户所有团队信息
 const {
-  data: competitionTeamsData,
+  data: userTeamsData,
   pending: teamsPending,
   error: teamsError,
   refresh: refreshTeams,
 } = useAsyncData(
-  `competition-teams-${problemId}`,
+  `user-teams-${user.value?.id}`,
   async () => {
-    if (!data.value?.problem?.competitionId) {
-      return [];
-    }
     try {
-      const response = await $fetch(
-        `/api/competitions/${data.value.problem.competitionId}/teams`
-      );
+      const response = await $fetch("/api/teams");
       return response.teams || [];
     } catch (err) {
-      console.error("获取比赛队伍列表失败:", err);
+      console.error("获取用户团队列表失败:", err);
       return [];
     }
   },
   {
-    watch: [() => data.value?.problem?.competitionId],
-    immediate: false,
+    immediate: true,
   }
 );
 
-// 监听题目数据变化，当题目数据加载完成后，获取比赛队伍列表
-watch(data, (newData) => {
-  if (newData?.problem?.competitionId) {
-    refreshTeams();
+// 计算属性：检查用户是否有团队报名了当前比赛
+const isTeamRegistered = computed(() => {
+  if (!data.value?.problem?.competitionId || !userTeamsData.value) {
+    return false;
   }
+
+  // 检查用户的所有团队中，是否有任何一个团队的 participatingIn 数组包含了当前比赛的ID
+  return userTeamsData.value.some(
+    (team) =>
+      team.participatingIn &&
+      team.participatingIn.includes(data.value.problem.competitionId)
+  );
 });
 
 // 获取提交记录
@@ -374,9 +371,23 @@ const submitError = ref("");
 const submitSuccess = ref(false);
 
 // 当团队列表加载完成后，如果列表不为空且未选择团队，则默认选择第一个
-watch(competitionTeamsData, (newTeams) => {
-  if (newTeams && newTeams.length > 0 && !selectedTeamId.value) {
-    selectedTeamId.value = newTeams[0].id;
+watch(userTeamsData, (newTeams) => {
+  // 只有当用户有团队报名了当前比赛时，才自动选择第一个团队
+  if (
+    isTeamRegistered.value &&
+    newTeams &&
+    newTeams.length > 0 &&
+    !selectedTeamId.value
+  ) {
+    // 选择用户团队中第一个报名了当前比赛的团队
+    const registeredTeam = newTeams.find(
+      (team) =>
+        team.participatingIn &&
+        team.participatingIn.includes(data.value.problem.competitionId)
+    );
+    if (registeredTeam) {
+      selectedTeamId.value = registeredTeam.id;
+    }
   }
 });
 
