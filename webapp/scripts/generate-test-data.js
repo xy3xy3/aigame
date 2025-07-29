@@ -237,6 +237,106 @@ async function main() {
 
     console.log(`Leaderboard data generated for ${teamScores.length} teams.`);
 
+    // 7. Generate leaderboard history data
+    console.log('Generating leaderboard history data...');
+    await generateLeaderboardHistory(competition, createdTeams);
+    console.log('Leaderboard history data generated.');
+
+    // Generate leaderboard history data for all teams
+    async function generateLeaderboardHistory(competition, teams) {
+        // For each team, generate history data points
+        for (const team of teams) {
+            try {
+                // Generate history data for this team
+                const historyData = await generateTeamHistoryData(competition, team);
+
+                // Store history data in the database
+                for (const dataPoint of historyData) {
+                    await prisma.leaderboardHistory.create({
+                        data: {
+                            competitionId: competition.id,
+                            teamId: team.id,
+                            timestamp: dataPoint.timestamp,
+                            totalScore: dataPoint.score
+                        }
+                    });
+                }
+
+                console.log(`Generated history data for team ${team.name}`);
+            } catch (error) {
+                console.error(`Failed to generate history data for team ${team.name}:`, error);
+            }
+        }
+    }
+
+    // Generate team history data points
+    async function generateTeamHistoryData(competition, team) {
+        // 1. Get all valid submissions for this team, ordered by time
+        const submissions = await prisma.submission.findMany({
+            where: {
+                competitionId: competition.id,
+                teamId: team.id,
+                status: 'COMPLETED',
+                score: { not: null }
+            },
+            select: {
+                problemId: true,
+                score: true,
+                submittedAt: true
+            },
+            orderBy: {
+                submittedAt: 'asc'
+            }
+        });
+
+        // 2. Initialize history data with a zero score point at competition start
+        const historyData = [{
+            timestamp: competition.startTime,
+            score: 0
+        }];
+
+        // 3. Helper function to add or update history data points
+        const addOrUpdateHistoryPoint = (timestamp, score) => {
+            const lastPoint = historyData[historyData.length - 1];
+            if (lastPoint && lastPoint.timestamp.getTime() === timestamp.getTime()) {
+                // If timestamp matches the last point, update its score
+                lastPoint.score = score;
+            } else if (!lastPoint || lastPoint.timestamp.getTime() < timestamp.getTime()) {
+                // Only add if the new point's timestamp is later than the last point
+                historyData.push({ timestamp, score });
+            }
+        };
+
+        // 4. Track best scores for each problem and current total score
+        const problemBestScores = new Map();
+        let currentTotalScore = 0;
+
+        // 5. Process all submissions in chronological order
+        for (const submission of submissions) {
+            const problemId = submission.problemId;
+            const newScore = submission.score;
+            const submissionTime = submission.submittedAt;
+            const currentProblemBest = problemBestScores.get(problemId) || 0;
+
+            // Only update total score if the new score is higher
+            if (newScore > currentProblemBest) {
+                // Update best score for this problem
+                problemBestScores.set(problemId, newScore);
+                // Update total score
+                currentTotalScore = currentTotalScore - currentProblemBest + newScore;
+            }
+
+            // Add a data point for each valid submission
+            addOrUpdateHistoryPoint(submissionTime, currentTotalScore);
+        }
+
+        // 6. Add a final data point at competition end time
+        const finalScore = historyData[historyData.length - 1]?.score ?? 0;
+        addOrUpdateHistoryPoint(competition.endTime, finalScore);
+
+        return historyData;
+    }
+
     console.log('Test data generation finished successfully.');
 }
 
