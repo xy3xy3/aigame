@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, markRaw } from "vue";
 import * as echarts from "echarts";
 import type { EChartsType } from "echarts";
 
@@ -90,15 +90,15 @@ const initChart = () => {
     }
 
     // 创建新的图表实例
-    chartInstance.value = echarts.init(chartContainer.value);
+    chartInstance.value = markRaw(echarts.init(chartContainer.value));
 
     // 设置图表选项
     updateChartOptions();
 
     // 监听窗口大小变化
     window.addEventListener("resize", handleResize);
-  } catch (error) {
-    console.error("Failed to initialize chart:", error);
+  } catch (err) {
+    console.error("Failed to initialize chart:", err);
     error.value = new Error("图表初始化失败");
   }
 };
@@ -115,26 +115,30 @@ const updateChartOptions = () => {
     }
 
     // 检查是否有数据
-    const hasData = data.value.teams.some((team) => 
-      team && team.history && Array.isArray(team.history) && team.history.length > 0
+    const hasData = data.value.teams.some(
+      (team) =>
+        team && team.history && Array.isArray(team.history) && team.history.length > 0
     );
 
     if (!hasData) {
-      chartInstance.value.setOption({
-        title: {
-          text: "暂无数据",
-          left: "center",
-          top: "center",
+      chartInstance.value.setOption(
+        {
+          title: {
+            text: "暂无数据",
+            left: "center",
+            top: "center",
+          },
+          xAxis: {
+            type: "time",
+          },
+          yAxis: {
+            type: "value",
+            min: 0,
+          },
+          series: [],
         },
-        xAxis: {
-          type: "time",
-        },
-        yAxis: {
-          type: "value",
-          min: 0,
-        },
-        series: []
-      }, true);
+        true
+      );
       return;
     }
 
@@ -157,7 +161,12 @@ const updateChartOptions = () => {
             } else if (typeof point.timestamp === "number") {
               timestamp = point.timestamp;
             } else {
-              console.warn("Invalid timestamp type for team:", team.name, "point:", point);
+              console.warn(
+                "Invalid timestamp type for team:",
+                team.name,
+                "point:",
+                point
+              );
               return null;
             }
 
@@ -183,13 +192,17 @@ const updateChartOptions = () => {
         // 去除重复的时间戳，只保留最新的分数
         const deduplicatedPoints: number[][] = [];
         const seen = new Set<number>();
-        
+
         for (let i = validDataPoints.length - 1; i >= 0; i--) {
           const point = validDataPoints[i];
           if (point && Array.isArray(point) && point.length >= 2) {
             const timestamp = point[0];
             const score = point[1];
-            if (typeof timestamp === 'number' && typeof score === 'number' && !seen.has(timestamp)) {
+            if (
+              typeof timestamp === "number" &&
+              typeof score === "number" &&
+              !seen.has(timestamp)
+            ) {
               seen.add(timestamp);
               deduplicatedPoints.unshift([timestamp, score]);
             }
@@ -200,9 +213,9 @@ const updateChartOptions = () => {
         if (deduplicatedPoints.length === 1 && data.value) {
           const singlePoint = deduplicatedPoints[0];
           const startTime = new Date(data.value.competition.startTime).getTime();
-          if (singlePoint && singlePoint[0] > startTime) {
+          if (singlePoint && singlePoint[0] && singlePoint[0] > startTime) {
             deduplicatedPoints.unshift([startTime, 0]);
-          } else if (singlePoint) {
+          } else if (singlePoint && singlePoint[0] && singlePoint[1]) {
             deduplicatedPoints.push([singlePoint[0] + 1000, singlePoint[1]]);
           }
         }
@@ -214,41 +227,62 @@ const updateChartOptions = () => {
           smooth: false, // 关闭平滑，减少计算复杂度
           showSymbol: false,
           lineStyle: {
-            width: 2
-          }
+            width: 2,
+          },
         };
       })
       .filter((series) => series && series.data && series.data.length >= 2); // 只保留有足够数据点的系列
 
     // 如果处理后没有有效的系列数据，显示无数据状态
     if (seriesData.length === 0) {
-      chartInstance.value.setOption({
-        title: {
-          text: "暂无有效数据",
-          left: "center",
-          top: "center",
+      chartInstance.value.setOption(
+        {
+          title: {
+            text: "暂无有效数据",
+            left: "center",
+            top: "center",
+          },
+          xAxis: {
+            type: "time",
+          },
+          yAxis: {
+            type: "value",
+          },
+          series: [],
         },
-        xAxis: {
-          type: "time",
-        },
-        yAxis: {
-          type: "value",
-        },
-        series: []
-      }, true);
+        true
+      );
       return;
     }
 
     // 计算 Y 轴范围
     let maxScore = 0;
-    seriesData.forEach(series => {
+    seriesData.forEach((series) => {
       if (series.data && Array.isArray(series.data)) {
         series.data.forEach((point: number[]) => {
-          if (point && point.length >= 2 && typeof point[1] === 'number' && point[1] > maxScore) {
+          if (
+            point &&
+            point.length >= 2 &&
+            typeof point[1] === "number" &&
+            point[1] > maxScore
+          ) {
             maxScore = point[1];
           }
         });
       }
+    });
+
+    // 准备散点图数据
+    const scatterSeriesData = seriesData.map((series) => {
+      return {
+        name: series.name,
+        type: "scatter",
+        data: series.data,
+        symbolSize: 6, // 设置标记点的大小
+        // 确保散点图不显示在图例中，只显示线图
+        legendHoverLink: false,
+        // 可以添加其他样式配置
+      };
     });
 
     // 基础配置 - 简化以减少出错可能性
@@ -264,7 +298,14 @@ const updateChartOptions = () => {
           const date = new Date(params[0].value[0]);
           let tooltipText = `${date.toLocaleString("zh-CN")}<br/>`;
           params.forEach((param: any) => {
-            if (param && param.seriesName && param.value && Array.isArray(param.value)) {
+            // 只显示线图的 Tooltip 信息，避免重复
+            if (
+              param &&
+              param.seriesName &&
+              param.value &&
+              Array.isArray(param.value) &&
+              param.seriesType === "line"
+            ) {
               tooltipText += `${param.marker} ${param.seriesName}: ${param.value[1]}<br/>`;
             }
           });
@@ -279,7 +320,7 @@ const updateChartOptions = () => {
       grid: {
         left: "3%",
         right: "4%",
-        bottom: "3%",
+        bottom: "80px", // 为 dataZoom 滑动条留出空间
         top: "15%",
         containLabel: true,
       },
@@ -292,30 +333,50 @@ const updateChartOptions = () => {
         min: 0,
         max: Math.ceil(maxScore * 1.1) || 100,
       },
-      series: seriesData,
+      dataZoom: [
+        {
+          type: "inside", // 启用鼠标滚轮在图表内部进行缩放
+          start: 0,
+          end: 100,
+        },
+        {
+          type: "slider", // 在图表底部生成一个可以拖动的缩放滑动条
+          start: 0,
+          end: 100,
+          height: 20, // 滑动条高度
+          bottom: 20, // 滑动条位置
+        },
+      ],
+      series: [
+        ...seriesData, // 线图系列
+        ...scatterSeriesData, // 散点图系列
+      ],
     };
 
     // 使用 notMerge: true 完全替换配置
     chartInstance.value.setOption(option, { notMerge: true });
-  } catch (error) {
-    console.error("Failed to update chart options:", error);
+  } catch (err) {
+    console.error("Failed to update chart options:", err);
     // 显示错误状态
     if (chartInstance.value) {
-      chartInstance.value.setOption({
-        title: {
-          text: "图表渲染错误",
-          subtext: "请刷新页面重试",
-          left: "center",
-          top: "center",
+      chartInstance.value.setOption(
+        {
+          title: {
+            text: "图表渲染错误",
+            subtext: "请刷新页面重试",
+            left: "center",
+            top: "center",
+          },
+          xAxis: {
+            type: "time",
+          },
+          yAxis: {
+            type: "value",
+          },
+          series: [],
         },
-        xAxis: {
-          type: "time",
-        },
-        yAxis: {
-          type: "value",
-        },
-        series: []
-      }, { notMerge: true });
+        { notMerge: true }
+      );
     }
   }
 };
@@ -323,16 +384,16 @@ const updateChartOptions = () => {
 // 处理窗口大小变化
 const handleResize = () => {
   try {
-    if (chartInstance.value && typeof chartInstance.value.resize === 'function') {
+    if (chartInstance.value && typeof chartInstance.value.resize === "function") {
       chartInstance.value.resize({
         animation: {
           duration: 300,
-          easing: 'cubicOut'
-        }
+          easing: "cubicOut",
+        },
       });
     }
-  } catch (error) {
-    console.error("Error during chart resize:", error);
+  } catch (err) {
+    console.error("Error during chart resize:", err);
     // 如果 resize 失败，尝试重新初始化图表
     if (data.value && !pending.value && !error.value) {
       setTimeout(() => {
@@ -385,10 +446,10 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   try {
     // 移除事件监听器
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       window.removeEventListener("resize", handleResize);
     }
-    
+
     // 销毁图表实例
     if (chartInstance.value) {
       // 清除所有事件监听器
@@ -397,8 +458,8 @@ onBeforeUnmount(() => {
       chartInstance.value.dispose();
       chartInstance.value = null;
     }
-  } catch (error) {
-    console.error("Error during chart cleanup:", error);
+  } catch (err) {
+    console.error("Error during chart cleanup:", err);
   }
 });
 

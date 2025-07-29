@@ -88,9 +88,21 @@ export async function generateTeamHistoryData(
         addOrUpdateHistoryPoint(submissionTime, currentTotalScore);
     }
 
-    // 5. 添加一个比赛结束时间点，确保图表延伸至比赛结束
+    // 5. 确保历史数据总是包含比赛开始和结束两个端点
+    // 添加比赛开始时间点（如果还没有的话）
+    if (historyData.length === 0 || historyData[0].timestamp.getTime() !== competition.startTime.getTime()) {
+        historyData.unshift({
+            timestamp: new Date(competition.startTime),
+            score: 0
+        });
+    }
+
+    // 添加比赛结束时间点，分数为队伍在比赛结束时的最终分数
     const finalScore = historyData[historyData.length - 1]?.score ?? 0;
-    addOrUpdateHistoryPoint(new Date(competition.endTime), finalScore);
+    if (historyData.length === 0 ||
+        historyData[historyData.length - 1].timestamp.getTime() !== competition.endTime.getTime()) {
+        addOrUpdateHistoryPoint(new Date(competition.endTime), finalScore);
+    }
 
     return historyData;
 }
@@ -163,14 +175,14 @@ export default async () => {
                                 console.warn(`Invalid data point for team ${teamId}:`, dataPoint)
                                 continue
                             }
-                            
+
                             // 确保时间戳是有效的日期
                             const timestamp = new Date(dataPoint.timestamp)
                             if (isNaN(timestamp.getTime())) {
                                 console.warn(`Invalid timestamp for team ${teamId}:`, dataPoint.timestamp)
                                 continue
                             }
-                            
+
                             await prisma.leaderboardHistory.create({
                                 data: {
                                     competitionId,

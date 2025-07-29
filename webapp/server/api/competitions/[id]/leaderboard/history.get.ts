@@ -134,8 +134,8 @@ export default defineEventHandler(async (event) => {
         },
         teams: leaderboardEntries.map(entry => {
             const teamHistory = teamHistoryMap.get(entry.teamId) || []
-            
-            // 如果队伍没有历史数据，至少提供比赛开始和结束时间的0分数据点
+
+            // 如果队伍没有历史数据，为其动态创建一个包含比赛startTime和endTime（分数均为0）的默认历史数据数组
             if (teamHistory.length === 0) {
                 teamHistory.push(
                     {
@@ -148,7 +148,7 @@ export default defineEventHandler(async (event) => {
                     }
                 )
             }
-            
+
             return {
                 id: entry.team.id,
                 name: entry.team.name,
