@@ -131,13 +131,34 @@ const updateChartOptions = () => {
           (point) => point && point.timestamp !== undefined && point.score !== undefined
         )
         .map((point) => {
-          const timestamp = new Date(point.timestamp).getTime();
+          // 确保timestamp是有效的日期对象或字符串
+          let timestamp;
+          if (point.timestamp instanceof Date) {
+            timestamp = point.timestamp.getTime();
+          } else if (typeof point.timestamp === "string") {
+            timestamp = new Date(point.timestamp).getTime();
+          } else if (typeof point.timestamp === "number") {
+            timestamp = point.timestamp;
+          } else {
+            console.warn("Invalid timestamp type for team:", team.name, "point:", point);
+            return null;
+          }
+
           // 确保时间戳是有效的数字
           if (isNaN(timestamp)) {
             console.warn("Invalid timestamp for team:", team.name, "point:", point);
             return null;
           }
-          return [timestamp, point.score];
+
+          // 确保分数是有效数字
+          const score =
+            typeof point.score === "number" ? point.score : parseFloat(point.score);
+          if (isNaN(score)) {
+            console.warn("Invalid score for team:", team.name, "point:", point);
+            return null;
+          }
+
+          return [timestamp, score];
         })
         .filter((point) => point !== null); // 移除无效数据点
 
@@ -150,7 +171,7 @@ const updateChartOptions = () => {
         data: validDataPoints,
       };
     })
-    .filter((series) => series.data.length > 0); // 只保留有有效数据的系列
+    .filter((series) => series && series.data && series.data.length > 0); // 只保留有有效数据的系列
 
   // 设置图表选项
   const option = {
@@ -215,7 +236,7 @@ const updateChartOptions = () => {
         filterMode: "none",
       },
     ],
-    series: seriesData,
+    series: seriesData.filter((series) => series !== null), // 确保系列数据不为null
   };
 
   chartInstance.value.setOption(option, true);

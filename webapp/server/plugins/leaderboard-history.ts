@@ -44,7 +44,7 @@ export async function generateTeamHistoryData(
 
     // 3. 初始化历史数据，添加比赛开始时的零分点
     const historyData: Array<{ timestamp: Date; score: number }> = [{
-        timestamp: competition.startTime,
+        timestamp: new Date(competition.startTime),
         score: 0
     }];
 
@@ -90,7 +90,7 @@ export async function generateTeamHistoryData(
 
     // 5. 添加一个比赛结束时间点，确保图表延伸至比赛结束
     const finalScore = historyData[historyData.length - 1]?.score ?? 0;
-    addOrUpdateHistoryPoint(competition.endTime, finalScore);
+    addOrUpdateHistoryPoint(new Date(competition.endTime), finalScore);
 
     return historyData;
 }

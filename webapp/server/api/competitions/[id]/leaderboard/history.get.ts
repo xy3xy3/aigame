@@ -112,7 +112,7 @@ export default defineEventHandler(async (event) => {
         const teamHistory = teamHistoryMap.get(record.teamId)
         if (teamHistory) {
             teamHistory.push({
-                timestamp: record.timestamp,
+                timestamp: new Date(record.timestamp),
                 score: record.totalScore
             })
         }

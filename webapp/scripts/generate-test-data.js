@@ -291,7 +291,7 @@ async function main() {
 
         // 2. Initialize history data with a zero score point at competition start
         const historyData = [{
-            timestamp: competition.startTime,
+            timestamp: new Date(competition.startTime),
             score: 0
         }];
 
@@ -332,7 +332,7 @@ async function main() {
 
         // 6. Add a final data point at competition end time
         const finalScore = historyData[historyData.length - 1]?.score ?? 0;
-        addOrUpdateHistoryPoint(competition.endTime, finalScore);
+        addOrUpdateHistoryPoint(new Date(competition.endTime), finalScore);
 
         return historyData;
     }
