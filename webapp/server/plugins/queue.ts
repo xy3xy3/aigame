@@ -145,6 +145,12 @@ export default async () => {
 
   // 创建 Worker 来处理 evaluation 队列
   const worker = new Worker('evaluation', async (job: Job<{ submissionId: string }>) => {
+    // 确保只处理 evaluation 队列的任务
+    if (job.queueName !== 'evaluation') {
+      console.log(`Ignoring job ${job.id} from queue ${job.queueName}`)
+      return
+    }
+
     try {
       // 1. 从数据库中获取 submission 和关联的 problem 的详细信息
       const submission = await prisma.submission.findUnique({
@@ -217,13 +223,13 @@ export default async () => {
       // 6. 如果评测成功，更新排行榜
       if (response.status === 'COMPLETED' && response.score !== null && response.score !== undefined) {
         await updateLeaderboardScore(
-          submissionResult.competitionId, 
-          submissionResult.teamId, 
+          submissionResult.competitionId,
+          submissionResult.teamId,
           submissionResult.problemId,
           response.score,
           submissionResult.id
         )
-        
+
         // 触发排行榜同步任务（异步）
         addLeaderboardSyncJob(submissionResult.competitionId).catch(err => {
           console.error('Failed to add leaderboard sync job:', err)

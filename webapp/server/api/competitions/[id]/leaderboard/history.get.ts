@@ -1,6 +1,7 @@
 import prisma from '~/server/utils/prisma'
 import { getCache, setCache } from '~/server/utils/redis'
 import { processTeamAvatarUrl } from '~/server/utils/url'
+import { addLeaderboardHistoryJob } from '~/server/plugins/leaderboard-history'
 
 // 定义返回给前端的数据结构
 interface LeaderboardHistoryResponse {
@@ -31,7 +32,7 @@ interface SubmissionRecord {
 }
 
 // 生成队伍得分历史数据点的函数
-async function generateTeamHistoryData(
+export async function generateTeamHistoryData(
     competitionId: string,
     teamId: string
 ): Promise<Array<{ timestamp: Date; score: number }>> {
@@ -232,8 +233,10 @@ export default defineEventHandler(async (event) => {
 
     const teamIds = leaderboardEntries.map(entry => entry.teamId)
 
-    // 4. 生成并存储历史数据（如果需要）
-    await generateAndStoreHistoryData(competitionId, teamIds)
+    // 4. 添加生成历史数据的任务到队列（如果需要）
+    await addLeaderboardHistoryJob(competitionId, teamIds).catch(err => {
+        console.error('Failed to add leaderboard history job:', err)
+    })
 
     // 5. 从数据库获取历史数据
     const historyRecords = await prisma.leaderboardHistory.findMany({
