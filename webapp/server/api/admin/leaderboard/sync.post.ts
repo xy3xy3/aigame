@@ -32,6 +32,7 @@ export default defineEventHandler(async (event) => {
 
     // 触发排行榜同步
     await addLeaderboardSyncJob(competitionId)
+    // TODO:触发队伍得分历史数据生成
 
     return {
       success: true,
