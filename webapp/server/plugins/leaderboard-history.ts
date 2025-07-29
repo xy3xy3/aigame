@@ -1,11 +1,99 @@
 import { Queue, Worker, Job } from 'bullmq'
 import { getRedisClient } from '../utils/redis'
 import prisma from '../utils/prisma'
-import { generateTeamHistoryData } from '../api/competitions/[id]/leaderboard/history.get'
 
 // 排行榜历史数据队列
 let leaderboardHistoryQueue: Queue | null = null
 let leaderboardHistoryWorker: Worker | null = null
+
+// 生成队伍得分历史数据点的函数
+export async function generateTeamHistoryData(
+    competitionId: string,
+    teamId: string
+): Promise<Array<{ timestamp: Date; score: number }>> {
+    // 1. 获取比赛信息
+    const competition = await prisma.competition.findUnique({
+        where: { id: competitionId },
+        select: {
+            startTime: true,
+            endTime: true
+        }
+    });
+
+    if (!competition) {
+        throw new Error(`Competition with id ${competitionId} not found`);
+    }
+
+    // 2. 获取队伍的所有有效提交记录，并按时间排序
+    const submissions = await prisma.submission.findMany({
+        where: {
+            competitionId,
+            teamId,
+            status: 'COMPLETED',
+            score: { not: null }
+        },
+        select: {
+            problemId: true,
+            score: true,
+            submittedAt: true
+        },
+        orderBy: {
+            submittedAt: 'asc'
+        }
+    });
+
+    // 3. 初始化历史数据，添加比赛开始时的零分点
+    const historyData: Array<{ timestamp: Date; score: number }> = [{
+        timestamp: competition.startTime,
+        score: 0
+    }];
+
+    /**
+     * 核心修复：辅助函数用于添加或更新历史数据点。
+     * 这可以防止因同一毫秒内的多次提交而产生重复的时间戳，从而解决ECharts崩溃问题。
+     * @param timestamp - 新数据点的时间戳
+     * @param score - 新数据点的分数
+     */
+    const addOrUpdateHistoryPoint = (timestamp: Date, score: number) => {
+        const lastPoint = historyData[historyData.length - 1];
+        if (lastPoint && lastPoint.timestamp.getTime() === timestamp.getTime()) {
+            // 如果时间戳与上一个点相同，则更新其分数，不添加新点
+            lastPoint.score = score;
+        } else if (!lastPoint || lastPoint.timestamp.getTime() < timestamp.getTime()) {
+            // 只有当新点的时间戳晚于上一个点时才添加，确保数据严格按时间递增
+            historyData.push({ timestamp, score });
+        }
+    };
+
+    const problemBestScores = new Map<string, number>(); // 记录每个题目的最高分
+    let currentTotalScore = 0; // 当前总分
+
+    // 4. 按时间顺序处理所有提交记录，生成数据点
+    for (const submission of submissions) {
+        const problemId = submission.problemId;
+        const newScore = submission.score!;
+        const submissionTime = submission.submittedAt;
+        const currentProblemBest = problemBestScores.get(problemId) || 0;
+
+        // 只有当提交的分数更高时，才更新总分
+        if (newScore > currentProblemBest) {
+            // 更新该题目的最高分
+            problemBestScores.set(problemId, newScore);
+            // 更新总分（减去旧的题目分数，加上新的题目分数）
+            currentTotalScore = currentTotalScore - currentProblemBest + newScore;
+        }
+
+        // 为每一次有效提交都记录一个数据点（即使总分未变）
+        // addOrUpdateHistoryPoint 会处理好时间戳重复的情况
+        addOrUpdateHistoryPoint(submissionTime, currentTotalScore);
+    }
+
+    // 5. 添加一个比赛结束时间点，确保图表延伸至比赛结束
+    const finalScore = historyData[historyData.length - 1]?.score ?? 0;
+    addOrUpdateHistoryPoint(competition.endTime, finalScore);
+
+    return historyData;
+}
 
 export function getLeaderboardHistoryQueue(): Queue {
     if (!leaderboardHistoryQueue) {

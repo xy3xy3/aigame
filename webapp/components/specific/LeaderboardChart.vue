@@ -45,6 +45,7 @@ interface LeaderboardHistoryResponse {
       score: number;
     }>;
   }>;
+  isCached: boolean;
 }
 
 const props = defineProps<{
@@ -155,6 +156,7 @@ const updateChartOptions = () => {
   const option = {
     title: {
       text: `${data.value.competition.title} - 排行榜历史`,
+      subtext: data.value.isCached ? "缓存数据" : "实时数据",
       left: "center",
     },
     tooltip: {

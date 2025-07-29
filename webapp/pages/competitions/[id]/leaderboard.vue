@@ -1,8 +1,18 @@
 <template>
   <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold mb-6 text-center">
-      {{ data?.competitionTitle }} 排行榜
-    </h1>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <h1 class="text-3xl font-bold text-center md:text-left">
+        {{ data?.competitionTitle }} 排行榜
+      </h1>
+      <button
+        v-if="user?.role === 'admin'"
+        @click="syncLeaderboard"
+        :disabled="isSyncing"
+        class="mt-4 md:mt-0 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+      >
+        {{ isSyncing ? "同步中..." : "更新排行榜缓存" }}
+      </button>
+    </div>
 
     <!-- Loading State -->
     <div v-if="pending || problemsPending" class="text-center text-gray-500">
@@ -299,6 +309,7 @@ interface ProblemsResponse {
 interface LeaderboardResponse {
   competitionTitle: string;
   leaderboard: TeamLeaderboardEntry[];
+  isCached?: boolean;
 }
 
 // 获取排行榜数据
@@ -326,6 +337,48 @@ const formatDate = (date: Date) => {
 
 // Import the LeaderboardChart component
 import LeaderboardChart from "~/components/specific/LeaderboardChart.vue";
+import { useCustomAuth } from "~/composables/useAuth";
+import { push } from "notivue";
+
+// 获取用户信息
+const { user } = useCustomAuth();
+
+// 同步排行榜状态
+const isSyncing = ref(false);
+
+// 同步排行榜函数
+const syncLeaderboard = async () => {
+  if (isSyncing.value) return;
+
+  isSyncing.value = true;
+  try {
+    // 确保route.params.id存在
+    const competitionId = route.params.id;
+    if (!competitionId) {
+      push.error("比赛ID不存在");
+      isSyncing.value = false;
+      return;
+    }
+
+    const response = await $fetch("/api/admin/leaderboard/sync", {
+      method: "POST",
+      body: {
+        competitionId: competitionId,
+      },
+    });
+
+    if (response.success) {
+      push.success("排行榜缓存更新成功");
+    } else {
+      push.error("排行榜缓存更新失败");
+    }
+  } catch (error: any) {
+    console.error("Failed to sync leaderboard:", error);
+    push.error("排行榜缓存更新失败: " + (error.message || "未知错误"));
+  } finally {
+    isSyncing.value = false;
+  }
+};
 
 definePageMeta({
   middleware: "auth",
