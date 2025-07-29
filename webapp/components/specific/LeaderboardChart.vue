@@ -126,12 +126,6 @@ const updateChartOptions = () => {
           left: "center",
           top: "center",
         },
-        grid: {
-          left: "3%",
-          right: "4%",
-          bottom: "15%",
-          containLabel: true,
-        },
         xAxis: {
           type: "time",
         },
@@ -144,152 +138,165 @@ const updateChartOptions = () => {
       return;
     }
 
-  // 准备图表数据
-  const seriesData = data.value.teams
-    .filter((team) => team.history && Array.isArray(team.history)) // 确保队伍有历史数据
-    .map((team) => {
-      // 过滤并处理历史数据点
-      const validDataPoints = team.history
-        .filter(
-          (point) => point && point.timestamp !== undefined && point.score !== undefined
-        )
-        .map((point) => {
-          // 确保timestamp是有效的日期对象或字符串
-          let timestamp;
-          if (point.timestamp instanceof Date) {
-            timestamp = point.timestamp.getTime();
-          } else if (typeof point.timestamp === "string") {
-            timestamp = new Date(point.timestamp).getTime();
-          } else if (typeof point.timestamp === "number") {
-            timestamp = point.timestamp;
-          } else {
-            console.warn("Invalid timestamp type for team:", team.name, "point:", point);
-            return null;
+    // 准备图表数据
+    const seriesData = data.value.teams
+      .filter((team) => team && team.history && Array.isArray(team.history)) // 确保队伍有历史数据
+      .map((team) => {
+        // 过滤并处理历史数据点
+        const validDataPoints = team.history
+          .filter(
+            (point) => point && point.timestamp !== undefined && point.score !== undefined
+          )
+          .map((point) => {
+            // 确保timestamp是有效的日期对象或字符串
+            let timestamp;
+            if (point.timestamp instanceof Date) {
+              timestamp = point.timestamp.getTime();
+            } else if (typeof point.timestamp === "string") {
+              timestamp = new Date(point.timestamp).getTime();
+            } else if (typeof point.timestamp === "number") {
+              timestamp = point.timestamp;
+            } else {
+              console.warn("Invalid timestamp type for team:", team.name, "point:", point);
+              return null;
+            }
+
+            // 确保时间戳是有效的数字
+            if (isNaN(timestamp)) {
+              console.warn("Invalid timestamp for team:", team.name, "point:", point);
+              return null;
+            }
+
+            // 确保分数是有效数字
+            const score =
+              typeof point.score === "number" ? point.score : parseFloat(point.score);
+            if (isNaN(score)) {
+              console.warn("Invalid score for team:", team.name, "point:", point);
+              return null;
+            }
+
+            return [timestamp, score];
+          })
+          .filter((point) => point !== null) // 移除无效数据点
+          .sort((a, b) => (a?.[0] || 0) - (b?.[0] || 0)); // 按时间戳排序
+
+        // 去除重复的时间戳，只保留最新的分数
+        const deduplicatedPoints: number[][] = [];
+        const seen = new Set<number>();
+        
+        for (let i = validDataPoints.length - 1; i >= 0; i--) {
+          const point = validDataPoints[i];
+          if (point && Array.isArray(point) && point.length >= 2) {
+            const timestamp = point[0];
+            const score = point[1];
+            if (typeof timestamp === 'number' && typeof score === 'number' && !seen.has(timestamp)) {
+              seen.add(timestamp);
+              deduplicatedPoints.unshift([timestamp, score]);
+            }
           }
+        }
 
-          // 确保时间戳是有效的数字
-          if (isNaN(timestamp)) {
-            console.warn("Invalid timestamp for team:", team.name, "point:", point);
-            return null;
+        // 确保至少有两个数据点，否则 ECharts 可能出错
+        if (deduplicatedPoints.length === 1 && data.value) {
+          const singlePoint = deduplicatedPoints[0];
+          const startTime = new Date(data.value.competition.startTime).getTime();
+          if (singlePoint && singlePoint[0] > startTime) {
+            deduplicatedPoints.unshift([startTime, 0]);
+          } else if (singlePoint) {
+            deduplicatedPoints.push([singlePoint[0] + 1000, singlePoint[1]]);
           }
+        }
 
-          // 确保分数是有效数字
-          const score =
-            typeof point.score === "number" ? point.score : parseFloat(point.score);
-          if (isNaN(score)) {
-            console.warn("Invalid score for team:", team.name, "point:", point);
-            return null;
+        return {
+          name: team.name || `团队${team.id}`,
+          type: "line",
+          data: deduplicatedPoints,
+          smooth: false, // 关闭平滑，减少计算复杂度
+          showSymbol: false,
+          lineStyle: {
+            width: 2
           }
+        };
+      })
+      .filter((series) => series && series.data && series.data.length >= 2); // 只保留有足够数据点的系列
 
-          return [timestamp, score];
-        })
-        .filter((point) => point !== null); // 移除无效数据点
+    // 如果处理后没有有效的系列数据，显示无数据状态
+    if (seriesData.length === 0) {
+      chartInstance.value.setOption({
+        title: {
+          text: "暂无有效数据",
+          left: "center",
+          top: "center",
+        },
+        xAxis: {
+          type: "time",
+        },
+        yAxis: {
+          type: "value",
+        },
+        series: []
+      }, true);
+      return;
+    }
 
-      return {
-        name: team.name,
-        type: "line",
-        smooth: true,
-        showSymbol: false, // 不显示数据点，使线条更平滑
-        sampling: validDataPoints.length > 1000 ? "lttb" : undefined, // 只在数据点很多时启用采样
-        data: validDataPoints,
-      };
-    })
-    .filter((series) => series && series.data && series.data.length > 0); // 只保留有有效数据的系列
+    // 计算 Y 轴范围
+    let maxScore = 0;
+    seriesData.forEach(series => {
+      if (series.data && Array.isArray(series.data)) {
+        series.data.forEach((point: number[]) => {
+          if (point && point.length >= 2 && typeof point[1] === 'number' && point[1] > maxScore) {
+            maxScore = point[1];
+          }
+        });
+      }
+    });
 
-  // 如果处理后没有有效的系列数据，显示无数据状态
-  if (seriesData.length === 0) {
-    chartInstance.value.setOption({
+    // 基础配置 - 简化以减少出错可能性
+    const option = {
       title: {
-        text: "暂无有效数据",
+        text: `${data.value.competition.title} - 排行榜历史`,
         left: "center",
-        top: "center",
+      },
+      tooltip: {
+        trigger: "axis",
+        formatter: (params: any) => {
+          if (!params || params.length === 0) return "";
+          const date = new Date(params[0].value[0]);
+          let tooltipText = `${date.toLocaleString("zh-CN")}<br/>`;
+          params.forEach((param: any) => {
+            if (param && param.seriesName && param.value && Array.isArray(param.value)) {
+              tooltipText += `${param.marker} ${param.seriesName}: ${param.value[1]}<br/>`;
+            }
+          });
+          return tooltipText;
+        },
+      },
+      legend: {
+        type: "scroll",
+        top: 30,
+        data: seriesData.map((series) => series.name),
       },
       grid: {
         left: "3%",
         right: "4%",
-        bottom: "15%",
+        bottom: "3%",
+        top: "15%",
         containLabel: true,
       },
       xAxis: {
         type: "time",
+        boundaryGap: false,
       },
       yAxis: {
         type: "value",
+        min: 0,
+        max: Math.ceil(maxScore * 1.1) || 100,
       },
-      series: []
-    }, true);
-    return;
-  }
+      series: seriesData,
+    };
 
-  // 设置图表选项
-  const option = {
-    title: {
-      text: `${data.value.competition.title} - 排行榜历史`,
-      subtext: data.value.isCached ? "缓存数据" : "实时数据",
-      left: "center",
-    },
-    tooltip: {
-      trigger: "axis",
-      formatter: (params: any) => {
-        if (!params || params.length === 0) return "";
-
-        const date = new Date(params[0].value[0]);
-        let tooltipText = `${date.toLocaleString("zh-CN")}<br/>`;
-
-        params.forEach((param: any) => {
-          tooltipText += `${param.marker} ${param.seriesName}: ${param.value[1]}<br/>`;
-        });
-
-        return tooltipText;
-      },
-    },
-    legend: {
-      type: "scroll", // 可滚动的图例
-      orient: "horizontal",
-      top: 30,
-      data: seriesData.map((series) => series.name), // 使用实际的系列名称
-    },
-    grid: {
-      left: "3%",
-      right: "4%",
-      bottom: "15%",
-      containLabel: true,
-    },
-    xAxis: {
-      type: "time",
-      name: "时间",
-      nameLocation: "middle",
-      nameGap: 30,
-      min: new Date(data.value.competition.startTime).getTime(),
-      max: new Date(data.value.competition.endTime).getTime(),
-    },
-    yAxis: {
-      type: "value",
-      name: "分数",
-      nameLocation: "middle",
-      nameGap: 50,
-      min: 0, // 确保y轴从0开始
-    },
-    dataZoom: [
-      {
-        type: "inside",
-        start: 0,
-        end: 100,
-        filterMode: "none",
-      },
-      {
-        type: "slider",
-        start: 0,
-        end: 100,
-        bottom: 10,
-        filterMode: "none",
-      },
-    ],
-    series: seriesData, // 直接使用过滤后的系列数据
-  };
-
-  // 使用 true 参数强制重新渲染图表，避免缓存问题
-  chartInstance.value.setOption(option, true);
+    // 使用 notMerge: true 完全替换配置
+    chartInstance.value.setOption(option, { notMerge: true });
   } catch (error) {
     console.error("Failed to update chart options:", error);
     // 显示错误状态
@@ -301,29 +308,41 @@ const updateChartOptions = () => {
           left: "center",
           top: "center",
         },
-        grid: {
-          left: "3%",
-          right: "4%",
-          bottom: "15%",
-          containLabel: true,
-        },
         xAxis: {
           type: "time",
         },
         yAxis: {
           type: "value",
-          min: 0,
         },
         series: []
-      }, true);
+      }, { notMerge: true });
     }
   }
 };
 
 // 处理窗口大小变化
 const handleResize = () => {
-  if (chartInstance.value) {
-    chartInstance.value.resize();
+  try {
+    if (chartInstance.value && typeof chartInstance.value.resize === 'function') {
+      chartInstance.value.resize({
+        animation: {
+          duration: 300,
+          easing: 'cubicOut'
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Error during chart resize:", error);
+    // 如果 resize 失败，尝试重新初始化图表
+    if (data.value && !pending.value && !error.value) {
+      setTimeout(() => {
+        try {
+          initChart();
+        } catch (reinitError) {
+          console.error("Failed to reinitialize chart after resize error:", reinitError);
+        }
+      }, 100);
+    }
   }
 };
 
@@ -365,8 +384,16 @@ onMounted(async () => {
 // 组件卸载前清理
 onBeforeUnmount(() => {
   try {
-    window.removeEventListener("resize", handleResize);
+    // 移除事件监听器
+    if (typeof window !== 'undefined') {
+      window.removeEventListener("resize", handleResize);
+    }
+    
+    // 销毁图表实例
     if (chartInstance.value) {
+      // 清除所有事件监听器
+      chartInstance.value.off();
+      // 销毁实例
       chartInstance.value.dispose();
       chartInstance.value = null;
     }

@@ -61,13 +61,13 @@ async function main() {
 
     // 4. Create Teams and Users
     console.log('Creating teams and users...');
-    const teamNames = Array.from({ length: 20 }, (_, i) => `队伍${i + 1}`);
+    const teamNames = Array.from({ length: 3 }, (_, i) => `队伍${i + 1}`);
     const createdTeams = [];
 
     for (const teamName of teamNames) {
         const teamUsers = [];
-        // Create 10 users for each team
-        for (let i = 1; i <= 10; i++) {
+        // Create 3 users for each team
+        for (let i = 1; i <= 3; i++) {
             const user = await prisma.user.create({
                 data: {
                     username: `${teamName.replace('队', '').toLowerCase()}_user${i}`,
@@ -112,44 +112,48 @@ async function main() {
         console.log(`Team "${team.name}" and its ${teamUsers.length} members created.`);
     }
 
-    // 5. Create Submissions
+    // 5. Ensure each team has exactly 2 submissions
     console.log('Creating submissions...');
-    // Generate 2000 submission records for testing pagination
-    for (let i = 0; i < 2000; i++) {
-        // Randomly select a team
-        const teamIndex = Math.floor(Math.random() * createdTeams.length);
-        const team = createdTeams[teamIndex];
+    // Create exactly 2 submissions for each of the 3 teams (total 6 submissions)
+    let submissionCount = 0;
+    for (let i = 0; i < 3; i++) {  // 3 teams
+        for (let j = 0; j < 2; j++) {  // 2 submissions each
+            // Select team by index
+            const team = createdTeams[i];
 
-        // Randomly select a user from the team
-        const userIndex = Math.floor(Math.random() * team.members.length);
-        const user = team.members[userIndex].user;
+            // Randomly select a user from the team
+            const userIndex = Math.floor(Math.random() * team.members.length);
+            const user = team.members[userIndex].user;
 
-        // Randomly select a problem
-        const problemIndex = Math.floor(Math.random() * problems.length);
-        const problem = problems[problemIndex];
+            // Randomly select a problem
+            const problemIndex = Math.floor(Math.random() * problems.length);
+            const problem = problems[problemIndex];
 
-        // Generate a random score between 0 and 100
-        const score = Math.floor(Math.random() * 101);
+            // Generate a random score between 0 and 100
+            const score = Math.floor(Math.random() * 101);
 
-        await prisma.submission.create({
-            data: {
-                problemId: problem.id,
-                competitionId: competition.id,
-                teamId: team.id,
-                userId: user.id,
-                submissionUrl: 's3://bucket/path/to/submission.zip',
-                status: 'COMPLETED',
-                score: score,
-                judgedAt: new Date(),
-            },
-        });
+            await prisma.submission.create({
+                data: {
+                    problemId: problem.id,
+                    competitionId: competition.id,
+                    teamId: team.id,
+                    userId: user.id,
+                    submissionUrl: 's3://bucket/path/to/submission.zip',
+                    status: 'COMPLETED',
+                    score: score,
+                    judgedAt: new Date(),
+                },
+            });
 
-        // Log progress every 50 submissions
-        if ((i + 1) % 50 === 0) {
-            console.log(`Created ${i + 1} submissions so far...`);
+            submissionCount++;
+
+            // Log progress every 2 submissions
+            if (submissionCount % 2 === 0) {
+                console.log(`Created ${submissionCount} submissions so far...`);
+            }
         }
     }
-    console.log('2000 submissions created.');
+    console.log('6 submissions created.');
 
     // 6. Generate leaderboard data
     console.log('Generating leaderboard data...');
