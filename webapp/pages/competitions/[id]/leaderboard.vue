@@ -22,8 +22,16 @@
       暂无队伍参赛，敬请期待。
     </div>
 
+    <!-- Leaderboard Chart -->
+    <div v-if="data && data.leaderboard && data.leaderboard.length > 0" class="mb-8">
+      <LeaderboardChart :competition-id="route.params.id.toString()" />
+    </div>
+
     <!-- Data Table -->
-    <div v-else class="overflow-x-auto shadow-md sm:rounded-lg">
+    <div
+      v-if="data && data.leaderboard && data.leaderboard.length > 0"
+      class="overflow-x-auto shadow-md sm:rounded-lg"
+    >
       <table class="min-w-full text-sm text-left text-gray-500">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50">
           <tr>
@@ -315,6 +323,9 @@ const getProblemScore = (entry: TeamLeaderboardEntry, problemId: string) => {
 const formatDate = (date: Date) => {
   return new Date(date).toLocaleString("zh-CN");
 };
+
+// Import the LeaderboardChart component
+import LeaderboardChart from "~/components/specific/LeaderboardChart.vue";
 
 definePageMeta({
   middleware: "auth",

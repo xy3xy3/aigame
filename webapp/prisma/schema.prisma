@@ -49,6 +49,7 @@ model Team {
   submissions        Submission[] // 团队提交的题目
   leaderboardEntries LeaderboardEntry[] // 团队在排行榜中的记录
   invitations        Invitation[] // 团队相关的邀请
+  LeaderboardHistory LeaderboardHistory[]
 
   @@map("teams")
 }
@@ -81,10 +82,11 @@ model Competition {
   updatedAt   DateTime @updatedAt // 更新时间
 
   // 关系
-  creator      User          @relation("CompetitionCreator", fields: [createdBy], references: [id]) // 创建者
-  problems     Problem[] // 比赛中的题目
-  submissions  Submission[] // 比赛中的提交
-  leaderboards Leaderboard[] // 比赛的排行榜
+  creator            User                 @relation("CompetitionCreator", fields: [createdBy], references: [id]) // 创建者
+  problems           Problem[] // 比赛中的题目
+  submissions        Submission[] // 比赛中的提交
+  leaderboards       Leaderboard[] // 比赛的排行榜
+  LeaderboardHistory LeaderboardHistory[]
 
   @@map("competitions")
 }
@@ -225,4 +227,20 @@ model Announcement {
   status    String   @default("HIDDEN") // 公告状态
 
   @@map("announcements")
+}
+
+model LeaderboardHistory {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  competitionId String   @db.ObjectId // 所属比赛ID
+  teamId        String   @db.ObjectId // 队伍ID
+  timestamp     DateTime // 数据点时间戳
+  totalScore    Float // 当前总分
+  createdAt     DateTime @default(now()) // 记录创建时间
+
+  // 关系
+  competition Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade)
+  team        Team        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([competitionId, teamId, timestamp])
+  @@map("leaderboard_histories")
 }
