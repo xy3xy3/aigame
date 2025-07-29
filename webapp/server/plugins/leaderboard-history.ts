@@ -157,8 +157,13 @@ export default async () => {
                 // 为每个队伍生成历史数据并存储到数据库
                 for (const teamId of teamIds) {
                     try {
+                        console.log(`Starting history generation for team ${teamId}`)
+                        
                         // 生成队伍的历史数据
                         const historyData = await generateTeamHistoryData(competitionId, teamId)
+                        
+                        console.log(`Generated ${historyData.length} history points for team ${teamId}:`, 
+                                  historyData.map(d => ({ timestamp: d.timestamp, score: d.score })))
 
                         // 删除该队伍已有的历史数据
                         await prisma.leaderboardHistory.deleteMany({

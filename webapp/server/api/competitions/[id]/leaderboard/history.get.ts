@@ -36,10 +36,11 @@ export default defineEventHandler(async (event) => {
     const cacheKey = `leaderboard:history:${competitionId}:top50`
 
     // 1. 尝试从缓存中获取数据
-    const cachedData = await getCache<LeaderboardHistoryResponse>(cacheKey)
-    if (cachedData) {
-        return { ...cachedData, isCached: true }
-    }
+    //暂时注释
+    // const cachedData = await getCache<LeaderboardHistoryResponse>(cacheKey)
+    // if (cachedData) {
+    //     return { ...cachedData, isCached: true }
+    // }
 
     // 2. 从数据库获取比赛信息
     const competition = await prisma.competition.findUnique({
@@ -83,10 +84,81 @@ export default defineEventHandler(async (event) => {
 
     const teamIds = leaderboardEntries.map(entry => entry.teamId)
 
-    // 4. 添加生成历史数据的任务到队列（如果需要）
-    await addLeaderboardHistoryJob(competitionId, teamIds).catch(err => {
-        console.error('Failed to add leaderboard history job:', err)
-    })
+    // 4. 检查是否有队伍缺少历史数据
+    const existingHistoryTeamIds = await prisma.leaderboardHistory.findMany({
+        where: {
+            competitionId,
+            teamId: { in: teamIds }
+        },
+        select: { teamId: true },
+        distinct: ['teamId']
+    }).then(records => records.map(r => r.teamId))
+
+    const missingHistoryTeamIds = teamIds.filter(teamId => !existingHistoryTeamIds.includes(teamId))
+
+    // 如果有队伍缺少历史数据，立即为缺失的队伍生成数据
+    if (missingHistoryTeamIds.length > 0) {
+        console.log(`Found ${missingHistoryTeamIds.length} teams missing history data:`, missingHistoryTeamIds)
+        
+        // 同步生成缺失队伍的历史数据，而不是异步队列
+        for (const missingTeamId of missingHistoryTeamIds) {
+            try {
+                console.log(`Generating history data for missing team: ${missingTeamId}`)
+                const historyData = await generateTeamHistoryData(competitionId, missingTeamId)
+                
+                // 删除现有历史数据（如果有）
+                await prisma.leaderboardHistory.deleteMany({
+                    where: {
+                        competitionId,
+                        teamId: missingTeamId
+                    }
+                })
+                
+                // 存储新的历史数据
+                for (const dataPoint of historyData) {
+                    if (dataPoint.timestamp && typeof dataPoint.score === 'number' && !isNaN(dataPoint.score)) {
+                        await prisma.leaderboardHistory.create({
+                            data: {
+                                competitionId,
+                                teamId: missingTeamId,
+                                timestamp: dataPoint.timestamp,
+                                totalScore: dataPoint.score
+                            }
+                        })
+                    }
+                }
+                
+                console.log(`Successfully generated history data for team ${missingTeamId}`)
+            } catch (error) {
+                console.error(`Failed to generate history data for team ${missingTeamId}:`, error)
+            }
+        }
+        
+        // 重新获取历史数据
+        const updatedHistoryRecords = await prisma.leaderboardHistory.findMany({
+            where: {
+                competitionId,
+                teamId: { in: teamIds }
+            },
+            orderBy: {
+                timestamp: 'asc'
+            }
+        })
+        
+        // 更新teamHistoryMap
+        for (const record of updatedHistoryRecords) {
+            const teamHistory = teamHistoryMap.get(record.teamId)
+            if (teamHistory && record.timestamp && typeof record.totalScore === 'number') {
+                const timestamp = new Date(record.timestamp)
+                if (!isNaN(timestamp.getTime())) {
+                    teamHistory.push({
+                        timestamp,
+                        score: record.totalScore
+                    })
+                }
+            }
+        }
+    }
 
     // 5. 从数据库获取历史数据
     const historyRecords = await prisma.leaderboardHistory.findMany({
@@ -134,20 +206,6 @@ export default defineEventHandler(async (event) => {
         },
         teams: leaderboardEntries.map(entry => {
             const teamHistory = teamHistoryMap.get(entry.teamId) || []
-
-            // 如果队伍没有历史数据，为其动态创建一个包含比赛startTime和endTime（分数均为0）的默认历史数据数组
-            if (teamHistory.length === 0) {
-                teamHistory.push(
-                    {
-                        timestamp: new Date(competition.startTime),
-                        score: 0
-                    },
-                    {
-                        timestamp: new Date(competition.endTime),
-                        score: 0
-                    }
-                )
-            }
 
             return {
                 id: entry.team.id,
