@@ -145,6 +145,7 @@ const updateChartOptions = () => {
         type: "line",
         smooth: true,
         showSymbol: false, // 不显示数据点，使线条更平滑
+        sampling: "lttb",
         data: validDataPoints,
       };
     })
@@ -202,12 +203,14 @@ const updateChartOptions = () => {
         type: "inside",
         start: 0,
         end: 100,
+        filterMode: "none",
       },
       {
         type: "slider",
         start: 0,
         end: 100,
         bottom: 10,
+        filterMode: "none",
       },
     ],
     series: seriesData,
