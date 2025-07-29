@@ -234,6 +234,12 @@ export default async () => {
         addLeaderboardSyncJob(submissionResult.competitionId).catch(err => {
           console.error('Failed to add leaderboard sync job:', err)
         })
+
+        // 触发历史数据更新任务（异步）
+        const { addLeaderboardHistoryJob } = await import('./leaderboard-history.js')
+        addLeaderboardHistoryJob(submissionResult.competitionId, [submissionResult.teamId]).catch(err => {
+          console.error('Failed to add leaderboard history job:', err)
+        })
       }
 
       return response
