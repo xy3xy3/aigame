@@ -158,11 +158,24 @@ export default async () => {
 
                         // 存储新的历史数据
                         for (const dataPoint of historyData) {
+                            // 验证数据点的有效性
+                            if (!dataPoint.timestamp || typeof dataPoint.score !== 'number' || isNaN(dataPoint.score)) {
+                                console.warn(`Invalid data point for team ${teamId}:`, dataPoint)
+                                continue
+                            }
+                            
+                            // 确保时间戳是有效的日期
+                            const timestamp = new Date(dataPoint.timestamp)
+                            if (isNaN(timestamp.getTime())) {
+                                console.warn(`Invalid timestamp for team ${teamId}:`, dataPoint.timestamp)
+                                continue
+                            }
+                            
                             await prisma.leaderboardHistory.create({
                                 data: {
                                     competitionId,
                                     teamId,
-                                    timestamp: dataPoint.timestamp,
+                                    timestamp,
                                     totalScore: dataPoint.score
                                 }
                             })

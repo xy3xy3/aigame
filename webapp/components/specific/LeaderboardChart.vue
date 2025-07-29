@@ -82,44 +82,67 @@ const fetchData = async () => {
 const initChart = () => {
   if (!chartContainer.value) return;
 
-  // 销毁现有的图表实例
-  if (chartInstance.value) {
-    chartInstance.value.dispose();
+  try {
+    // 销毁现有的图表实例
+    if (chartInstance.value) {
+      chartInstance.value.dispose();
+      chartInstance.value = null;
+    }
+
+    // 创建新的图表实例
+    chartInstance.value = echarts.init(chartContainer.value);
+
+    // 设置图表选项
+    updateChartOptions();
+
+    // 监听窗口大小变化
+    window.addEventListener("resize", handleResize);
+  } catch (error) {
+    console.error("Failed to initialize chart:", error);
+    error.value = new Error("图表初始化失败");
   }
-
-  // 创建新的图表实例
-  chartInstance.value = echarts.init(chartContainer.value);
-
-  // 设置图表选项
-  updateChartOptions();
-
-  // 监听窗口大小变化
-  window.addEventListener("resize", handleResize);
 };
 
 // 更新图表选项
 const updateChartOptions = () => {
   if (!chartInstance.value || !data.value) return;
 
-  // 检查是否有数据
-  const hasData = data.value.teams.some((team) => team.history.length > 0);
+  try {
+    // 检查数据有效性
+    if (!data.value.teams || !Array.isArray(data.value.teams)) {
+      console.warn("Invalid teams data:", data.value.teams);
+      return;
+    }
 
-  if (!hasData) {
-    chartInstance.value.setOption({
-      title: {
-        text: "暂无数据",
-        left: "center",
-        top: "center",
-      },
-      xAxis: {
-        type: "time",
-      },
-      yAxis: {
-        type: "value",
-      },
-    });
-    return;
-  }
+    // 检查是否有数据
+    const hasData = data.value.teams.some((team) => 
+      team && team.history && Array.isArray(team.history) && team.history.length > 0
+    );
+
+    if (!hasData) {
+      chartInstance.value.setOption({
+        title: {
+          text: "暂无数据",
+          left: "center",
+          top: "center",
+        },
+        grid: {
+          left: "3%",
+          right: "4%",
+          bottom: "15%",
+          containLabel: true,
+        },
+        xAxis: {
+          type: "time",
+        },
+        yAxis: {
+          type: "value",
+          min: 0,
+        },
+        series: []
+      }, true);
+      return;
+    }
 
   // 准备图表数据
   const seriesData = data.value.teams
@@ -167,11 +190,36 @@ const updateChartOptions = () => {
         type: "line",
         smooth: true,
         showSymbol: false, // 不显示数据点，使线条更平滑
-        sampling: "lttb",
+        sampling: validDataPoints.length > 1000 ? "lttb" : undefined, // 只在数据点很多时启用采样
         data: validDataPoints,
       };
     })
     .filter((series) => series && series.data && series.data.length > 0); // 只保留有有效数据的系列
+
+  // 如果处理后没有有效的系列数据，显示无数据状态
+  if (seriesData.length === 0) {
+    chartInstance.value.setOption({
+      title: {
+        text: "暂无有效数据",
+        left: "center",
+        top: "center",
+      },
+      grid: {
+        left: "3%",
+        right: "4%",
+        bottom: "15%",
+        containLabel: true,
+      },
+      xAxis: {
+        type: "time",
+      },
+      yAxis: {
+        type: "value",
+      },
+      series: []
+    }, true);
+    return;
+  }
 
   // 设置图表选项
   const option = {
@@ -199,7 +247,7 @@ const updateChartOptions = () => {
       type: "scroll", // 可滚动的图例
       orient: "horizontal",
       top: 30,
-      data: data.value.teams.map((team) => team.name),
+      data: seriesData.map((series) => series.name), // 使用实际的系列名称
     },
     grid: {
       left: "3%",
@@ -220,6 +268,7 @@ const updateChartOptions = () => {
       name: "分数",
       nameLocation: "middle",
       nameGap: 50,
+      min: 0, // 确保y轴从0开始
     },
     dataZoom: [
       {
@@ -236,10 +285,39 @@ const updateChartOptions = () => {
         filterMode: "none",
       },
     ],
-    series: seriesData.filter((series) => series !== null), // 确保系列数据不为null
+    series: seriesData, // 直接使用过滤后的系列数据
   };
 
+  // 使用 true 参数强制重新渲染图表，避免缓存问题
   chartInstance.value.setOption(option, true);
+  } catch (error) {
+    console.error("Failed to update chart options:", error);
+    // 显示错误状态
+    if (chartInstance.value) {
+      chartInstance.value.setOption({
+        title: {
+          text: "图表渲染错误",
+          subtext: "请刷新页面重试",
+          left: "center",
+          top: "center",
+        },
+        grid: {
+          left: "3%",
+          right: "4%",
+          bottom: "15%",
+          containLabel: true,
+        },
+        xAxis: {
+          type: "time",
+        },
+        yAxis: {
+          type: "value",
+          min: 0,
+        },
+        series: []
+      }, true);
+    }
+  }
 };
 
 // 处理窗口大小变化
@@ -286,9 +364,14 @@ onMounted(async () => {
 
 // 组件卸载前清理
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", handleResize);
-  if (chartInstance.value) {
-    chartInstance.value.dispose();
+  try {
+    window.removeEventListener("resize", handleResize);
+    if (chartInstance.value) {
+      chartInstance.value.dispose();
+      chartInstance.value = null;
+    }
+  } catch (error) {
+    console.error("Error during chart cleanup:", error);
   }
 });
 

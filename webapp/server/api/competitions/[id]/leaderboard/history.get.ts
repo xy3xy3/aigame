@@ -110,11 +110,17 @@ export default defineEventHandler(async (event) => {
     // 将历史记录按队伍分组
     for (const record of historyRecords) {
         const teamHistory = teamHistoryMap.get(record.teamId)
-        if (teamHistory) {
-            teamHistory.push({
-                timestamp: new Date(record.timestamp),
-                score: record.totalScore
-            })
+        if (teamHistory && record.timestamp && typeof record.totalScore === 'number') {
+            // 确保时间戳有效
+            const timestamp = new Date(record.timestamp)
+            if (!isNaN(timestamp.getTime())) {
+                teamHistory.push({
+                    timestamp,
+                    score: record.totalScore
+                })
+            } else {
+                console.warn(`Invalid timestamp for record:`, record)
+            }
         }
     }
 
@@ -126,12 +132,30 @@ export default defineEventHandler(async (event) => {
             startTime: competition.startTime,
             endTime: competition.endTime
         },
-        teams: leaderboardEntries.map(entry => ({
-            id: entry.team.id,
-            name: entry.team.name,
-            avatarUrl: processTeamAvatarUrl(entry.team.avatarUrl) ?? undefined,
-            history: teamHistoryMap.get(entry.teamId) || []
-        })),
+        teams: leaderboardEntries.map(entry => {
+            const teamHistory = teamHistoryMap.get(entry.teamId) || []
+            
+            // 如果队伍没有历史数据，至少提供比赛开始和结束时间的0分数据点
+            if (teamHistory.length === 0) {
+                teamHistory.push(
+                    {
+                        timestamp: new Date(competition.startTime),
+                        score: 0
+                    },
+                    {
+                        timestamp: new Date(competition.endTime),
+                        score: 0
+                    }
+                )
+            }
+            
+            return {
+                id: entry.team.id,
+                name: entry.team.name,
+                avatarUrl: processTeamAvatarUrl(entry.team.avatarUrl) ?? undefined,
+                history: teamHistory
+            }
+        }),
         isCached: false
     }
 
