@@ -8,17 +8,32 @@ async function main() {
 
     // 1. Clean up the database
     console.log('Cleaning up existing data...');
+    await prisma.leaderboardHistory.deleteMany({});
+    await prisma.problemScore.deleteMany({});
+    await prisma.leaderboardEntry.deleteMany({});
+    await prisma.leaderboard.deleteMany({});
     await prisma.submission.deleteMany({});
     await prisma.problem.deleteMany({});
     await prisma.teamMembership.deleteMany({});
     await prisma.team.deleteMany({});
     await prisma.competition.deleteMany({});
-    await prisma.user.deleteMany({});
+    // 保留现有admin用户，不删除
+    await prisma.user.deleteMany({
+        where: {
+            username: { not: 'admin' }
+        }
+    });
     console.log('Existing data cleaned.');
 
 
     // 2. Create a Competition
     console.log('Creating competition...');
+    
+    // 获取现有的admin用户
+    const adminUser = await prisma.user.findUnique({
+        where: { username: 'admin' }
+    });
+    
     const competition = await prisma.competition.create({
         data: {
             title: '年度AI算法大赛',
@@ -26,16 +41,7 @@ async function main() {
             rules: '请遵守比赛规则。',
             startTime: new Date('2025-01-01T00:00:00Z'),
             endTime: new Date('2025-12-31T23:59:59Z'),
-            // In a real scenario, you might want a dedicated admin user
-            // For this script, we'll create a temporary user as the creator
-            creator: {
-                create: {
-                    username: 'admin',
-                    email: 'admin.creator@example.com',
-                    passwordHash: await bcrypt.hash('123456', 12),
-                    role: 'admin',
-                },
-            },
+            createdBy: adminUser.id,
         },
     });
     console.log(`Competition "${competition.title}" created.`);
@@ -74,6 +80,7 @@ async function main() {
                     email: `${teamName.replace('队', '').toLowerCase()}_user${i}@example.com`,
                     passwordHash: await bcrypt.hash('123456', 12),
                     realName: `${teamName}成员${i}`,
+                    studentId: `${teamName.replace('队', '').toLowerCase()}_${i}_${Date.now()}`, // 确保学号唯一
                 },
             });
             teamUsers.push(user);
