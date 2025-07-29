@@ -1,0 +1,7 @@
+title: "judge_sum"
+shortDescription: "test"
+detailedDescription: |
+  这是一个更详细的描述，可以使用 Markdown 格式。
+startTime: "2024-01-01T00:00:00Z"
+endTime: "2026-01-31T23:59:59Z"
+score: 1000
