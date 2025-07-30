@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto p-4">
+  <div class="max-w-7xl mx-auto py-6 px-4">
     <!-- 面包屑导航 -->
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">

@@ -226,3 +226,11 @@ model Announcement {
 
   @@map("announcements")
 }
+
+model Config {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  key   String @unique // 配置键名
+  value String // 配置值
+
+  @@map("configs")
+}

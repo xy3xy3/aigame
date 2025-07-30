@@ -6,7 +6,7 @@
           <div class="flex">
             <div class="flex-shrink-0 flex items-center">
               <NuxtLink to="/" class="text-xl font-bold text-gray-900">
-                AI竞赛平台
+                {{ settings.title || "AI竞赛平台" }}
               </NuxtLink>
             </div>
             <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -136,6 +136,13 @@
                     >
                       公告管理
                     </NuxtLink>
+                    <NuxtLink
+                      to="/admin/settings"
+                      @click="closeAdminDropdown"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                    >
+                      系统设置
+                    </NuxtLink>
                   </div>
                 </Transition>
               </div>
@@ -221,12 +228,29 @@
     <main>
       <slot />
     </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+      <div class="max-w-7xl mx-auto px-4 py-6">
+        <div class="text-center text-sm text-gray-500">
+          <div v-html="settings.copyright || '© 2024 AI竞赛平台 版权所有'" />
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
 <script setup>
 // 使用认证状态管理
 const { user, isLoggedIn, logout, fetchUser } = useCustomAuth();
+
+// 使用 useSettings 获取全局设置数据
+const { settings } = useSettings();
+
+// 更新浏览器标签页标题
+useHead({
+  title: settings.value?.title || "AI竞赛平台",
+});
 
 // 控制下拉菜单显示/隐藏
 const showAdminDropdown = ref(false);
