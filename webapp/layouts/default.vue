@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-50 layout-wrapper">
     <nav class="bg-white shadow">
       <div class="max-w-7xl mx-auto px-4">
         <div class="flex justify-between h-16">
@@ -225,7 +225,7 @@
       </div>
     </nav>
 
-    <main>
+    <main class="main-content">
       <slot />
     </main>
 
@@ -239,6 +239,18 @@
     </footer>
   </div>
 </template>
+
+<style scoped>
+.layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex-grow: 1;
+}
+</style>
 
 <script setup>
 // 使用认证状态管理

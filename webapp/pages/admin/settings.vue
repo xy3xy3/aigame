@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-3xl mx-auto py-6 px-4">
+  <div class="max-w-7xl mx-auto py-6 px-4">
     <div class="mb-6">
       <h1 class="text-3xl font-bold text-gray-900">系统设置</h1>
       <p class="mt-2 text-gray-600">配置系统基本设置</p>
