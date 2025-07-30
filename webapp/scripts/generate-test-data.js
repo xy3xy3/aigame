@@ -202,7 +202,7 @@ async function main() {
                     data: {
                         problemId: problem.id,
                         score: bestSubmission.score || 0,
-                        submittedAt: bestSubmission.submittedAt,
+                        createdAt: bestSubmission.createdAt,
                         bestSubmissionId: bestSubmission.id
                     }
                 });

@@ -219,7 +219,7 @@ export default defineEventHandler(async (event) => {
       submission: {
         id: submission.id,
         status: submission.status,
-        submittedAt: submission.submittedAt,
+        createdAt: submission.createdAt,
         problem: submission.problem,
         team: submission.team,
         user: submission.user

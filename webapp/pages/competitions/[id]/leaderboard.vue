@@ -244,8 +244,8 @@
                           </td>
                           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{
-                              problemScore.bestSubmission?.submittedAt
-                                ? formatDate(problemScore.bestSubmission.submittedAt)
+                              problemScore.bestSubmission?.createdAt
+                                ? formatDate(problemScore.bestSubmission.createdAt)
                                 : "-"
                             }}
                           </td>
@@ -306,7 +306,7 @@ interface TeamLeaderboardEntry {
     score: number;
     bestSubmission?: {
       id: string;
-      submittedAt: Date;
+      createdAt: Date;
       score?: number;
       user?: {
         username: string;

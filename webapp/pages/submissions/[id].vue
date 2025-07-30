@@ -14,7 +14,7 @@
       <div class="bg-white rounded-lg shadow-md p-6">
         <div class="flex items-center justify-between mb-4">
           <h1 class="text-3xl font-bold text-gray-900">提交详情</h1>
-          <span 
+          <span
             :class="{
               'bg-yellow-100 text-yellow-800': data.submission.status === 'PENDING',
               'bg-blue-100 text-blue-800': data.submission.status === 'JUDGING',
@@ -26,14 +26,14 @@
             {{ getStatusText(data.submission.status) }}
           </span>
         </div>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 class="text-lg font-semibold text-gray-900 mb-3">基本信息</h3>
             <div class="space-y-2 text-sm">
               <div class="flex justify-between">
                 <span class="text-gray-600">题目:</span>
-                <NuxtLink 
+                <NuxtLink
                   :to="`/problems/${data.submission.problem.id}`"
                   class="text-indigo-600 hover:text-indigo-800 font-medium"
                 >
@@ -42,7 +42,7 @@
               </div>
               <div class="flex justify-between">
                 <span class="text-gray-600">比赛:</span>
-                <NuxtLink 
+                <NuxtLink
                   :to="`/competitions/${data.submission.competition.id}`"
                   class="text-indigo-600 hover:text-indigo-800 font-medium"
                 >
@@ -51,7 +51,7 @@
               </div>
               <div class="flex justify-between">
                 <span class="text-gray-600">队伍:</span>
-                <NuxtLink 
+                <NuxtLink
                   :to="`/teams/${data.submission.team.id}`"
                   class="text-indigo-600 hover:text-indigo-800 font-medium"
                 >
@@ -64,7 +64,7 @@
               </div>
               <div class="flex justify-between">
                 <span class="text-gray-600">提交时间:</span>
-                <span class="font-medium">{{ formatDate(data.submission.submittedAt) }}</span>
+                <span class="font-medium">{{ formatDate(data.submission.createdAt) }}</span>
               </div>
               <div v-if="data.submission.judgedAt" class="flex justify-between">
                 <span class="text-gray-600">评测时间:</span>
@@ -72,7 +72,7 @@
               </div>
             </div>
           </div>
-          
+
           <div>
             <h3 class="text-lg font-semibold text-gray-900 mb-3">评测结果</h3>
             <div class="space-y-3">
@@ -80,7 +80,7 @@
                 <div class="text-3xl font-bold text-indigo-600">{{ data.submission.score }}</div>
                 <div class="text-sm text-gray-600">得分</div>
               </div>
-              
+
               <div v-else-if="data.submission.status === 'PENDING'" class="text-center p-4 bg-yellow-50 rounded-lg">
                 <div class="text-yellow-600">
                   <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,7 +89,7 @@
                   <div class="text-sm">等待评测中...</div>
                 </div>
               </div>
-              
+
               <div v-else-if="data.submission.status === 'JUDGING'" class="text-center p-4 bg-blue-50 rounded-lg">
                 <div class="text-blue-600">
                   <svg class="w-8 h-8 mx-auto mb-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,7 +98,7 @@
                   <div class="text-sm">正在评测中...</div>
                 </div>
               </div>
-              
+
               <div v-else-if="data.submission.status === 'ERROR'" class="text-center p-4 bg-red-50 rounded-lg">
                 <div class="text-red-600">
                   <svg class="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

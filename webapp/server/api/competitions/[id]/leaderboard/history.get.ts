@@ -31,10 +31,10 @@ async function generateTeamHistoryData(
         select: {
             problemId: true,
             score: true,
-            submittedAt: true
+            createdAt: true
         },
         orderBy: {
-            submittedAt: 'asc'
+            createdAt: 'asc'
         }
     });
 
@@ -68,7 +68,7 @@ async function generateTeamHistoryData(
     for (const submission of submissions) {
         const problemId = submission.problemId;
         const newScore = submission.score!;
-        const submissionTime = submission.submittedAt;
+        const submissionTime = submission.createdAt;
         const currentProblemBest = problemBestScores.get(problemId) || 0;
 
         // 只有当提交的分数更高时，才更新总分
@@ -202,10 +202,10 @@ export default defineEventHandler(async (event) => {
         try {
             console.log(`Generating history data for team: ${teamId}`)
             const historyData = await generateTeamHistoryData(competitionId, teamId)
-            
+
             // 直接使用生成的历史数据，不存储到数据库
             teamHistoryMap.set(teamId, historyData)
-            
+
             console.log(`Successfully generated history data for team ${teamId}`)
         } catch (error) {
             console.error(`Failed to generate history data for team ${teamId}:`, error)

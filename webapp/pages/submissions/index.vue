@@ -7,8 +7,8 @@
 
     <!-- 筛选器 -->
     <div class="mb-6 flex flex-wrap gap-4">
-      <select 
-        v-model="selectedStatus" 
+      <select
+        v-model="selectedStatus"
         @change="fetchSubmissions"
         class="border border-gray-300 rounded-md px-3 py-2"
       >
@@ -19,8 +19,8 @@
         <option value="ERROR">评测失败</option>
       </select>
 
-      <select 
-        v-model="selectedTeamId" 
+      <select
+        v-model="selectedTeamId"
         @change="fetchSubmissions"
         class="border border-gray-300 rounded-md px-3 py-2"
       >
@@ -42,8 +42,8 @@
 
     <div v-else-if="data?.submissions?.length === 0" class="text-center py-8">
       <p class="text-gray-600">暂无提交记录</p>
-      <NuxtLink 
-        to="/competitions" 
+      <NuxtLink
+        to="/competitions"
         class="mt-4 inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
       >
         参加比赛
@@ -51,15 +51,15 @@
     </div>
 
     <div v-else class="space-y-4">
-      <div 
-        v-for="submission in data?.submissions" 
+      <div
+        v-for="submission in data?.submissions"
         :key="submission.id"
         class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
       >
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center space-x-3">
             <h3 class="text-lg font-semibold text-gray-900">{{ submission.problem.title }}</h3>
-            <span 
+            <span
               :class="{
                 'bg-yellow-100 text-yellow-800': submission.status === 'PENDING',
                 'bg-blue-100 text-blue-800': submission.status === 'JUDGING',
@@ -75,14 +75,14 @@
             <div v-if="submission.score !== null" class="text-lg font-bold text-indigo-600">
               {{ submission.score }} 分
             </div>
-            <div class="text-sm text-gray-500">{{ formatDate(submission.submittedAt) }}</div>
+            <div class="text-sm text-gray-500">{{ formatDate(submission.createdAt) }}</div>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
             <p class="text-sm text-gray-600 mb-1">比赛</p>
-            <NuxtLink 
+            <NuxtLink
               :to="`/competitions/${submission.competition.id}`"
               class="text-indigo-600 hover:text-indigo-800 font-medium"
             >
@@ -91,7 +91,7 @@
           </div>
           <div>
             <p class="text-sm text-gray-600 mb-1">队伍</p>
-            <NuxtLink 
+            <NuxtLink
               :to="`/teams/${submission.team.id}`"
               class="text-indigo-600 hover:text-indigo-800 font-medium"
             >

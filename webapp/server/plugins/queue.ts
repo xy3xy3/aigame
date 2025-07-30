@@ -81,7 +81,7 @@ async function updateLeaderboardScore(competitionId: string, teamId: string, pro
         where: { id: existingProblemScore.id },
         data: {
           score: score,
-          submittedAt: new Date(),
+          createdAt: new Date(),
           bestSubmissionId: submissionId
         }
       })
@@ -92,7 +92,7 @@ async function updateLeaderboardScore(competitionId: string, teamId: string, pro
       data: {
         problemId: problemId,
         score: score,
-        submittedAt: new Date(),
+        createdAt: new Date(),
         bestSubmissionId: submissionId,
         leaderboardEntryId: leaderboardEntry.id
       }

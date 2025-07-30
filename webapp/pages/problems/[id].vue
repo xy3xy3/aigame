@@ -304,7 +304,7 @@
                 </span>
               </div>
               <span class="text-sm text-gray-500">{{
-                formatDate(submission.submittedAt)
+                formatDate(submission.createdAt)
               }}</span>
             </div>
 

@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
     skip,
     take: limit,
     orderBy: {
-      submittedAt: 'desc',
+      createdAt: 'desc',
     },
     include: {
       user: {

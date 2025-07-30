@@ -108,35 +108,35 @@ async function syncCompetitionLeaderboard(competitionId: string): Promise<void> 
       teamId: true,
       problemId: true,
       score: true,
-      submittedAt: true,
+      createdAt: true,
     },
     orderBy: [
       { teamId: 'asc' },
       { problemId: 'asc' },
       { score: 'desc' },
-      { submittedAt: 'asc' }
+      { createdAt: 'asc' }
     ],
   })
 
   // 2. 计算每个团队在每个题目上的最高分和最佳提交
-  const teamProblemBest = new Map<string, Map<string, { score: number, submissionId: string, submittedAt: Date }>>()
-  
+  const teamProblemBest = new Map<string, Map<string, { score: number, submissionId: string, createdAt: Date }>>()
+
   for (const submission of submissions) {
     const teamKey = submission.teamId
     const problemKey = submission.problemId
-    
+
     if (!teamProblemBest.has(teamKey)) {
       teamProblemBest.set(teamKey, new Map())
     }
-    
+
     const teamMap = teamProblemBest.get(teamKey)!
     const currentBest = teamMap.get(problemKey)
-    
+
     if (!currentBest || submission.score! > currentBest.score) {
       teamMap.set(problemKey, {
         score: submission.score!,
         submissionId: submission.id,
-        submittedAt: submission.submittedAt
+        createdAt: submission.createdAt
       })
     }
   }
@@ -178,7 +178,7 @@ async function syncCompetitionLeaderboard(competitionId: string): Promise<void> 
 
   for (let i = 0; i < sortedTeams.length; i++) {
     const [teamId, totalScore] = sortedTeams[i]
-    
+
     // 创建排行榜条目
     const leaderboardEntry = await prisma.leaderboardEntry.create({
       data: {
@@ -197,7 +197,7 @@ async function syncCompetitionLeaderboard(competitionId: string): Promise<void> 
           data: {
             problemId: problemId,
             score: best.score,
-            submittedAt: best.submittedAt,
+            createdAt: best.createdAt,
             bestSubmissionId: best.submissionId,
             leaderboardEntryId: leaderboardEntry.id
           }

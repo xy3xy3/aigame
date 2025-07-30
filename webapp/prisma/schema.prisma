@@ -131,7 +131,7 @@ model Submission {
   stdout        String? // 评测脚本的标准输出
   stderr        String? // 评测脚本的标准错误输出
   executionLogs String? // 执行日志
-  submittedAt   DateTime  @default(now()) // 提交时间
+  createdAt     DateTime  @default(now()) // 提交时间
   judgedAt      DateTime? // 评测时间
   updatedAt     DateTime  @updatedAt // 更新时间
 
@@ -161,7 +161,7 @@ model ProblemScore {
   id                 String            @id @default(auto()) @map("_id") @db.ObjectId
   problemId          String            @db.ObjectId // 题目ID
   score              Float // 题目得分
-  submittedAt        DateTime // 提交时间
+  createdAt          DateTime // 提交时间
   bestSubmissionId   String?           @db.ObjectId
   bestSubmission     Submission?       @relation(fields: [bestSubmissionId], references: [id])
   LeaderboardEntry   LeaderboardEntry? @relation(fields: [leaderboardEntryId], references: [id])

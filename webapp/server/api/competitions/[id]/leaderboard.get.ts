@@ -15,7 +15,7 @@ interface LeaderboardEntryResponse {
     score: number
     bestSubmission?: {
       id: string
-      submittedAt: Date
+      createdAt: Date
       score?: number
       user?: {
         username: string
@@ -114,7 +114,7 @@ export default defineEventHandler(async (event) => {
       score: problemScore.score,
       bestSubmission: problemScore.bestSubmission ? {
         id: problemScore.bestSubmission.id,
-        submittedAt: problemScore.bestSubmission.submittedAt,
+        createdAt: problemScore.bestSubmission.createdAt,
         score: problemScore.bestSubmission.score ?? undefined,
         user: problemScore.bestSubmission.user ? {
           username: problemScore.bestSubmission.user.username,

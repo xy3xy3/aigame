@@ -108,7 +108,7 @@ export default defineEventHandler(async (event) => {
         }
       },
       orderBy: {
-        submittedAt: 'desc'
+        createdAt: 'desc'
       },
       skip: (page - 1) * limit,
       take: limit
