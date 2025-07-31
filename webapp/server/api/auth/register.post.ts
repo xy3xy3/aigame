@@ -38,25 +38,33 @@ export default defineEventHandler(async (event) => {
 
 
     // Check if user already exists
+    const orConditions: any[] = [
+      { email },
+      { username }
+    ]
+
+    // 如果提供了学号，也检查学号是否重复
+    if (studentId) {
+      orConditions.push({ studentId })
+    }
+
     const existingUser = await prisma.user.findFirst({
       where: {
-        OR: [
-          { email },
-          { username }
-        ]
+        OR: orConditions
       }
     })
 
     if (existingUser) {
-      const errorMessage = existingUser.email === email
-        ? 'Email already registered'
-        : 'Username already taken'
-      console.log('🔍 [DEBUG] 用户已存在错误:', {
-        statusCode: 409,
-        statusMessage: errorMessage,
-        existingEmail: existingUser.email,
-        requestEmail: email
-      })
+      let errorMessage = '用户信息冲突'
+
+      if (existingUser.email === email) {
+        errorMessage = '该邮箱已被注册'
+      } else if (existingUser.username === username) {
+        errorMessage = '该用户名已被占用'
+      } else if (existingUser.studentId === studentId) {
+        errorMessage = '该学号已被注册'
+      }
+
       throw createError({
         statusCode: 409,
         statusMessage: errorMessage
@@ -132,25 +140,57 @@ export default defineEventHandler(async (event) => {
     }
 
   } catch (error: any) {
+    // 处理数据库唯一约束冲突
     if (error.code === 'P2002') {
+      // 检查冲突的字段
+      const target = error.meta?.target
+      let errorMessage = '用户信息冲突'
+
+      if (target?.includes('email')) {
+        errorMessage = '该邮箱已被注册'
+      } else if (target?.includes('username')) {
+        errorMessage = '该用户名已被占用'
+      } else if (target?.includes('studentId')) {
+        errorMessage = '该学号已被注册'
+      }
+
       throw createError({
         statusCode: 409,
-        statusMessage: 'User already exists'
+        statusMessage: errorMessage
       })
     }
 
+    // 处理输入验证错误
     if (error instanceof z.ZodError) {
+      const firstIssue = error.issues[0]
+      let errorMessage = '输入信息格式不正确'
+
+      if (firstIssue?.path?.includes('email')) {
+        errorMessage = '请输入正确的邮箱格式'
+      } else if (firstIssue?.path?.includes('password')) {
+        errorMessage = '密码长度至少需要6位'
+      } else if (firstIssue?.path?.includes('username')) {
+        errorMessage = '用户名格式不正确，只能包含字母、数字、下划线和连字符'
+      } else if (firstIssue?.path?.includes('phoneNumber')) {
+        errorMessage = '请输入正确的手机号格式'
+      }
+
       throw createError({
         statusCode: 400,
-        statusMessage: 'Validation failed',
-        data: error.issues
+        statusMessage: errorMessage
       })
     }
 
+    // 如果是已经格式化的错误（比如来自createError），直接重新抛出
+    if (error.statusCode && error.statusMessage) {
+      throw error
+    }
+
+    // 未知错误
     console.error('注册过程中发生错误:', error)
     throw createError({
       statusCode: 500,
-      statusMessage: 'Internal server error'
+      statusMessage: '注册失败，请稍后重试'
     })
   }
 })
