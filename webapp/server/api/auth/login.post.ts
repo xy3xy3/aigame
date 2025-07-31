@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { verifyPassword, excludePassword } from '../../utils/auth'
+import { verifyPassword, excludePassword, checkUserCanLogin } from '../../utils/auth'
 import { generateToken } from '../../utils/jwt'
 import prisma from '../../utils/prisma'
 
@@ -47,6 +47,9 @@ export default defineEventHandler(async (event) => {
         statusMessage: 'Invalid credentials'
       })
     }
+
+    // Check user status
+    checkUserCanLogin(user)
 
     // Generate JWT token
     const token = generateToken(user)

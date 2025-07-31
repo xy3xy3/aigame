@@ -1,4 +1,5 @@
 import { getUserFromToken } from '../utils/jwt'
+import { checkUserBanned } from '../utils/auth'
 
 export default defineEventHandler(async (event) => {
   // Only apply to protected API routes
@@ -34,6 +35,17 @@ export default defineEventHandler(async (event) => {
     throw createError({
       statusCode: 401,
       statusMessage: 'Invalid token'
+    })
+  }
+
+  // Check if user is banned - force logout if banned
+  try {
+    checkUserBanned(user)
+  } catch (error) {
+    deleteCookie(event, 'auth-token')
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Account has been banned'
     })
   }
 
