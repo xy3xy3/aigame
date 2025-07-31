@@ -112,6 +112,114 @@
                 {{ getEducationLabel(data.user.education) || "未设置" }}
               </dd>
             </div>
+            <div class="sm:col-span-2">
+              <dt class="text-sm font-medium text-gray-500">账户验证状态</dt>
+              <dd class="mt-1">
+                <div class="flex items-center space-x-4">
+                  <!-- 邮箱验证状态 -->
+                  <div class="flex items-center space-x-2">
+                    <div class="flex items-center">
+                      <svg
+                        :class="[
+                          'w-5 h-5 mr-1',
+                          data.user.emailVerifiedAt ? 'text-green-500' : 'text-gray-400',
+                        ]"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"
+                        ></path>
+                        <path
+                          d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"
+                        ></path>
+                      </svg>
+                      <span class="text-sm text-gray-700">邮箱验证</span>
+                    </div>
+                    <span
+                      :class="[
+                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                        data.user.emailVerifiedAt
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800',
+                      ]"
+                    >
+                      {{ data.user.emailVerifiedAt ? "已验证" : "待验证" }}
+                    </span>
+                  </div>
+
+                  <!-- 账户状态 -->
+                  <div class="flex items-center space-x-2">
+                    <div class="flex items-center">
+                      <svg
+                        :class="['w-5 h-5 mr-1', getAccountStatusColor(data.user.status)]"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                      <span class="text-sm text-gray-700">账户状态</span>
+                    </div>
+                    <span
+                      :class="[
+                        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                        getAccountStatusBadgeClass(data.user.status),
+                      ]"
+                    >
+                      {{ getAccountStatusLabel(data.user.status) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- 未验证邮箱的提示信息 -->
+                <div
+                  v-if="!data.user.emailVerifiedAt"
+                  class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md"
+                >
+                  <div class="flex items-start">
+                    <svg
+                      class="w-5 h-5 text-yellow-400 mt-0.5 mr-2 flex-shrink-0"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clip-rule="evenodd"
+                      ></path>
+                    </svg>
+                    <div class="flex-1">
+                      <p class="text-sm text-yellow-800">
+                        您的邮箱尚未验证，部分功能可能受限。
+                        <button
+                          @click="resendVerificationEmail"
+                          :disabled="isResendingVerification"
+                          class="font-medium underline hover:no-underline disabled:opacity-50"
+                        >
+                          {{ isResendingVerification ? "发送中..." : "重新发送验证邮件" }}
+                        </button>
+                      </p>
+                      <div v-if="resendMessage" class="mt-1">
+                        <p
+                          :class="[
+                            'text-sm',
+                            resendMessage.includes('成功')
+                              ? 'text-green-700'
+                              : 'text-red-700',
+                          ]"
+                        >
+                          {{ resendMessage }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </dd>
+            </div>
           </dl>
         </div>
 
@@ -372,6 +480,10 @@ const isUpdating = ref(false);
 const updateError = ref("");
 const updateSuccess = ref("");
 
+// 邮箱验证相关
+const isResendingVerification = ref(false);
+const resendMessage = ref("");
+
 // 头像相关
 const avatarFile = ref(null);
 const avatarPreview = ref(null);
@@ -513,6 +625,82 @@ const getEducationLabel = (education) => {
       return "博士";
     default:
       return "";
+  }
+};
+
+// 获取账户状态标签
+const getAccountStatusLabel = (status) => {
+  switch (status) {
+    case "PENDING":
+      return "待激活";
+    case "ACTIVE":
+      return "正常";
+    case "BANNED":
+      return "已封禁";
+    default:
+      return "未知";
+  }
+};
+
+// 获取账户状态图标颜色
+const getAccountStatusColor = (status) => {
+  switch (status) {
+    case "PENDING":
+      return "text-yellow-500";
+    case "ACTIVE":
+      return "text-green-500";
+    case "BANNED":
+      return "text-red-500";
+    default:
+      return "text-gray-400";
+  }
+};
+
+// 获取账户状态徽章样式
+const getAccountStatusBadgeClass = (status) => {
+  switch (status) {
+    case "PENDING":
+      return "bg-yellow-100 text-yellow-800";
+    case "ACTIVE":
+      return "bg-green-100 text-green-800";
+    case "BANNED":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+// 重新发送验证邮件
+const resendVerificationEmail = async () => {
+  if (isResendingVerification.value) return;
+
+  isResendingVerification.value = true;
+  resendMessage.value = "";
+
+  try {
+    const response = await $fetch("/api/auth/resend-verification", {
+      method: "POST",
+      body: {
+        email: data.value.user.email,
+      },
+    });
+
+    resendMessage.value = "验证邮件已发送，请查收邮箱";
+
+    // 3秒后清除消息
+    setTimeout(() => {
+      resendMessage.value = "";
+    }, 3000);
+  } catch (error) {
+    resendMessage.value =
+      error.data?.message || error.statusMessage || "发送失败，请稍后重试";
+
+    // 5秒后清除错误消息
+    setTimeout(() => {
+      resendMessage.value = "";
+    }, 5000);
+  } finally {
+    isResendingVerification.value = false;
   }
 };
 </script>
