@@ -126,6 +126,12 @@
               >
                 注册时间
               </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                操作
+              </th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
@@ -165,6 +171,14 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {{ formatDate(user.createdAt) }}
               </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button
+                  @click="openEditModal(user)"
+                  class="text-indigo-600 hover:text-indigo-900"
+                >
+                  编辑
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -190,6 +204,192 @@
       />
     </div>
   </div>
+
+  <!-- 用户编辑模态框 -->
+  <div v-if="showEditModal" class="fixed inset-0 overflow-y-auto z-50">
+    <div
+      class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+    >
+      <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+        <div
+          @click="closeEditModal"
+          class="absolute inset-0 bg-gray-500 opacity-75"
+        ></div>
+      </div>
+
+      <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true"
+        >&#8203;</span
+      >
+
+      <div
+        class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+      >
+        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+          <div class="sm:flex sm:items-start">
+            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                编辑用户信息
+              </h3>
+              <div class="mt-2">
+                <form @submit.prevent="saveUser">
+                  <div class="mb-4">
+                    <label
+                      for="user-username"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      用户名 *
+                    </label>
+                    <input
+                      id="user-username"
+                      v-model="userForm.username"
+                      type="text"
+                      readonly
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="user-realName"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      真实姓名
+                    </label>
+                    <input
+                      id="user-realName"
+                      v-model="userForm.realName"
+                      type="text"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="输入真实姓名"
+                    />
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="user-email"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      邮箱 *
+                    </label>
+                    <input
+                      id="user-email"
+                      v-model="userForm.email"
+                      type="email"
+                      required
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="输入邮箱地址"
+                    />
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="user-phoneNumber"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      手机号
+                    </label>
+                    <input
+                      id="user-phoneNumber"
+                      v-model="userForm.phoneNumber"
+                      type="text"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="输入手机号"
+                    />
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="user-studentId"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      学号
+                    </label>
+                    <input
+                      id="user-studentId"
+                      v-model="userForm.studentId"
+                      type="text"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="输入学号"
+                    />
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="user-education"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      学历
+                    </label>
+                    <select
+                      id="user-education"
+                      v-model="userForm.education"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="">请选择学历</option>
+                      <option value="BACHELOR">学士</option>
+                      <option value="MASTER">硕士</option>
+                      <option value="DOCTORATE">博士</option>
+                    </select>
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="user-role"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      角色 *
+                    </label>
+                    <select
+                      id="user-role"
+                      v-model="userForm.role"
+                      required
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="USER">普通用户</option>
+                      <option value="ADMIN">管理员</option>
+                    </select>
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="user-password"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      密码
+                    </label>
+                    <input
+                      id="user-password"
+                      v-model="userForm.password"
+                      type="password"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      placeholder="留空则不修改密码"
+                    />
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+          <button
+            @click="saveUser"
+            type="button"
+            :disabled="isSubmitting"
+            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+          >
+            {{ isSubmitting ? "保存中..." : "保存" }}
+          </button>
+          <button
+            @click="closeEditModal"
+            type="button"
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+          >
+            取消
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -202,6 +402,21 @@ definePageMeta({
 const searchQuery = ref("");
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
+
+// 用户编辑模态框相关
+const showEditModal = ref(false);
+const isSubmitting = ref(false);
+const userForm = ref({
+  id: "",
+  username: "",
+  realName: "",
+  email: "",
+  phoneNumber: "",
+  studentId: "",
+  education: "",
+  role: "USER",
+  password: "",
+});
 
 // 构建查询参数
 const queryParams = computed(() => ({
@@ -252,6 +467,96 @@ const getEducationLabel = (education) => {
       return "博士";
     default:
       return "";
+  }
+};
+
+// 打开编辑模态框
+const openEditModal = (user) => {
+  userForm.value = {
+    id: user.id,
+    username: user.username,
+    realName: user.realName || "",
+    email: user.email,
+    phoneNumber: user.phoneNumber || "",
+    studentId: user.studentId || "",
+    education: user.education || "",
+    role: user.role.toUpperCase(),
+    password: "",
+  };
+  showEditModal.value = true;
+};
+
+// 关闭编辑模态框
+const closeEditModal = () => {
+  showEditModal.value = false;
+};
+
+// 表单验证
+const validateForm = () => {
+  // 验证邮箱格式
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(userForm.value.email)) {
+    push.error("请输入有效的邮箱地址");
+    return false;
+  }
+
+  // 验证手机号格式（如果填写了）
+  if (userForm.value.phoneNumber) {
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!phoneRegex.test(userForm.value.phoneNumber)) {
+      push.error("请输入有效的手机号码");
+      return false;
+    }
+  }
+
+  return true;
+};
+
+// 保存用户信息
+const saveUser = async () => {
+  if (isSubmitting.value) return;
+
+  // 表单验证
+  if (!validateForm()) {
+    return;
+  }
+
+  isSubmitting.value = true;
+
+  try {
+    // 准备提交的数据
+    const userData = {
+      realName: userForm.value.realName || undefined,
+      email: userForm.value.email,
+      phoneNumber: userForm.value.phoneNumber || undefined,
+      studentId: userForm.value.studentId || undefined,
+      education: userForm.value.education || undefined,
+      role: userForm.value.role,
+    };
+
+    // 如果填写了密码，则添加到提交数据中
+    if (userForm.value.password) {
+      userData.password = userForm.value.password;
+    }
+
+    // 调用API更新用户信息
+    const response = await $fetch(`/api/admin/users/${userForm.value.id}`, {
+      method: "PUT",
+      body: userData,
+    });
+
+    if (response.success) {
+      closeEditModal();
+      await refresh();
+      push.success("用户信息更新成功");
+    } else {
+      push.error("更新用户信息失败");
+    }
+  } catch (err) {
+    console.error("保存用户信息时出错:", err);
+    push.error("保存用户信息时出错: " + (err.data?.message || err.message || "未知错误"));
+  } finally {
+    isSubmitting.value = false;
   }
 };
 </script>

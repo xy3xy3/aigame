@@ -73,9 +73,13 @@ export default defineEventHandler(async (event) => {
     teams: teams.map(team => ({
       id: team.id,
       name: team.name,
+      description: team.description,
+      avatarUrl: team.avatarUrl,
+      isLocked: team.isLocked,
       creator: team.members.find(member => member.role === 'CREATOR')?.user || null,
       memberCount: team.members.length,
-      createdAt: team.createdAt
+      createdAt: team.createdAt,
+      updatedAt: team.updatedAt
     })),
     pagination: {
       page,

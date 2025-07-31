@@ -100,7 +100,19 @@
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
+                锁定状态
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 创建时间
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                操作
               </th>
             </tr>
           </thead>
@@ -119,7 +131,27 @@
                 {{ team.memberCount }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <span
+                  :class="
+                    team.isLocked
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-green-100 text-green-800'
+                  "
+                  class="px-2 py-1 rounded-full text-xs font-medium"
+                >
+                  {{ team.isLocked ? "已锁定" : "未锁定" }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {{ formatDate(team.createdAt) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <button
+                  @click="openModal(team)"
+                  class="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded-md text-sm font-medium"
+                >
+                  编辑
+                </button>
               </td>
             </tr>
           </tbody>
@@ -145,6 +177,121 @@
         @items-per-page-change="changeItemsPerPage"
       />
     </div>
+
+    <!-- 队伍编辑模态框 -->
+    <div v-if="showModal" class="fixed inset-0 overflow-y-auto z-50">
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div @click="closeModal" class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
+        <div
+          class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full"
+        >
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">编辑队伍</h3>
+                <div class="mt-2">
+                  <form @submit.prevent="saveTeam">
+                    <div class="mb-4">
+                      <label
+                        for="team-name"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        队伍名称 *
+                      </label>
+                      <input
+                        id="team-name"
+                        v-model="teamForm.name"
+                        type="text"
+                        required
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="输入队伍名称"
+                      />
+                    </div>
+
+                    <div class="mb-4">
+                      <label
+                        for="team-description"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        队伍描述
+                      </label>
+                      <textarea
+                        id="team-description"
+                        v-model="teamForm.description"
+                        rows="3"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="输入队伍描述"
+                      ></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                      <label
+                        for="team-avatar"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        头像URL
+                      </label>
+                      <input
+                        id="team-avatar"
+                        v-model="teamForm.avatarUrl"
+                        type="text"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="输入头像URL"
+                      />
+                    </div>
+
+                    <div class="mb-4">
+                      <div class="flex items-center">
+                        <input
+                          id="team-locked"
+                          v-model="teamForm.isLocked"
+                          type="checkbox"
+                          class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                        />
+                        <label for="team-locked" class="ml-2 block text-sm text-gray-900">
+                          锁定队伍
+                        </label>
+                      </div>
+                      <p class="mt-1 text-sm text-gray-500">
+                        锁定后，队伍将无法参加新的竞赛
+                      </p>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button
+              @click="saveTeam"
+              type="button"
+              :disabled="isSubmitting"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+            >
+              {{ isSubmitting ? "保存中..." : "保存" }}
+            </button>
+            <button
+              @click="closeModal"
+              type="button"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -168,6 +315,17 @@ const queryParams = computed(() => ({
 
 const { data, pending, error, refresh } = await useFetch("/api/admin/teams", {
   query: queryParams,
+});
+
+// 模态框相关状态
+const showModal = ref(false);
+const isSubmitting = ref(false);
+const teamForm = ref({
+  id: "",
+  name: "",
+  description: "",
+  avatarUrl: "",
+  isLocked: false,
 });
 
 const searchTeams = () => {
@@ -195,5 +353,78 @@ const formatDate = (dateString) => {
     minute: "2-digit",
     second: "2-digit",
   });
+};
+
+// 打开模态框
+const openModal = (team) => {
+  if (team) {
+    // 编辑模式
+    teamForm.value = {
+      id: team.id,
+      name: team.name,
+      description: team.description || "",
+      avatarUrl: team.avatarUrl || "",
+      isLocked: team.isLocked || false,
+    };
+  } else {
+    // 新增模式（虽然当前需求没有提到新增，但保留此功能）
+    teamForm.value = {
+      id: "",
+      name: "",
+      description: "",
+      avatarUrl: "",
+      isLocked: false,
+    };
+  }
+  showModal.value = true;
+};
+
+// 关闭模态框
+const closeModal = () => {
+  showModal.value = false;
+};
+
+// 保存队伍信息
+const saveTeam = async () => {
+  if (isSubmitting.value) return;
+
+  // 表单验证
+  if (!teamForm.value.name.trim()) {
+    push.error("队伍名称不能为空");
+    return;
+  }
+
+  isSubmitting.value = true;
+
+  try {
+    // 调用API更新队伍信息
+    const response = await $fetch(`/api/admin/teams/${teamForm.value.id}`, {
+      method: "PUT",
+      body: {
+        name: teamForm.value.name,
+        description: teamForm.value.description,
+        avatarUrl: teamForm.value.avatarUrl,
+        isLocked: teamForm.value.isLocked,
+      },
+    });
+
+    if (response.success) {
+      // 关闭模态框
+      closeModal();
+
+      // 刷新列表
+      await refresh();
+
+      // 显示成功消息
+      push.success("队伍信息更新成功");
+    } else {
+      push.error("更新队伍信息失败");
+    }
+  } catch (err) {
+    console.error("保存队伍信息时出错:", err);
+    push.error("保存队伍信息时出错: " + (err.data?.message || err.message || "未知错误"));
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 </script>
