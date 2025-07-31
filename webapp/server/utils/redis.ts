@@ -15,6 +15,7 @@ export function getRedisClient(): Redis {
 
     redisClient = new Redis(config.redisUrl, {
       password: config.redisPassword,
+      maxRetriesPerRequest: null, // BullMQ要求设置为null
     })
 
     redisClient.on('error', (err) => {
