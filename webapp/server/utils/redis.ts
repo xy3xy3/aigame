@@ -6,15 +6,22 @@ export function getRedisClient(): Redis {
   if (!redisClient) {
     const config = useRuntimeConfig()
 
+    // 添加调试日志来验证配置
+    console.log('Redis 配置调试信息:')
+    console.log('- redisUrl:', config.redisUrl)
+    console.log('- redisPassword:', config.redisPassword ? '[已设置]' : '[未设置/undefined]')
+    console.log('- redisPassword 类型:', typeof config.redisPassword)
+    console.log('- redisPassword 值:', config.redisPassword)
+
     redisClient = new Redis(config.redisUrl, {
       password: config.redisPassword,
-      retryDelayOnFailover: 100,
-      enableReadyCheck: false,
-      maxRetriesPerRequest: null,
     })
 
     redisClient.on('error', (err) => {
       console.error('Redis connection error:', err)
+      console.error('连接失败时的配置信息:')
+      console.error('- URL:', config.redisUrl)
+      console.error('- Password:', config.redisPassword ? '已设置' : '未设置')
     })
 
     redisClient.on('connect', () => {
@@ -68,14 +75,14 @@ export async function updateLeaderboard(competitionId: string, teamId: string, s
   await client.zadd(key, score, teamId)
 }
 
-export async function getLeaderboard(competitionId: string, limit: number = 100): Promise<Array<{teamId: string, score: number, rank: number}>> {
+export async function getLeaderboard(competitionId: string, limit: number = 100): Promise<Array<{ teamId: string, score: number, rank: number }>> {
   const client = getRedisClient()
   const key = `leaderboard:${competitionId}`
 
   // 获取排行榜（按分数降序）
   const results = await client.zrevrange(key, 0, limit - 1, 'WITHSCORES')
 
-  const leaderboard: Array<{teamId: string, score: number, rank: number}> = []
+  const leaderboard: Array<{ teamId: string, score: number, rank: number }> = []
 
   for (let i = 0; i < results.length; i += 2) {
     const teamId = results[i]
@@ -88,7 +95,7 @@ export async function getLeaderboard(competitionId: string, limit: number = 100)
   return leaderboard
 }
 
-export async function getTeamRank(competitionId: string, teamId: string): Promise<{rank: number, score: number} | null> {
+export async function getTeamRank(competitionId: string, teamId: string): Promise<{ rank: number, score: number } | null> {
   const client = getRedisClient()
   const key = `leaderboard:${competitionId}`
 
