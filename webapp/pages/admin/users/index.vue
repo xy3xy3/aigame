@@ -124,6 +124,18 @@
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
+                用户状态
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                邮箱验证
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 注册时间
               </th>
               <th
@@ -167,6 +179,28 @@
                 >
                   {{ user.role === "admin" ? "管理员" : "普通用户" }}
                 </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <span
+                  :class="getStatusClass(user.status)"
+                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                >
+                  {{ getStatusLabel(user.status) }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <span
+                  :class="{
+                    'bg-green-100 text-green-800': user.emailVerifiedAt,
+                    'bg-red-100 text-red-800': !user.emailVerifiedAt,
+                  }"
+                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                >
+                  {{ user.emailVerifiedAt ? "已验证" : "未验证" }}
+                </span>
+                <div v-if="user.emailVerifiedAt" class="text-xs text-gray-400 mt-1">
+                  {{ formatDate(user.emailVerifiedAt) }}
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {{ formatDate(user.createdAt) }}
@@ -352,6 +386,59 @@
 
                   <div class="mb-4">
                     <label
+                      for="user-status"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      用户状态 *
+                    </label>
+                    <select
+                      id="user-status"
+                      v-model="userForm.status"
+                      required
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="PENDING">待确认</option>
+                      <option value="ACTIVE">正常</option>
+                      <option value="BANNED">封禁</option>
+                    </select>
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="user-emailVerifiedAt"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      邮箱验证时间
+                    </label>
+                    <div class="flex gap-2">
+                      <input
+                        id="user-emailVerifiedAt"
+                        v-model="userForm.emailVerifiedAt"
+                        type="datetime-local"
+                        class="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        @click="setCurrentTime"
+                        class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md"
+                      >
+                        设为当前时间
+                      </button>
+                      <button
+                        type="button"
+                        @click="clearEmailVerification"
+                        class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded-md"
+                      >
+                        清除验证
+                      </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">
+                      设置邮箱验证时间，留空表示未验证
+                    </p>
+                  </div>
+
+                  <div class="mb-4">
+                    <label
                       for="user-password"
                       class="block text-sm font-medium text-gray-700 mb-1"
                     >
@@ -415,6 +502,8 @@ const userForm = ref({
   studentId: "",
   education: "",
   role: "USER",
+  status: "ACTIVE",
+  emailVerifiedAt: "",
   password: "",
 });
 
@@ -470,6 +559,65 @@ const getEducationLabel = (education) => {
   }
 };
 
+// 获取用户状态标签
+const getStatusLabel = (status) => {
+  switch (status) {
+    case "PENDING":
+      return "待确认";
+    case "ACTIVE":
+      return "正常";
+    case "BANNED":
+      return "封禁";
+    default:
+      return "未知";
+  }
+};
+
+// 获取用户状态样式类
+const getStatusClass = (status) => {
+  switch (status) {
+    case "PENDING":
+      return "bg-yellow-100 text-yellow-800";
+    case "ACTIVE":
+      return "bg-green-100 text-green-800";
+    case "BANNED":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+// 设置当前时间为邮箱验证时间
+const setCurrentTime = () => {
+  const now = new Date();
+  // 转换为本地时间格式 (YYYY-MM-DDTHH:MM)
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+
+  userForm.value.emailVerifiedAt = `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+// 清除邮箱验证时间
+const clearEmailVerification = () => {
+  userForm.value.emailVerifiedAt = "";
+};
+
+// 格式化ISO时间字符串为本地时间输入格式
+const formatDateTimeForInput = (isoString) => {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 // 打开编辑模态框
 const openEditModal = (user) => {
   userForm.value = {
@@ -481,6 +629,8 @@ const openEditModal = (user) => {
     studentId: user.studentId || "",
     education: user.education || "",
     role: user.role.toUpperCase(),
+    status: user.status || "ACTIVE",
+    emailVerifiedAt: formatDateTimeForInput(user.emailVerifiedAt),
     password: "",
   };
   showEditModal.value = true;
@@ -532,6 +682,10 @@ const saveUser = async () => {
       studentId: userForm.value.studentId || undefined,
       education: userForm.value.education || undefined,
       role: userForm.value.role,
+      status: userForm.value.status,
+      emailVerifiedAt: userForm.value.emailVerifiedAt
+        ? new Date(userForm.value.emailVerifiedAt).toISOString()
+        : null,
     };
 
     // 如果填写了密码，则添加到提交数据中

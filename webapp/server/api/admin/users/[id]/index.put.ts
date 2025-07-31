@@ -26,7 +26,7 @@ export default defineEventHandler(async (event) => {
 
     // 读取请求体
     const body = await readBody(event)
-    const { realName, email, phoneNumber, studentId, education, role, password } = body
+    const { realName, email, phoneNumber, studentId, education, role, password, status, emailVerifiedAt } = body
 
     // 检查用户是否存在
     const existingUser = await prisma.user.findUnique({
@@ -85,6 +85,28 @@ export default defineEventHandler(async (event) => {
         }
     }
 
+    // 验证用户状态（如果提供了状态）
+    if (status !== undefined) {
+        const validStatuses = ['PENDING', 'ACTIVE', 'BANNED']
+        if (!validStatuses.includes(status)) {
+            throw createError({
+                statusCode: 400,
+                statusMessage: 'Invalid user status. Must be one of: PENDING, ACTIVE, BANNED'
+            })
+        }
+    }
+
+    // 验证邮箱验证时间（如果提供了）
+    if (emailVerifiedAt !== undefined && emailVerifiedAt !== null) {
+        const date = new Date(emailVerifiedAt)
+        if (isNaN(date.getTime())) {
+            throw createError({
+                statusCode: 400,
+                statusMessage: 'Invalid emailVerifiedAt format. Must be a valid ISO date string'
+            })
+        }
+    }
+
     // 准备更新数据
     const updateData: any = {}
 
@@ -94,6 +116,10 @@ export default defineEventHandler(async (event) => {
     if (studentId !== undefined) updateData.studentId = studentId
     if (education !== undefined) updateData.education = education
     if (role !== undefined) updateData.role = role
+    if (status !== undefined) updateData.status = status
+    if (emailVerifiedAt !== undefined) {
+        updateData.emailVerifiedAt = emailVerifiedAt === null ? null : new Date(emailVerifiedAt)
+    }
 
     // 如果提供了密码，则进行哈希处理
     if (password) {
