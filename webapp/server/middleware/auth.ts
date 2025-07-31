@@ -10,7 +10,8 @@ export default defineEventHandler(async (event) => {
   const excludedAuthRoutes = [
     '/api/auth/login',
     '/api/auth/register',
-    '/api/auth/logout'
+    '/api/auth/logout',
+    '/api/settings'
   ]
 
   if (excludedAuthRoutes.includes(event.path)) {

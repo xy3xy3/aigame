@@ -16,7 +16,7 @@ importers:
         version: 6.12.0(prisma@6.12.0(typescript@5.8.3))(typescript@5.8.3)
       '@sidebase/nuxt-auth':
         specifier: ^1.0.0
-        version: 1.0.0(@netlify/blobs@9.1.2)(magicast@0.3.5)(next-auth@4.21.1(next@13.5.11(@babel/core@7.28.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(xml2js@0.6.2)
+        version: 1.0.0(@netlify/blobs@9.1.2)(magicast@0.3.5)(next-auth@4.21.1(next@13.5.11(@babel/core@7.28.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(nodemailer@7.0.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(xml2js@0.6.2)
       '@types/commander':
         specifier: ^2.12.5
         version: 2.12.5
@@ -68,6 +68,9 @@ importers:
       multer:
         specifier: ^2.0.2
         version: 2.0.2
+      nodemailer:
+        specifier: ^7.0.5
+        version: 7.0.5
       notivue:
         specifier: ^2.4.5
         version: 2.4.5(@nuxt/kit@4.0.1(magicast@0.3.5))(@nuxt/schema@4.0.1)(defu@6.1.4)
@@ -99,6 +102,9 @@ importers:
       '@pinia/nuxt':
         specifier: ^0.11.2
         version: 0.11.2(magicast@0.3.5)(pinia@3.0.3(typescript@5.8.3)(vue@3.5.18(typescript@5.8.3)))
+      '@types/nodemailer':
+        specifier: ^6.4.17
+        version: 6.4.17
       prisma:
         specifier: 6.12.0
         version: 6.12.0(typescript@5.8.3)
@@ -1622,6 +1628,9 @@ packages:
 
   '@types/node@24.1.0':
     resolution: {integrity: sha512-ut5FthK5moxFKH2T1CUOC6ctR67rQRvvHdFLCD2Ql6KXmMuCrjsSsRI9UsLCm9M18BMwClv4pn327UvB7eeO1w==}
+
+  '@types/nodemailer@6.4.17':
+    resolution: {integrity: sha512-I9CCaIp6DTldEg7vyUTZi8+9Vo0hi1/T8gv3C89yk1rSAAzoKQ8H8ki/jBYJSFoH/BisgLP8tkZMlQ91CIquww==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -4010,6 +4019,10 @@ packages:
   node-source-walk@7.0.1:
     resolution: {integrity: sha512-3VW/8JpPqPvnJvseXowjZcirPisssnBuDikk6JIZ8jQzF7KJQX52iPFX4RYYxLycYH7IbMRSPUOga/esVjy5Yg==}
     engines: {node: '>=18'}
+
+  nodemailer@7.0.5:
+    resolution: {integrity: sha512-nsrh2lO3j4GkLLXoeEksAMgAOqxOv6QumNRVQTJwKH4nuiww6iC2y7GyANs9kRAxCexg3+lTWM3PZ91iLlVjfg==}
+    engines: {node: '>=6.0.0'}
 
   nopt@8.1.0:
     resolution: {integrity: sha512-ieGu42u/Qsa4TFktmaKEwM6MQH0pOWnaB3htzh0JRtx84+Mebc0cbZYN5bC+6WTZ4+77xrL9Pn5m7CV6VIkV7A==}
@@ -7185,13 +7198,13 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.45.1':
     optional: true
 
-  '@sidebase/nuxt-auth@1.0.0(@netlify/blobs@9.1.2)(magicast@0.3.5)(next-auth@4.21.1(next@13.5.11(@babel/core@7.28.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(xml2js@0.6.2)':
+  '@sidebase/nuxt-auth@1.0.0(@netlify/blobs@9.1.2)(magicast@0.3.5)(next-auth@4.21.1(next@13.5.11(@babel/core@7.28.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(nodemailer@7.0.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(xml2js@0.6.2)':
     dependencies:
       '@nuxt/kit': 3.17.7(magicast@0.3.5)
       defu: 6.1.4
       h3: 1.15.3
       knitwork: 1.2.0
-      next-auth: 4.21.1(next@13.5.11(@babel/core@7.28.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next-auth: 4.21.1(next@13.5.11(@babel/core@7.28.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(nodemailer@7.0.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       nitropack: 2.12.4(@netlify/blobs@9.1.2)(xml2js@0.6.2)
       requrl: 3.0.2
       scule: 1.3.0
@@ -7303,6 +7316,10 @@ snapshots:
   '@types/node@24.1.0':
     dependencies:
       undici-types: 7.8.0
+
+  '@types/nodemailer@6.4.17':
+    dependencies:
+      '@types/node': 24.1.0
 
   '@types/normalize-package-data@2.4.4': {}
 
@@ -9791,7 +9808,7 @@ snapshots:
       p-wait-for: 5.0.2
       qs: 6.14.0
 
-  next-auth@4.21.1(next@13.5.11(@babel/core@7.28.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  next-auth@4.21.1(next@13.5.11(@babel/core@7.28.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(nodemailer@7.0.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.27.6
       '@panva/hkdf': 1.2.1
@@ -9805,6 +9822,8 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       uuid: 8.3.2
+    optionalDependencies:
+      nodemailer: 7.0.5
 
   next@13.5.11(@babel/core@7.28.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -9977,6 +9996,8 @@ snapshots:
   node-source-walk@7.0.1:
     dependencies:
       '@babel/parser': 7.28.0
+
+  nodemailer@7.0.5: {}
 
   nopt@8.1.0:
     dependencies:

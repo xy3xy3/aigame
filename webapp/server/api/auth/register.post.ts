@@ -1,6 +1,8 @@
 import { z } from 'zod'
+import { randomBytes } from 'crypto'
 import { hashPassword, verifyPassword, excludePassword } from '../../utils/auth'
 import { generateToken } from '../../utils/jwt'
+import { sendEmailVerification } from '../../utils/email'
 import prisma from '../../utils/prisma'
 
 // Validation schemas
@@ -46,16 +48,27 @@ export default defineEventHandler(async (event) => {
     })
 
     if (existingUser) {
+      const errorMessage = existingUser.email === email
+        ? 'Email already registered'
+        : 'Username already taken'
+      console.log('🔍 [DEBUG] 用户已存在错误:', {
+        statusCode: 409,
+        statusMessage: errorMessage,
+        existingEmail: existingUser.email,
+        requestEmail: email
+      })
       throw createError({
         statusCode: 409,
-        statusMessage: existingUser.email === email
-          ? 'Email already registered'
-          : 'Username already taken'
+        statusMessage: errorMessage
       })
     }
 
     // Hash password and create user
     const passwordHash = await hashPassword(password)
+
+    // Generate email verification token
+    const emailVerificationToken = randomBytes(32).toString('hex')
+    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24小时后过期
 
     const user = await prisma.user.create({
       data: {
@@ -65,13 +78,43 @@ export default defineEventHandler(async (event) => {
         phoneNumber,  // 添加手机号
         studentId,    // 添加学号
         realName,     // 添加真实姓名
-        education     // 添加学历
+        education,    // 添加学历
+        status: 'PENDING', // 设置用户状态为待验证
+        emailVerificationToken,
+        emailVerificationExpires
       }
     })
 
+    // 发送验证邮件
+    try {
+      const emailSent = await sendEmailVerification(email, emailVerificationToken, username)
+      if (!emailSent) {
+        console.warn(`邮件发送失败，但用户注册成功: ${email}`)
+      }
+    } catch (emailError) {
+      console.error('发送验证邮件时出错:', emailError)
+      // 邮件发送失败不阻止注册流程
+    }
+
     // Generate JWT token
     const token = generateToken(user)
-    const safeUser = excludePassword(user)
+
+    // 排除敏感字段的安全用户信息
+    const safeUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      role: user.role,
+      status: user.status,
+      phoneNumber: user.phoneNumber,
+      studentId: user.studentId,
+      realName: user.realName,
+      education: user.education,
+      emailVerifiedAt: user.emailVerifiedAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }
 
     // Set HTTP-only cookie
     setCookie(event, 'auth-token', token, {
@@ -84,10 +127,11 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       user: safeUser,
-      token
+      token,
+      message: '注册成功，请查收邮件进行验证'
     }
 
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'P2002') {
       throw createError({
         statusCode: 409,
@@ -103,6 +147,10 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    throw error
+    console.error('注册过程中发生错误:', error)
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Internal server error'
+    })
   }
 })
