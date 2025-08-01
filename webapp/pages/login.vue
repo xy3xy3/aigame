@@ -50,10 +50,20 @@
           </button>
         </div>
 
-        <div class="text-center">
-          <NuxtLink to="/register" class="text-indigo-600 hover:text-indigo-500">
-            还没有账户？注册
-          </NuxtLink>
+        <div class="text-center space-y-2">
+          <div>
+            <NuxtLink
+              to="/auth/forgot-password"
+              class="text-indigo-600 hover:text-indigo-500 text-sm"
+            >
+              忘记密码？
+            </NuxtLink>
+          </div>
+          <div>
+            <NuxtLink to="/register" class="text-indigo-600 hover:text-indigo-500">
+              还没有账户？注册
+            </NuxtLink>
+          </div>
         </div>
       </form>
     </div>
