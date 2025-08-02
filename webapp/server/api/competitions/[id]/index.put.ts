@@ -34,7 +34,8 @@ const updateCompetitionSchema = z.object({
   rules: z.string().max(5000),
   bannerUrl: z.string().optional(),
   startTime: z.string().datetime(),
-  endTime: z.string().datetime()
+  endTime: z.string().datetime(),
+  solutionSubmissionDeadlineDays: z.number().int().min(0).max(30).optional()
 })
 
 export default defineEventHandler(async (event) => {
@@ -65,7 +66,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
 
   try {
-    const { title, description, rules, bannerUrl: rawBannerUrl, startTime, endTime } = updateCompetitionSchema.parse(body)
+    const { title, description, rules, bannerUrl: rawBannerUrl, startTime, endTime, solutionSubmissionDeadlineDays } = updateCompetitionSchema.parse(body)
 
     // 处理横幅URL，确保保存的是相对路径
     const bannerUrl = extractBannerPath(rawBannerUrl)
@@ -134,7 +135,8 @@ export default defineEventHandler(async (event) => {
         rules,
         bannerUrl,
         startTime: start,
-        endTime: end
+        endTime: end,
+        ...(solutionSubmissionDeadlineDays !== undefined && { solutionSubmissionDeadlineDays })
       },
       include: {
         creator: {
