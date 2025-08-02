@@ -239,15 +239,13 @@
                       ref="fileInputRef"
                       type="file"
                       class="sr-only"
-                      accept=".pdf,.doc,.docx,.zip,.rar,.txt,.md"
+                      accept=".pdf"
                       @change="handleFileSelect"
                     />
                   </label>
                   <p class="pl-1">或将文件拖拽到此处</p>
                 </div>
-                <p class="text-xs text-gray-500">
-                  支持 PDF、DOC、DOCX、ZIP、RAR、TXT、MD 格式，最大 50MB
-                </p>
+                <p class="text-xs text-gray-500">只支持 PDF 格式，最大 50MB</p>
               </div>
             </div>
 
@@ -638,12 +636,12 @@ const validateAndSetFile = (file) => {
   }
 
   // 检查文件格式
-  const allowedExtensions = [".pdf", ".doc", ".docx", ".zip", ".rar", ".txt", ".md"];
+  const allowedExtensions = [".pdf"];
   const fileName = file.name.toLowerCase();
   const isValidExtension = allowedExtensions.some((ext) => fileName.endsWith(ext));
 
   if (!isValidExtension) {
-    showNotification("error", "只支持 PDF、DOC、DOCX、ZIP、RAR、TXT、MD 格式的文件");
+    showNotification("error", "只支持 PDF 格式的文件");
     return;
   }
 

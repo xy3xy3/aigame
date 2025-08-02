@@ -116,6 +116,10 @@
             <div class="mt-4 flex items-center space-x-4 text-sm text-gray-500">
               <span>题目数: {{ competition.problems?.length || 0 }}</span>
               <span>提交数: {{ competition._count?.submissions || 0 }}</span>
+              <span
+                >题解提交截止:
+                {{ competition.solutionSubmissionDeadlineDays || 2 }}天</span
+              >
             </div>
           </div>
 
@@ -334,6 +338,27 @@
                         />
                       </div>
                     </div>
+                    <div class="mb-4">
+                      <label
+                        for="competition-solutionSubmissionDeadlineDays"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        题解提交截止天数 *
+                      </label>
+                      <input
+                        id="competition-solutionSubmissionDeadlineDays"
+                        v-model.number="competitionForm.solutionSubmissionDeadlineDays"
+                        type="number"
+                        min="1"
+                        max="30"
+                        required
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="输入题解提交截止天数"
+                      />
+                      <p class="mt-1 text-sm text-gray-500">
+                        设置比赛结束后多少天内可以提交题解，范围：1-30天，默认为2天
+                      </p>
+                    </div>
                   </form>
                 </div>
               </div>
@@ -454,6 +479,7 @@ const competitionForm = ref({
   bannerUrl: "",
   startTime: "",
   endTime: "",
+  solutionSubmissionDeadlineDays: 2,
 });
 
 const bannerPreview = ref("");
@@ -472,6 +498,7 @@ const openModal = (competition = null) => {
       bannerUrl: competition.bannerUrl || "",
       startTime: new Date(competition.startTime).toISOString().slice(0, 16),
       endTime: new Date(competition.endTime).toISOString().slice(0, 16),
+      solutionSubmissionDeadlineDays: competition.solutionSubmissionDeadlineDays || 2,
     };
     bannerPreview.value = competition.bannerUrl || "";
   } else {
@@ -485,6 +512,7 @@ const openModal = (competition = null) => {
       bannerUrl: "",
       startTime: "",
       endTime: "",
+      solutionSubmissionDeadlineDays: 2,
     };
     bannerPreview.value = "";
 
@@ -544,6 +572,14 @@ const saveCompetition = async () => {
       return;
     }
 
+    // 验证题解提交截止天数
+    const deadlineDays = competitionForm.value.solutionSubmissionDeadlineDays;
+    if (!deadlineDays || deadlineDays < 1 || deadlineDays > 30) {
+      push.error("题解提交截止天数必须在1-30天之间");
+      isSubmitting.value = false;
+      return;
+    }
+
     let response;
     if (isEditing.value) {
       // 编辑比赛
@@ -556,6 +592,8 @@ const saveCompetition = async () => {
           bannerUrl: competitionForm.value.bannerUrl || undefined,
           startTime: convertLocalToUTC(competitionForm.value.startTime),
           endTime: convertLocalToUTC(competitionForm.value.endTime),
+          solutionSubmissionDeadlineDays:
+            competitionForm.value.solutionSubmissionDeadlineDays,
         },
       });
     } else {
@@ -569,6 +607,8 @@ const saveCompetition = async () => {
           bannerUrl: competitionForm.value.bannerUrl || undefined,
           startTime: convertLocalToUTC(competitionForm.value.startTime),
           endTime: convertLocalToUTC(competitionForm.value.endTime),
+          solutionSubmissionDeadlineDays:
+            competitionForm.value.solutionSubmissionDeadlineDays,
         },
       });
     }

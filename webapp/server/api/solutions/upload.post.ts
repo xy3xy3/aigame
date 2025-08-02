@@ -10,26 +10,16 @@ const upload = multer({
         fileSize: 50 * 1024 * 1024, // 50MB限制
     },
     fileFilter: (req, file, cb) => {
-        // 允许的文件格式
-        const allowedTypes = [
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/zip',
-            'application/x-zip-compressed',
-            'application/x-rar-compressed',
-            'application/vnd.rar',
-            'text/plain',
-            'text/markdown'
-        ]
+        // 只允许PDF文件格式
+        const allowedTypes = ['application/pdf']
 
         const fileExtension = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'))
-        const allowedExtensions = ['.pdf', '.doc', '.docx', '.zip', '.rar', '.txt', '.md']
+        const allowedExtensions = ['.pdf']
 
         if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(fileExtension)) {
             cb(null, true)
         } else {
-            cb(new Error('只接受PDF、DOC、DOCX、ZIP、RAR、TXT、MD格式的文件') as any, false)
+            cb(new Error('只接受PDF格式的文件') as any, false)
         }
     }
 })
@@ -131,10 +121,10 @@ export default defineEventHandler(async (event) => {
             })
         }
 
-        // 检查提交时间窗口（比赛结束后2天内）
+        // 检查提交时间窗口（比赛结束后指定天数内）
         const now = new Date()
         const competitionEndTime = new Date(competition.endTime)
-        const solutionDeadline = new Date(competitionEndTime.getTime() + 2 * 24 * 60 * 60 * 1000) // 比赛结束后2天
+        const solutionDeadline = new Date(competitionEndTime.getTime() + competition.solutionSubmissionDeadlineDays * 24 * 60 * 60 * 1000)
 
         if (now < competitionEndTime) {
             throw createError({
@@ -144,9 +134,19 @@ export default defineEventHandler(async (event) => {
         }
 
         if (now > solutionDeadline) {
+            // 格式化截止时间为本地时间显示
+            const deadlineStr = solutionDeadline.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'Asia/Shanghai'
+            })
+
             throw createError({
                 statusCode: 400,
-                statusMessage: 'Solution submission deadline has passed (2 days after competition end)'
+                statusMessage: `Solution submission deadline has passed. Deadline was: ${deadlineStr} (${competition.solutionSubmissionDeadlineDays} days after competition end)`
             })
         }
 
@@ -175,17 +175,25 @@ export default defineEventHandler(async (event) => {
         const fileExtension = file.originalname.substring(file.originalname.lastIndexOf('.'))
         const generatedFileName = `${teamInfo.name}_${competition.title}${fileExtension}`
 
-        // 上传文件到MinIO
-        const objectName = `solutions/${competitionId}/${teamId}/${generatedFileName}`
+        // 清理文件名，只过滤HTTP头部不允许的字符：控制字符、换行符、回车符、制表符等
+        // 保留中文字符和其他Unicode字符
+        const cleanOriginalName = file.originalname.replace(/[\x00-\x1f\x7f\r\n\t]/g, '_')
+        const cleanGeneratedName = generatedFileName.replace(/[\x00-\x1f\x7f\r\n\t]/g, '_')
 
-        const fileUrl = await uploadFile('aigame', objectName, file.buffer, {
+        // 上传文件到MinIO
+        const objectName = `solutions/${competitionId}/${teamId}/${cleanGeneratedName}`
+
+        const metadata = {
             'Content-Type': file.mimetype,
-            'original-name': file.originalname,
-            'generated-name': generatedFileName,
-            'uploaded-by': user.id,
-            'team-id': teamId,
-            'competition-id': competitionId
-        })
+            'Original-Name': cleanOriginalName,
+            'Generated-Name': cleanGeneratedName,
+            'Uploaded-By': user.id,
+            'Team-Id': teamId,
+            'Competition-Id': competitionId,
+            'Upload-Timestamp': Date.now().toString()
+        }
+
+        const fileUrl = await uploadFile('aigame', objectName, file.buffer, metadata)
 
         // 创建或更新题解记录
         const solution = existingSolution
@@ -277,7 +285,7 @@ export default defineEventHandler(async (event) => {
             })
         }
 
-        if (error.message === '只接受PDF、DOC、DOCX、ZIP、RAR、TXT、MD格式的文件') {
+        if (error.message === '只接受PDF格式的文件') {
             throw createError({
                 statusCode: 400,
                 statusMessage: error.message
