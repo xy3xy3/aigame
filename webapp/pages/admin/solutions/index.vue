@@ -21,9 +21,17 @@
       </ol>
     </nav>
 
-    <div class="mb-6">
-      <h1 class="text-3xl font-bold text-gray-900">题解管理</h1>
-      <p class="mt-2 text-gray-600">查看和管理所有用户提交的题解</p>
+    <div class="mb-6 flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">题解管理</h1>
+        <p class="mt-2 text-gray-600">查看和管理所有用户提交的题解</p>
+      </div>
+      <button
+        @click="openBatchDownloadModal"
+        class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium"
+      >
+        批量下载
+      </button>
     </div>
 
     <!-- 筛选器 -->
@@ -192,13 +200,13 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div class="flex space-x-2">
-                  <button
-                    @click="downloadSolution(solution.id)"
-                    :disabled="downloadingId === solution.id"
-                    class="text-indigo-600 hover:text-indigo-900 disabled:opacity-50"
+                  <a
+                    :href="getDirectDownloadUrl(solution.fileUrl)"
+                    target="_blank"
+                    class="text-indigo-600 hover:text-indigo-900"
                   >
-                    {{ downloadingId === solution.id ? "下载中..." : "下载" }}
-                  </button>
+                    下载
+                  </a>
                   <button
                     @click="viewSolutionDetails(solution)"
                     class="text-blue-600 hover:text-blue-900"
@@ -316,20 +324,93 @@
             </div>
           </div>
           <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-            <button
-              @click="downloadSolution(selectedSolution.id)"
-              type="button"
-              :disabled="downloadingId === selectedSolution.id"
-              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+            <a
+              :href="getDirectDownloadUrl(selectedSolution.fileUrl)"
+              target="_blank"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
             >
-              {{ downloadingId === selectedSolution.id ? "下载中..." : "下载题解" }}
-            </button>
+              下载题解
+            </a>
             <button
               @click="closeDetailModal"
               type="button"
               class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
             >
               关闭
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 批量下载模态框 -->
+    <div v-if="showBatchDownloadModal" class="fixed inset-0 overflow-y-auto z-50">
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+          <div
+            @click="closeBatchDownloadModal"
+            class="absolute inset-0 bg-gray-500 opacity-75"
+          ></div>
+        </div>
+
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
+        <div
+          class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+        >
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  批量下载题解
+                </h3>
+                <div class="mt-2">
+                  <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2"
+                      >选择比赛</label
+                    >
+                    <select
+                      v-model="selectedBatchCompetitionId"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="">请选择比赛</option>
+                      <option
+                        v-for="competition in competitions"
+                        :key="competition.id"
+                        :value="competition.id"
+                      >
+                        {{ competition.title }}
+                      </option>
+                    </select>
+                  </div>
+                  <div v-if="selectedBatchCompetitionId" class="text-sm text-gray-600">
+                    <p>将下载选中比赛的所有题解文件，打包为ZIP格式</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button
+              @click="downloadBatchSolutions"
+              type="button"
+              :disabled="!selectedBatchCompetitionId || isBatchDownloading"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+            >
+              {{ isBatchDownloading ? "下载中..." : "开始下载" }}
+            </button>
+            <button
+              @click="closeBatchDownloadModal"
+              type="button"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              取消
             </button>
           </div>
         </div>
@@ -354,7 +435,9 @@ const currentPage = ref(1);
 // 模态框状态
 const showDetailModal = ref(false);
 const selectedSolution = ref(null);
-const downloadingId = ref(null);
+const showBatchDownloadModal = ref(false);
+const selectedBatchCompetitionId = ref("");
+const isBatchDownloading = ref(false);
 
 // 下拉选项数据
 const competitions = ref([]);
@@ -440,30 +523,79 @@ const formatFileSize = (bytes) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
-const downloadSolution = async (solutionId) => {
-  downloadingId.value = solutionId;
+// 获取直接下载URL
+const getDirectDownloadUrl = (fileUrl) => {
+  // fileUrl 格式：aigame/solutions/competitionId/teamId/filename.pdf
+  const [bucketName, ...pathParts] = fileUrl.split("/");
+  const objectName = pathParts.join("/");
+
+  // 使用MinIO的公共URL格式
+  const config = useRuntimeConfig();
+  const baseUrl = config.public.minioPublicUrl || "http://localhost:9000";
+  return `${baseUrl}/${bucketName}/${objectName}`;
+};
+
+// 批量下载功能
+const openBatchDownloadModal = () => {
+  showBatchDownloadModal.value = true;
+};
+
+const closeBatchDownloadModal = () => {
+  showBatchDownloadModal.value = false;
+  selectedBatchCompetitionId.value = "";
+};
+
+const downloadBatchSolutions = async () => {
+  if (!selectedBatchCompetitionId.value) return;
+
+  isBatchDownloading.value = true;
   try {
-    const response = await $fetch("/api/admin/solutions/download", {
-      method: "POST",
-      body: { solutionIds: [solutionId] },
+    // 获取选中比赛的所有题解ID
+    const solutionsResponse = await $fetch("/api/admin/solutions", {
+      query: {
+        competitionId: selectedBatchCompetitionId.value,
+        limit: 1000, // 获取所有题解
+      },
     });
 
-    if (response.success && response.downloadUrl) {
-      // 创建临时链接下载文件
+    if (!solutionsResponse.solutions || solutionsResponse.solutions.length === 0) {
+      push.warning("该比赛没有题解可下载");
+      return;
+    }
+
+    const solutionIds = solutionsResponse.solutions.map((s) => s.id);
+
+    const response = await $fetch("/api/admin/solutions/download", {
+      method: "POST",
+      body: {
+        solutionIds,
+        filename: `solutions_${
+          competitions.value.find((c) => c.id === selectedBatchCompetitionId.value)
+            ?.title || "batch"
+        }`,
+      },
+    });
+
+    if (response) {
+      // 创建Blob并下载
+      const blob = new Blob([response], { type: "application/zip" });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = response.downloadUrl;
-      link.download = `solutions_${solutionId}.zip`;
+      link.href = url;
+      link.download = `solutions_batch_${Date.now()}.zip`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
 
-      push.success("题解下载成功");
+      push.success("批量下载成功");
+      closeBatchDownloadModal();
     }
   } catch (error) {
-    console.error("下载题解失败:", error);
-    push.error("下载题解失败: " + (error.data?.message || error.message));
+    console.error("批量下载失败:", error);
+    push.error("批量下载失败: " + (error.data?.message || error.message));
   } finally {
-    downloadingId.value = null;
+    isBatchDownloading.value = false;
   }
 };
 

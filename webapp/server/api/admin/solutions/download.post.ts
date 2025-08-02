@@ -136,7 +136,9 @@ export default defineEventHandler(async (event) => {
 
         // 设置响应头
         const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
-        const zipFilename = `${filename}_${timestamp}.zip`
+        // 清理文件名，移除或替换不安全的字符，确保HTTP头部兼容
+        const cleanFilename = filename.replace(/[^\w\-_]/g, '_')
+        const zipFilename = `${cleanFilename}_${timestamp}.zip`
 
         setHeader(event, 'Content-Type', 'application/zip')
         setHeader(event, 'Content-Disposition', `attachment; filename="${zipFilename}"`)
