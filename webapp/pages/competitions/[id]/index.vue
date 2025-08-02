@@ -117,6 +117,85 @@
                 >
                   参加比赛
                 </button>
+                <!-- 题解提交按钮 -->
+                <NuxtLink
+                  v-if="showSolutionButton"
+                  :to="`/competitions/${data.competition.id}/solutions`"
+                  :class="[
+                    'flex-1 px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all duration-200 transform hover:scale-105 text-center',
+                    solutionTimeInfo.canSubmit
+                      ? 'bg-purple-600 hover:bg-purple-700 text-white'
+                      : 'bg-gray-400 text-white cursor-not-allowed',
+                  ]"
+                >
+                  题解提交
+                </NuxtLink>
+              </div>
+
+              <!-- 题解提交状态信息 -->
+              <div
+                v-if="showSolutionButton"
+                class="mt-3 p-3 rounded-md border"
+                :class="getSolutionStatusClass(solutionTimeInfo.statusType)"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <svg
+                      v-if="solutionTimeInfo.statusType === 'waiting'"
+                      class="w-4 h-4 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    <svg
+                      v-else-if="solutionTimeInfo.statusType === 'open'"
+                      class="w-4 h-4 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    <svg
+                      v-else
+                      class="w-4 h-4 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    <span class="text-sm font-medium">{{
+                      solutionTimeInfo.statusText
+                    }}</span>
+                  </div>
+                  <div v-if="solutionTimeInfo.remainingTime > 0" class="text-xs">
+                    剩余: {{ solutionTimeInfo.remainingTimeText }}
+                  </div>
+                </div>
+                <div
+                  v-if="solutionTimeInfo.statusType === 'waiting'"
+                  class="mt-1 text-xs opacity-75"
+                >
+                  比赛结束后可提交题解（2天内有效）
+                </div>
+                <div
+                  v-else-if="solutionTimeInfo.statusType === 'open'"
+                  class="mt-1 text-xs opacity-75"
+                >
+                  截止时间: {{ formatDate(solutionTimeInfo.deadline) }}
+                </div>
               </div>
             </div>
           </div>
@@ -390,6 +469,13 @@ definePageMeta({
   middleware: "auth",
 });
 
+// 导入题解工具函数
+import {
+  getSolutionTimeInfo,
+  getSolutionStatusClass,
+  canAccessSolutionSubmission,
+} from "~/composables/useSolutionUtils";
+
 const route = useRoute();
 const competitionId = route.params.id;
 
@@ -431,6 +517,27 @@ const availableTeams = computed(() => {
   return teamsData.value.teams.filter(
     (team) => !team.isLocked && !team.participatingIn?.includes(data.value.competition.id)
   );
+});
+
+// 题解相关计算属性
+const solutionTimeInfo = computed(() => {
+  if (!data.value?.competition?.endTime) {
+    return {
+      canSubmit: false,
+      competitionEnded: false,
+      deadline: new Date(),
+      remainingTime: 0,
+      remainingTimeText: "",
+      statusText: "加载中...",
+      statusType: "waiting",
+    };
+  }
+  return getSolutionTimeInfo(data.value.competition.endTime);
+});
+
+const showSolutionButton = computed(() => {
+  if (!data.value?.competition || !teamsData.value?.teams) return false;
+  return canAccessSolutionSubmission(teamsData.value.teams, data.value.competition.id);
 });
 
 const getStatusText = (status) => {

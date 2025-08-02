@@ -33,6 +33,7 @@ model User {
   // 关系
   teamMemberships     TeamMembership[] // 用户所属的团队成员关系
   submissions         Submission[] // 用户提交的题目
+  solutions           Solution[]       @relation("UserSolutions") // 用户提交的题解
   createdCompetitions Competition[]    @relation("CompetitionCreator") // 用户创建的比赛
   sentInvitations     Invitation[]     @relation("Inviter") // 用户发出的邀请
   receivedInvitations Invitation[]     @relation("Invitee") // 用户收到的邀请
@@ -53,6 +54,7 @@ model Team {
   // 关系
   members            TeamMembership[] // 团队成员
   submissions        Submission[] // 团队提交的题目
+  solutions          Solution[]         @relation("TeamSolutions") // 团队提交的题解
   leaderboardEntries LeaderboardEntry[] // 团队在排行榜中的记录
   invitations        Invitation[] // 团队相关的邀请
 
@@ -90,6 +92,7 @@ model Competition {
   creator      User          @relation("CompetitionCreator", fields: [createdBy], references: [id]) // 创建者
   problems     Problem[] // 比赛中的题目
   submissions  Submission[] // 比赛中的提交
+  solutions    Solution[]    @relation("CompetitionSolutions") // 比赛中的题解
   leaderboards Leaderboard[] // 比赛的排行榜
 
   @@map("competitions")
@@ -237,6 +240,28 @@ model Announcement {
   status    String   @default("HIDDEN") // 公告状态
 
   @@map("announcements")
+}
+
+model Solution {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  competitionId String   @db.ObjectId // 比赛ID
+  teamId        String   @db.ObjectId // 团队ID
+  userId        String   @db.ObjectId // 提交用户ID
+  fileUrl       String // 题解文件URL
+  fileName      String // 原始文件名
+  fileSize      Int // 文件大小（字节）
+  mimeType      String // 文件MIME类型
+  createdAt     DateTime @default(now()) // 创建时间
+  updatedAt     DateTime @updatedAt // 更新时间
+
+  // 关系
+  competition Competition @relation("CompetitionSolutions", fields: [competitionId], references: [id], onDelete: Cascade) // 所属比赛
+  team        Team        @relation("TeamSolutions", fields: [teamId], references: [id], onDelete: Cascade) // 提交团队
+  user        User        @relation("UserSolutions", fields: [userId], references: [id], onDelete: Cascade) // 提交用户
+
+  // 确保每个团队每个比赛只能有一个题解
+  @@unique([competitionId, teamId])
+  @@map("solutions")
 }
 
 model Config {

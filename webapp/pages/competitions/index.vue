@@ -82,6 +82,62 @@
             <p>结束时间: {{ formatDate(competition.endTime) }}</p>
             <p>题目数量: {{ competition.problems?.length || 0 }}</p>
             <p>提交数量: {{ competition._count?.submissions || 0 }}</p>
+
+            <!-- 题解提交状态 -->
+            <div
+              v-if="canAccessSolutionSubmission(teamsData?.teams || [], competition.id)"
+              class="mt-2 p-2 rounded border"
+              :class="
+                getSolutionStatusClass(
+                  getSolutionTimeInfo(competition.endTime).statusType
+                )
+              "
+            >
+              <div class="flex items-center text-xs">
+                <svg
+                  v-if="getSolutionTimeInfo(competition.endTime).statusType === 'waiting'"
+                  class="w-3 h-3 mr-1"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <svg
+                  v-else-if="
+                    getSolutionTimeInfo(competition.endTime).statusType === 'open'
+                  "
+                  class="w-3 h-3 mr-1"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <svg v-else class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fill-rule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                <span class="font-medium"
+                  >题解: {{ getSolutionTimeInfo(competition.endTime).statusText }}</span
+                >
+                <span
+                  v-if="getSolutionTimeInfo(competition.endTime).remainingTime > 0"
+                  class="ml-2"
+                >
+                  ({{ getSolutionTimeInfo(competition.endTime).remainingTimeText }})
+                </span>
+              </div>
+            </div>
           </div>
 
           <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
@@ -104,6 +160,19 @@
             >
               参加比赛
             </button>
+            <!-- 题解提交快速链接 -->
+            <NuxtLink
+              v-if="canAccessSolutionSubmission(teamsData?.teams || [], competition.id)"
+              :to="`/competitions/${competition.id}/solutions`"
+              :class="[
+                'flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm transition-all duration-200',
+                getSolutionTimeInfo(competition.endTime).canSubmit
+                  ? 'text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500'
+                  : 'text-gray-500 bg-gray-200 cursor-not-allowed',
+              ]"
+            >
+              题解提交
+            </NuxtLink>
           </div>
         </div>
       </div>
@@ -297,6 +366,13 @@
 definePageMeta({
   middleware: "auth",
 });
+
+// 导入题解工具函数
+import {
+  getSolutionTimeInfo,
+  getSolutionStatusClass,
+  canAccessSolutionSubmission,
+} from "~/composables/useSolutionUtils";
 
 const selectedStatus = ref("");
 const currentPage = ref(1);
