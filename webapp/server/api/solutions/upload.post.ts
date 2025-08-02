@@ -10,6 +10,23 @@ const upload = multer({
         fileSize: 50 * 1024 * 1024, // 50MB限制
     },
     fileFilter: (req, file, cb) => {
+        // 修复中文文件名乱码问题
+        if (file.originalname) {
+            // 尝试修复编码问题：如果是乱码，尝试重新解码
+            try {
+                // 检查是否是UTF-8编码问题导致的乱码
+                const buffer = Buffer.from(file.originalname, 'latin1')
+                const decodedName = buffer.toString('utf8')
+                // 如果解码后包含中文字符，则使用解码后的名称
+                if (/[\u4e00-\u9fa5]/.test(decodedName)) {
+                    file.originalname = decodedName
+                }
+            } catch (error) {
+                // 如果解码失败，保持原名称
+                console.warn('Failed to decode filename:', error)
+            }
+        }
+
         // 只允许PDF文件格式
         const allowedTypes = ['application/pdf']
 
@@ -175,22 +192,23 @@ export default defineEventHandler(async (event) => {
         const fileExtension = file.originalname.substring(file.originalname.lastIndexOf('.'))
         const generatedFileName = `${teamInfo.name}_${competition.title}${fileExtension}`
 
-        // 清理文件名，只过滤HTTP头部不允许的字符：控制字符、换行符、回车符、制表符等
-        // 保留中文字符和其他Unicode字符
-        const cleanOriginalName = file.originalname.replace(/[\x00-\x1f\x7f\r\n\t]/g, '_')
-        const cleanGeneratedName = generatedFileName.replace(/[\x00-\x1f\x7f\r\n\t]/g, '_')
+        // 清理文件名，移除HTTP头部不允许的字符和特殊字符
+        // 只保留字母、数字、汉字、下划线、点号和连字符
+        const cleanOriginalName = file.originalname.replace(/[^\w\u4e00-\u9fa5.\-]/g, '_')
+        const cleanGeneratedName = generatedFileName.replace(/[^\w\u4e00-\u9fa5.\-]/g, '_')
 
         // 上传文件到MinIO
         const objectName = `solutions/${competitionId}/${teamId}/${cleanGeneratedName}`
 
+        // MinIO metadata keys 不能包含特殊字符，使用简化的键名
         const metadata = {
-            'Content-Type': file.mimetype,
-            'Original-Name': cleanOriginalName,
-            'Generated-Name': cleanGeneratedName,
-            'Uploaded-By': user.id,
-            'Team-Id': teamId,
-            'Competition-Id': competitionId,
-            'Upload-Timestamp': Date.now().toString()
+            'content-type': file.mimetype,
+            'original-name': Buffer.from(cleanOriginalName).toString('base64'), // Base64编码避免特殊字符
+            'generated-name': Buffer.from(cleanGeneratedName).toString('base64'),
+            'uploaded-by': user.id,
+            'team-id': teamId,
+            'competition-id': competitionId,
+            'upload-timestamp': Date.now().toString()
         }
 
         const fileUrl = await uploadFile('aigame', objectName, file.buffer, metadata)

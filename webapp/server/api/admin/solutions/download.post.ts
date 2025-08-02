@@ -34,11 +34,6 @@ export default defineEventHandler(async (event) => {
                 }
             },
             include: {
-                problem: {
-                    select: {
-                        title: true
-                    }
-                },
                 team: {
                     select: {
                         name: true
@@ -86,14 +81,13 @@ export default defineEventHandler(async (event) => {
 
                 // 创建有意义的文件夹结构和文件名
                 const competitionName = solution.competition.title.replace(/[/\\?%*:|"<>]/g, '-')
-                const problemTitle = solution.problem.title.replace(/[/\\?%*:|"<>]/g, '-')
                 const teamName = solution.team.name.replace(/[/\\?%*:|"<>]/g, '-')
 
                 // 获取文件扩展名
                 const fileExtension = solution.fileName.substring(solution.fileName.lastIndexOf('.'))
 
                 // 构建ZIP内的文件路径
-                const zipPath = `${competitionName}/${problemTitle}/${teamName}_${solution.title.replace(/[/\\?%*:|"<>]/g, '-')}${fileExtension}`
+                const zipPath = `${competitionName}/${teamName}_${solution.fileName.replace(/[/\\?%*:|"<>]/g, '-')}`
 
                 // 添加文件到ZIP
                 zip.file(zipPath, fileBuffer)
@@ -101,10 +95,7 @@ export default defineEventHandler(async (event) => {
                 // 创建一个信息文件
                 const infoContent = `题解信息
 ==================
-题解标题: ${solution.title}
-题解描述: ${solution.description || '无'}
 比赛: ${solution.competition.title}
-题目: ${solution.problem.title}
 团队: ${solution.team.name}
 提交者: ${solution.user.username}
 提交时间: ${solution.createdAt.toISOString()}
@@ -112,7 +103,7 @@ export default defineEventHandler(async (event) => {
 文件大小: ${solution.fileSize} 字节
 文件类型: ${solution.mimeType}
 `
-                zip.file(`${competitionName}/${problemTitle}/${teamName}_info.txt`, infoContent)
+                zip.file(`${competitionName}/${teamName}_info.txt`, infoContent)
 
             } catch (error) {
                 console.error(`Failed to download solution ${solution.id}:`, error)
@@ -121,17 +112,16 @@ export default defineEventHandler(async (event) => {
                 // 添加错误信息文件
                 const errorMessage = error instanceof Error ? error.message : String(error)
                 const errorContent = `下载失败
-        ==================
-        题解ID: ${solution.id}
-        题解标题: ${solution.title}
-        错误信息: ${errorMessage}
-        时间: ${new Date().toISOString()}
-        `
+==================
+题解ID: ${solution.id}
+文件名: ${solution.fileName}
+错误信息: ${errorMessage}
+时间: ${new Date().toISOString()}
+`
                 const competitionName = solution.competition.title.replace(/[/\\?%*:|"<>]/g, '-')
-                const problemTitle = solution.problem.title.replace(/[/\\?%*:|"<>]/g, '-')
                 const teamName = solution.team.name.replace(/[/\\?%*:|"<>]/g, '-')
 
-                zip.file(`${competitionName}/${problemTitle}/${teamName}_ERROR.txt`, errorContent)
+                zip.file(`${competitionName}/${teamName}_ERROR.txt`, errorContent)
             }
         }
 
