@@ -1,7 +1,7 @@
 import multer from 'multer'
-import { uploadFile, getPublicFileUrl } from '../../../utils/minio'
+import { uploadFile, getPublicFileUrl } from '../../../../utils/minio'
 import { randomUUID } from 'crypto'
-import { requireAdminRole } from '../../../utils/auth'
+import { requireAdminRole } from '../../../../utils/auth'
 
 // Configure multer for memory storage
 const upload = multer({

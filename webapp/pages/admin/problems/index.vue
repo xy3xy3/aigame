@@ -541,7 +541,7 @@ const competitions = computed(() => competitionsData.value?.competitions || []);
 
 // 获取题目列表
 const { data, pending, error, refresh } = await useFetch<ProblemsResponse>(
-  "/api/problems",
+  "/api/admin/problems",
   {
     query: {
       status: selectedStatus,
@@ -588,7 +588,7 @@ const deleteProblem = async (problemId: string) => {
   }
 
   try {
-    await $fetch(`/api/problems/${problemId}`, {
+    await $fetch(`/api/admin/problems/${problemId}`, {
       method: "DELETE" as any,
     });
 
@@ -694,7 +694,7 @@ const handleDatasetUpload = async (event: Event) => {
   formData.append("dataset", file);
 
   try {
-    const data = await $fetch<{ url: string }>("/api/problems/dataset/upload", {
+    const data = await $fetch<{ url: string }>("/api/admin/problems/dataset/upload", {
       method: "POST",
       body: formData,
     });
@@ -718,7 +718,7 @@ const handleScriptUpload = async (event: Event) => {
   formData.append("script", file);
 
   try {
-    const data = await $fetch<{ url: string }>("/api/problems/script/upload", {
+    const data = await $fetch<{ url: string }>("/api/admin/problems/script/upload", {
       method: "POST",
       body: formData,
     });
@@ -749,7 +749,7 @@ const saveProblem = async () => {
     let response;
     if (isEditing.value) {
       // 编辑题目
-      response = await $fetch(`/api/problems/${problemForm.value.id}`, {
+      response = await $fetch(`/api/admin/problems/${problemForm.value.id}`, {
         method: "PUT",
         body: {
           title: problemForm.value.title,
@@ -767,7 +767,7 @@ const saveProblem = async () => {
     } else {
       // 创建题目
       response = await $fetch(
-        `/api/competitions/${problemForm.value.competitionId}/problems`,
+        `/api/admin/competitions/${problemForm.value.competitionId}/problems`,
         {
           method: "POST",
           body: {

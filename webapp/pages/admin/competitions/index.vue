@@ -406,7 +406,7 @@ definePageMeta({
 const selectedStatus = ref("");
 const currentPage = ref(1);
 
-const { data, pending, error, refresh } = await useFetch("/api/competitions", {
+const { data, pending, error, refresh } = await useFetch("/api/admin/competitions", {
   query: {
     status: selectedStatus,
     page: currentPage,
@@ -450,7 +450,7 @@ const deleteCompetition = async (competitionId) => {
   }
 
   try {
-    await $fetch(`/api/competitions/${competitionId}`, {
+    await $fetch(`/api/admin/competitions/${competitionId}`, {
       method: "DELETE",
     });
 
@@ -543,7 +543,7 @@ const handleBannerUpload = async (event) => {
   formData.append("banner", file);
 
   try {
-    const data = await $fetch("/api/competitions/banner/upload", {
+    const data = await $fetch("/api/admin/competitions/banner/upload", {
       method: "POST",
       body: formData,
     });
@@ -583,7 +583,7 @@ const saveCompetition = async () => {
     let response;
     if (isEditing.value) {
       // 编辑比赛
-      response = await $fetch(`/api/competitions/${competitionForm.value.id}`, {
+      response = await $fetch(`/api/admin/competitions/${competitionForm.value.id}`, {
         method: "PUT",
         body: {
           title: competitionForm.value.title,
@@ -598,7 +598,7 @@ const saveCompetition = async () => {
       });
     } else {
       // 创建比赛
-      response = await $fetch("/api/competitions", {
+      response = await $fetch("/api/admin/competitions", {
         method: "POST",
         body: {
           title: competitionForm.value.title,

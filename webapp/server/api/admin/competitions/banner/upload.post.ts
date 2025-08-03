@@ -1,6 +1,7 @@
 import multer from 'multer'
-import { uploadFile } from '../../../utils/minio'
+import { uploadFile } from '../../../../utils/minio'
 import { randomUUID } from 'crypto'
+import { requireAdminRole } from '../../../../utils/auth'
 
 // Configure multer for memory storage
 const upload = multer({
@@ -34,6 +35,8 @@ export default defineEventHandler(async (event) => {
             statusMessage: 'Authentication required',
         })
     }
+
+    requireAdminRole(user)
 
     try {
         // Use multer to handle file upload

@@ -422,7 +422,7 @@ const submitForm = async () => {
       formDataObj.append("mode", formData.value.mode);
 
       try {
-        const response = await $fetch("/api/problems/upload", {
+        const response = await $fetch("/api/admin/problems/upload", {
           method: "POST",
           body: formDataObj,
         });

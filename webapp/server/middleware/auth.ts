@@ -19,7 +19,25 @@ export default defineEventHandler(async (event) => {
     '/api/settings'
   ]
 
-  if (excludedAuthRoutes.includes(event.path)) {
+  // Exclude public API routes that don't require authentication
+  const publicRoutes = [
+    '/api/competitions',
+    '/api/competitions/simple',
+    '/api/problems',
+    '/api/announcements'
+  ]
+
+  // Check if the current path matches any public route pattern
+  const isPublicRoute = publicRoutes.some(route => {
+    if (route === event.path) return true
+    // Allow sub-paths for specific routes like /api/competitions/[id]
+    if (route === '/api/competitions' && event.path.startsWith('/api/competitions/')) return true
+    if (route === '/api/problems' && event.path.startsWith('/api/problems/')) return true
+    if (route === '/api/announcements' && event.path.startsWith('/api/announcements/')) return true
+    return false
+  })
+
+  if (excludedAuthRoutes.includes(event.path) || isPublicRoute) {
     return
   }
 

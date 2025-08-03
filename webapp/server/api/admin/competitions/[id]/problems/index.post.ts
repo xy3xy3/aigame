@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import prisma from '../../../../utils/prisma'
-import { requireAdminRole } from '../../../../utils/auth'
+import prisma from '../../../../../utils/prisma'
+import { requireAdminRole } from '../../../../../utils/auth'
 
 const createProblemSchema = z.object({
     title: z.string().min(2).max(100),

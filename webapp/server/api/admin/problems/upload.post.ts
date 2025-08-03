@@ -1,8 +1,8 @@
 import multer from 'multer'
-import { uploadFile, getPublicFileUrl } from '../../utils/minio'
+import { uploadFile, getPublicFileUrl } from '../../../utils/minio'
 import { randomUUID } from 'crypto'
-import { requireAdminRole } from '../../utils/auth'
-import prisma from '../../utils/prisma'
+import { requireAdminRole } from '../../../utils/auth'
+import prisma from '../../../utils/prisma'
 import { load as loadYaml } from 'js-yaml'
 import { Readable } from 'stream'
 import unzipper from 'unzipper'
@@ -67,7 +67,7 @@ export default defineEventHandler(async (event) => {
         console.log('Uploaded files:', files)
         console.log('Files type:', typeof files)
         console.log('Files length:', files?.length)
-        
+
         if (!files || files.length === 0) {
             throw createError({
                 statusCode: 400,
@@ -78,10 +78,10 @@ export default defineEventHandler(async (event) => {
         // Get form data from multer parsed body
         const body = (event.node.req as any).body
         console.log('Multer parsed body:', body)
-        
+
         const competitionId = body?.competitionId
         const mode = body?.mode
-        
+
         console.log('Competition ID:', competitionId)
         console.log('Mode:', mode)
 
@@ -126,7 +126,7 @@ export default defineEventHandler(async (event) => {
         console.error('Error constructor:', error?.constructor?.name)
         console.error('Error message:', error?.message)
         console.error('Error message type:', typeof error?.message)
-        
+
         if (error instanceof Error) {
             const errorMessage = String(error.message || 'An unexpected error occurred during file processing.')
             console.error('Using error message:', errorMessage)
@@ -211,12 +211,12 @@ async function processProblemFile(file: any, competitionId: string, mode: string
         console.log('Parsing problem.yml, buffer length:', extractedFiles['problem.yml'].length)
         const yamlContent = extractedFiles['problem.yml'].toString('utf-8')
         console.log('YAML content:', yamlContent)
-        
+
         problemData = loadYaml(yamlContent)
         console.log('Parsed YAML data:', problemData)
         console.log('YAML data type:', typeof problemData)
         console.log('YAML data constructor:', problemData?.constructor?.name)
-        
+
         // Convert to plain object to avoid ERR_INVALID_ARG_TYPE
         if (problemData && typeof problemData === 'object') {
             problemData = JSON.parse(JSON.stringify(problemData))
@@ -235,7 +235,7 @@ async function processProblemFile(file: any, competitionId: string, mode: string
     // Validate required fields in problem.yml
     console.log('Validating problemData fields...')
     console.log('problemData.title:', problemData.title, 'type:', typeof problemData.title)
-    
+
     if (!problemData.title) {
         throw createError({
             statusCode: 400,
@@ -263,10 +263,10 @@ async function processProblemFile(file: any, competitionId: string, mode: string
     console.log('Creating date objects...')
     console.log('startTime value:', problemData.startTime)
     console.log('endTime value:', problemData.endTime)
-    
+
     const start = new Date(problemData.startTime)
     const end = new Date(problemData.endTime)
-    
+
     console.log('start date:', start)
     console.log('end date:', end)
     console.log('start time valid:', !isNaN(start.getTime()))
