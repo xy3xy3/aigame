@@ -13,6 +13,13 @@ export default defineEventHandler(async (event) => {
 
   const problemId = getRouterParam(event, 'id')
 
+  if (!problemId) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Problem ID is required'
+    })
+  }
+
   // 尝试从缓存获取 (如果Redis可用)
   try {
     const cachedProblem = await getCachedProblem(problemId)
@@ -37,7 +44,6 @@ export default defineEventHandler(async (event) => {
       detailedDescription: true,
       competitionId: true,
       datasetUrl: true,
-      judgingScriptUrl: true,
       startTime: true,
       endTime: true,
       createdAt: true,

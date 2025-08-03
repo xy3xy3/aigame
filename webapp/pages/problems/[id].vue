@@ -16,7 +16,11 @@
           </svg>
         </li>
         <li>
-          <NuxtLink :to="`/competitions/${data?.problem?.competitionId}`" class="hover:text-indigo-600">比赛详情</NuxtLink>
+          <NuxtLink
+            :to="`/competitions/${data?.problem?.competitionId}`"
+            class="hover:text-indigo-600"
+            >比赛详情</NuxtLink
+          >
         </li>
         <li class="flex items-center">
           <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
@@ -203,11 +207,8 @@
         </div>
       </div>
 
-      <!-- 数据集和评测脚本 -->
-      <div
-        v-if="data.problem.datasetUrl || data.problem.judgingScriptUrl"
-        class="bg-white rounded-lg shadow-md p-6"
-      >
+      <!-- 数据集 -->
+      <div v-if="data.problem.datasetUrl" class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">相关资源</h2>
         <div class="space-y-3">
           <div v-if="data.problem.datasetUrl">
@@ -230,28 +231,6 @@
                 ></path>
               </svg>
               下载数据集
-            </a>
-          </div>
-          <div v-if="data.problem.judgingScriptUrl">
-            <a
-              :href="data.problem.judgingScriptUrl"
-              target="_blank"
-              class="inline-flex items-center text-indigo-600 hover:text-indigo-800"
-            >
-              <svg
-                class="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                ></path>
-              </svg>
-              下载评测脚本
             </a>
           </div>
         </div>
