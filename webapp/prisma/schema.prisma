@@ -37,6 +37,8 @@ model User {
   createdCompetitions Competition[]    @relation("CompetitionCreator") // 用户创建的比赛
   sentInvitations     Invitation[]     @relation("Inviter") // 用户发出的邀请
   receivedInvitations Invitation[]     @relation("Invitee") // 用户收到的邀请
+  cdks                CompetitionCdk[] // 用户分配的CDK
+  claimedCdks         CompetitionCdk[] @relation("CdkClaimedBy") // 用户领取的CDK
 
   @@map("users")
 }
@@ -57,6 +59,7 @@ model Team {
   solutions          Solution[]         @relation("TeamSolutions") // 团队提交的题解
   leaderboardEntries LeaderboardEntry[] // 团队在排行榜中的记录
   invitations        Invitation[] // 团队相关的邀请
+  cdks               CompetitionCdk[] // 团队分配的CDK
 
   @@map("teams")
 }
@@ -77,24 +80,28 @@ model TeamMembership {
 }
 
 model Competition {
-  id                             String   @id @default(auto()) @map("_id") @db.ObjectId
+  id                             String        @id @default(auto()) @map("_id") @db.ObjectId
   title                          String // 比赛标题
   description                    String // 比赛描述
   rules                          String // 比赛规则
   bannerUrl                      String? // 比赛横幅URL
   startTime                      DateTime // 比赛开始时间
   endTime                        DateTime // 比赛结束时间
-  solutionSubmissionDeadlineDays Int      @default(2) // 比赛结束后允许提交题解的天数，默认2天
-  createdBy                      String   @db.ObjectId // 创建者ID
-  createdAt                      DateTime @default(now()) // 创建时间
-  updatedAt                      DateTime @updatedAt // 更新时间
+  solutionSubmissionDeadlineDays Int           @default(2) // 比赛结束后允许提交题解的天数，默认2天
+  cdkEnabled                     Boolean       @default(false) // 是否启用CDK功能
+  cdkClaimMode                   CdkClaimMode? // CDK领取模式（TEAM/MEMBER），未启用时可空
+  cdkPerUnitLimit                Int? // 每单位（团队或成员）CDK领取上限，未启用时可空
+  createdBy                      String        @db.ObjectId // 创建者ID
+  createdAt                      DateTime      @default(now()) // 创建时间
+  updatedAt                      DateTime      @updatedAt // 更新时间
 
   // 关系
-  creator      User          @relation("CompetitionCreator", fields: [createdBy], references: [id]) // 创建者
+  creator      User             @relation("CompetitionCreator", fields: [createdBy], references: [id]) // 创建者
   problems     Problem[] // 比赛中的题目
   submissions  Submission[] // 比赛中的提交
-  solutions    Solution[]    @relation("CompetitionSolutions") // 比赛中的题解
+  solutions    Solution[]       @relation("CompetitionSolutions") // 比赛中的题解
   leaderboards Leaderboard[] // 比赛的排行榜
+  cdks         CompetitionCdk[] // 比赛的CDK
 
   @@map("competitions")
 }
@@ -209,6 +216,17 @@ enum EducationLevel {
   DOCTORATE // 博士
 }
 
+enum CdkClaimMode {
+  TEAM // 按团队领取
+  MEMBER // 按成员领取
+}
+
+enum CdkStatus {
+  AVAILABLE // 可用
+  CLAIMED // 已领取
+  VOID // 作废
+}
+
 enum UserStatus {
   PENDING // 待确认（邮箱未验证）
   ACTIVE // 正常（已验证）
@@ -263,6 +281,33 @@ model Solution {
   // 确保每个团队每个比赛只能有一个题解
   @@unique([competitionId, teamId])
   @@map("solutions")
+}
+
+model CompetitionCdk {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  competitionId   String    @db.ObjectId // 所属比赛ID
+  teamId          String?   @db.ObjectId // 分配给的团队ID（团队模式）
+  userId          String?   @db.ObjectId // 分配给的用户ID（成员模式）
+  code            String    @unique // CDK代码，唯一
+  status          CdkStatus @default(AVAILABLE) // CDK状态
+  claimedAt       DateTime? // 领取时间
+  claimedByUserId String?   @db.ObjectId // 实际领取用户ID
+  notes           String? // 备注信息
+  batchId         String? // 批次ID，用于批量生成
+  createdAt       DateTime  @default(now()) // 创建时间
+  updatedAt       DateTime  @updatedAt // 更新时间
+
+  // 关系
+  competition   Competition @relation(fields: [competitionId], references: [id], onDelete: Cascade) // 所属比赛
+  team          Team?       @relation(fields: [teamId], references: [id], onDelete: SetNull) // 分配团队
+  user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull) // 分配用户
+  claimedByUser User?       @relation("CdkClaimedBy", fields: [claimedByUserId], references: [id], onDelete: SetNull) // 实际领取用户
+
+  @@index([competitionId, status])
+  @@index([teamId])
+  @@index([userId])
+  @@index([batchId])
+  @@map("competition_cdks")
 }
 
 model Config {

@@ -149,6 +149,18 @@
               排行榜
             </NuxtLink>
             <button
+              @click="openCdkSettingsModal(competition)"
+              class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center"
+            >
+              CDK设置
+            </button>
+            <NuxtLink
+              :to="`/admin/competitions/${competition.id}/cdk`"
+              class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center"
+            >
+              CDK管理
+            </NuxtLink>
+            <button
               @click="deleteCompetition(competition.id)"
               class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
             >
@@ -193,7 +205,10 @@
         class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
       >
         <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-          <div @click="closeModal" class="absolute inset-0 bg-gray-500 opacity-75"></div>
+          <div
+            @click="closeModal"
+            class="absolute inset-0 bg-gray-500 bg-opacity-75"
+          ></div>
         </div>
 
         <span
@@ -383,6 +398,130 @@
             </button>
             <button
               @click="closeModal"
+              type="button"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CDK设置模态框 -->
+    <div v-if="showCdkModal" class="fixed inset-0 overflow-y-auto z-50">
+      <div
+        class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <span
+          class="hidden sm:inline-block sm:align-middle sm:h-screen"
+          aria-hidden="true"
+          >&#8203;</span
+        >
+
+        <div
+          class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+        >
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                  CDK 设置 - {{ selectedCompetition?.title }}
+                </h3>
+                <div class="mt-2">
+                  <form @submit.prevent="saveCdkSettings">
+                    <!-- CDK功能开关 -->
+                    <div class="mb-6">
+                      <label class="flex items-center">
+                        <input
+                          v-model="cdkForm.cdkEnabled"
+                          type="checkbox"
+                          class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                        />
+                        <span class="ml-2 text-sm font-medium text-gray-700"
+                          >启用 CDK 功能</span
+                        >
+                      </label>
+                      <p class="mt-1 text-sm text-gray-500">
+                        启用后，参赛者需要通过 CDK 代码才能参与比赛
+                      </p>
+                    </div>
+
+                    <!-- CDK设置选项（仅在启用时显示） -->
+                    <div v-if="cdkForm.cdkEnabled" class="space-y-4">
+                      <!-- 领取方式 -->
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                          领取方式 *
+                        </label>
+                        <div class="space-y-2">
+                          <label class="flex items-center">
+                            <input
+                              v-model="cdkForm.cdkClaimMode"
+                              type="radio"
+                              value="TEAM"
+                              class="text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                            />
+                            <span class="ml-2 text-sm text-gray-700">按团队领取</span>
+                          </label>
+                          <label class="flex items-center">
+                            <input
+                              v-model="cdkForm.cdkClaimMode"
+                              type="radio"
+                              value="MEMBER"
+                              class="text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                            />
+                            <span class="ml-2 text-sm text-gray-700">按成员领取</span>
+                          </label>
+                        </div>
+                        <p class="mt-1 text-sm text-gray-500">
+                          团队模式：每个团队可领取指定数量的CDK；成员模式：每个成员可领取指定数量的CDK
+                        </p>
+                      </div>
+
+                      <!-- 每单位限制数量 -->
+                      <div>
+                        <label
+                          for="cdk-per-unit-limit"
+                          class="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          每{{
+                            cdkForm.cdkClaimMode === "TEAM" ? "团队" : "成员"
+                          }}限制数量 *
+                        </label>
+                        <input
+                          id="cdk-per-unit-limit"
+                          v-model.number="cdkForm.cdkPerUnitLimit"
+                          type="number"
+                          min="1"
+                          max="100"
+                          required
+                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="输入限制数量"
+                        />
+                        <p class="mt-1 text-sm text-gray-500">
+                          设置每个{{
+                            cdkForm.cdkClaimMode === "TEAM" ? "团队" : "成员"
+                          }}最多可以领取多少个CDK，范围：1-100
+                        </p>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button
+              @click="saveCdkSettings"
+              type="button"
+              :disabled="isCdkSubmitting"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+            >
+              {{ isCdkSubmitting ? "保存中..." : "保存设置" }}
+            </button>
+            <button
+              @click="closeCdkModal"
               type="button"
               class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
             >
@@ -627,6 +766,83 @@ const saveCompetition = async () => {
     push.error("保存比赛时出错: " + (err.data?.message || err.message || "未知错误"));
   } finally {
     isSubmitting.value = false;
+  }
+};
+
+// CDK设置相关
+const showCdkModal = ref(false);
+const selectedCompetition = ref(null);
+const isCdkSubmitting = ref(false);
+
+const cdkForm = ref({
+  cdkEnabled: false,
+  cdkClaimMode: "TEAM",
+  cdkPerUnitLimit: 1,
+});
+
+const openCdkSettingsModal = (competition) => {
+  selectedCompetition.value = competition;
+  cdkForm.value = {
+    cdkEnabled: competition.cdkEnabled || false,
+    cdkClaimMode: competition.cdkClaimMode || "TEAM",
+    cdkPerUnitLimit: competition.cdkPerUnitLimit || 1,
+  };
+  showCdkModal.value = true;
+};
+
+const closeCdkModal = () => {
+  showCdkModal.value = false;
+  selectedCompetition.value = null;
+};
+
+const saveCdkSettings = async () => {
+  if (isCdkSubmitting.value || !selectedCompetition.value) return;
+
+  // 验证表单
+  if (cdkForm.value.cdkEnabled) {
+    if (!cdkForm.value.cdkClaimMode) {
+      push.error("请选择领取方式");
+      return;
+    }
+    if (
+      !cdkForm.value.cdkPerUnitLimit ||
+      cdkForm.value.cdkPerUnitLimit < 1 ||
+      cdkForm.value.cdkPerUnitLimit > 100
+    ) {
+      push.error("每单位限制数量必须在1-100之间");
+      return;
+    }
+  }
+
+  isCdkSubmitting.value = true;
+
+  try {
+    const response = await $fetch(
+      `/api/admin/competitions/${selectedCompetition.value.id}/cdk-settings`,
+      {
+        method: "PUT",
+        body: {
+          cdkEnabled: cdkForm.value.cdkEnabled,
+          cdkClaimMode: cdkForm.value.cdkEnabled ? cdkForm.value.cdkClaimMode : undefined,
+          cdkPerUnitLimit: cdkForm.value.cdkEnabled
+            ? cdkForm.value.cdkPerUnitLimit
+            : undefined,
+        },
+      }
+    );
+
+    if (response.success) {
+      closeCdkModal();
+      await refresh();
+      push.success("CDK设置保存成功");
+    } else {
+      push.error("CDK设置保存失败");
+    }
+  } catch (err) {
+    console.error("保存CDK设置时出错:", err);
+    push.error("保存CDK设置时出错: " + (err.data?.message || err.message || "未知错误"));
+  } finally {
+    isCdkSubmitting.value = false;
   }
 };
 </script>

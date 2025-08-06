@@ -219,6 +219,12 @@
         </div>
       </div>
 
+      <!-- CDK 领取模块 -->
+      <CompetitionCdkClaim
+        v-if="data?.competition?.userParticipating"
+        :competition-id="data.competition.id"
+      />
+
       <!-- 题目列表 -->
       <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">题目列表</h2>
