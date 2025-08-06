@@ -48,7 +48,28 @@ export default defineEventHandler(async (event) => {
     return false
   })
 
+  // 对于公共路由和排除的认证路由，尝试可选地注入用户信息（不强制要求认证）
   if (excludedAuthRoutes.includes(event.path) || isPublicRoute) {
+    const token = getCookie(event, 'auth-token')
+    if (token) {
+      try {
+        const user = await getUserFromToken(token)
+        if (user) {
+          // Check if user is banned - but don't throw error for public routes
+          try {
+            checkUserBanned(user)
+            // Add user to context for optional use
+            event.context.user = user
+          } catch (error) {
+            // User is banned, but don't block access to public routes
+            // Just don't inject user info
+          }
+        }
+      } catch (error) {
+        // Invalid token, but don't block access to public routes
+        // Just don't inject user info
+      }
+    }
     return
   }
 

@@ -98,11 +98,16 @@ export default defineEventHandler(async (event) => {
       competitionStatus = 'ended'
     }
 
+    // 修复：确保比较时数据类型一致，将ObjectId转换为字符串
+    const competitionIdStr = competition.id.toString()
+    const userParticipatingStr = userParticipatingCompetitions.map(id => id.toString())
+    const isParticipating = userParticipatingStr.includes(competitionIdStr)
+
     return {
       ...competition,
       bannerUrl: processBannerUrl(competition.bannerUrl),
       status: competitionStatus,
-      userParticipating: userParticipatingCompetitions.includes(competition.id)
+      userParticipating: isParticipating
     }
   })
 

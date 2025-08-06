@@ -30,19 +30,20 @@ export default defineEventHandler(async (event) => {
       // 如果有缓存，仍需要检查用户参赛状态
       let userParticipating = false
       if (user) {
-        const userTeams = await prisma.team.findMany({
+        // 修复缓存部分：使用字符串比较，确保数据类型一致
+        const participatingTeamCount = await prisma.team.count({
           where: {
             members: {
               some: {
-                userId: user.id,
-              },
+                userId: user.id
+              }
             },
             participatingIn: {
-              has: competitionId,
-            },
-          },
+              has: competitionId.toString()
+            }
+          }
         })
-        userParticipating = userTeams.length > 0
+        userParticipating = participatingTeamCount > 0
       }
 
       return {
@@ -96,7 +97,8 @@ export default defineEventHandler(async (event) => {
   // 检查用户参赛状态
   let userParticipating = false
   if (user) {
-    const userTeams = await prisma.team.findMany({
+    // 修复：使用字符串比较，确保数据类型一致
+    const participatingTeamCount = await prisma.team.count({
       where: {
         members: {
           some: {
@@ -104,11 +106,12 @@ export default defineEventHandler(async (event) => {
           }
         },
         participatingIn: {
-          has: competitionId
+          has: competitionId.toString()
         }
       }
     })
-    userParticipating = userTeams.length > 0
+
+    userParticipating = participatingTeamCount > 0
   }
 
   const competitionWithStatus = {
