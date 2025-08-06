@@ -30,10 +30,21 @@ export default defineEventHandler(async (event) => {
   // Check if the current path matches any public route pattern
   const isPublicRoute = publicRoutes.some(route => {
     if (route === event.path) return true
-    // Allow sub-paths for specific routes like /api/competitions/[id]
-    if (route === '/api/competitions' && event.path.startsWith('/api/competitions/')) return true
-    if (route === '/api/problems' && event.path.startsWith('/api/problems/')) return true
-    if (route === '/api/announcements' && event.path.startsWith('/api/announcements/')) return true
+    // Allow specific public sub-paths only - be more restrictive
+    if (route === '/api/competitions') {
+      // Only allow GET requests to view competitions and leaderboards
+      if (event.method === 'GET') {
+        if (event.path === '/api/competitions' || event.path === '/api/competitions/simple') return true
+        if (event.path.match(/^\/api\/competitions\/[^\/]+$/)) return true // GET /api/competitions/[id]
+        if (event.path.match(/^\/api\/competitions\/[^\/]+\/leaderboard$/)) return true
+        if (event.path.match(/^\/api\/competitions\/[^\/]+\/problems$/)) return true
+        if (event.path.match(/^\/api\/competitions\/[^\/]+\/solutions$/)) return true
+        if (event.path.match(/^\/api\/competitions\/[^\/]+\/teams$/)) return true
+      }
+      return false
+    }
+    if (route === '/api/problems' && (event.path === '/api/problems' || event.path.match(/^\/api\/problems\/[^\/]+$/))) return true
+    if (route === '/api/announcements' && (event.path === '/api/announcements' || event.path.match(/^\/api\/announcements\/[^\/]+$/))) return true
     return false
   })
 
