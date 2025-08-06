@@ -35,13 +35,14 @@
   }
 
   /* NavigationMenu 样式修复 */
-  /* 修复 hover 时字体消失问题 */
+  /* 统一所有导航元素的字体颜色 */
   [data-navigation-menu] [data-navigation-menu-trigger] {
-    color: rgb(17 24 39) !important; /* text-gray-900 */
+    color: rgb(55 65 81) !important; /* text-gray-700 - 统一颜色 */
   }
 
   [data-navigation-menu] [data-navigation-menu-trigger]:hover {
     color: rgb(17 24 39) !important; /* text-gray-900 */
+    background-color: rgb(243 244 246) !important; /* bg-gray-100 */
   }
 
   /* 修复弹出框背景色问题 */
@@ -59,6 +60,23 @@
     grid-template-columns: 1fr !important;
   }
 
+  /* 修复导航链接的文字颜色问题 */
+  [data-navigation-menu] a {
+    color: rgb(55 65 81) !important; /* text-gray-700 */
+  }
+
+  [data-navigation-menu] a:hover {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
+    background-color: rgb(243 244 246) !important; /* bg-gray-100 */
+  }
+
+  /* 优化选中状态颜色 */
+  [data-navigation-menu] a[aria-current="page"],
+  [data-navigation-menu] a.router-link-active {
+    color: rgb(59 130 246) !important; /* text-blue-500 */
+    background-color: rgb(239 246 255) !important; /* bg-blue-50 */
+  }
+
   /* 确保子项目正确显示 */
   [data-navigation-menu] [data-navigation-menu-link] {
     color: rgb(55 65 81) !important; /* text-gray-700 */
@@ -66,7 +84,54 @@
 
   [data-navigation-menu] [data-navigation-menu-link]:hover {
     color: rgb(17 24 39) !important; /* text-gray-900 */
-    background-color: rgb(249 250 251) !important; /* bg-gray-50 */
+    background-color: rgb(243 244 246) !important; /* bg-gray-100 */
+  }
+
+  /* 修复特定的文字消失问题 - 针对主导航项 */
+  li[data-menu-item] a {
+    color: rgb(55 65 81) !important; /* text-gray-700 */
+  }
+
+  li[data-menu-item] a:hover {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
+    background-color: rgb(243 244 246) !important; /* bg-gray-100 */
+  }
+
+  li[data-menu-item] a span {
+    color: inherit !important;
+  }
+
+  /* 修复所有可能的导航文字消失问题 */
+  [data-navigation-menu] * {
+    color: inherit !important;
+  }
+
+  /* 强制所有导航菜单项的文字可见 */
+  [data-navigation-menu] .truncate {
+    color: rgb(55 65 81) !important; /* text-gray-700 */
+  }
+
+  [data-navigation-menu] a:hover .truncate {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
+  }
+
+  /* 统一弹出框内容的颜色 */
+  [data-navigation-menu-content] a {
+    color: rgb(55 65 81) !important; /* text-gray-700 - 统一颜色 */
+  }
+
+  [data-navigation-menu-content] a:hover {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
+    background-color: rgb(243 244 246) !important; /* bg-gray-100 */
+  }
+
+  /* 确保弹出框内的所有文字元素颜色统一 */
+  [data-navigation-menu-content] * {
+    color: rgb(55 65 81) !important; /* text-gray-700 */
+  }
+
+  [data-navigation-menu-content] a:hover * {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
   }
 
 

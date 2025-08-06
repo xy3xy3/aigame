@@ -5,6 +5,11 @@
     variant="link"
     :highlight="false"
     :class="navClass"
+    :ui="{
+      childList: 'grid grid-cols-2 gap-1 p-2',
+      content: 'w-64 bg-white',
+      viewport: 'bg-white',
+    }"
   />
 </template>
 

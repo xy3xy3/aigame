@@ -20,6 +20,11 @@
             variant="link"
             :highlight="false"
             class="text-sm font-medium"
+            :ui="{
+              childList: 'grid grid-cols-1 gap-1 p-2',
+              content: 'w-48 bg-white',
+              viewport: 'bg-white',
+            }"
             @update:model-value="handleNavigationSelect"
           />
         </div>
@@ -38,8 +43,8 @@
               :highlight="false"
               class="text-sm font-medium"
               :ui="{
-                childList: 'grid grid-cols-1 gap-1 p-2',
-                content: 'w-48 bg-white',
+                childList: 'grid grid-cols-2 gap-1 p-2',
+                content: 'w-64 bg-white',
                 viewport: 'bg-white',
               }"
             />
