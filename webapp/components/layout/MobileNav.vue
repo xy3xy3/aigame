@@ -21,11 +21,13 @@
 
         <!-- 侧边栏内容 -->
         <div
-          class="fixed left-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-out"
+          class="fixed left-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-out flex flex-col"
           :class="isAnimating ? 'translate-x-0' : '-translate-x-full'"
         >
           <!-- 头部 -->
-          <div class="flex items-center justify-between p-4 border-b border-gray-200">
+          <div
+            class="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0"
+          >
             <div class="flex items-center space-x-3">
               <div
                 class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center"
@@ -47,7 +49,7 @@
           </div>
 
           <!-- 菜单内容 -->
-          <div class="flex-1 overflow-y-auto p-4">
+          <div class="flex-1 overflow-y-auto p-4" style="max-height: calc(100vh - 80px)">
             <nav class="space-y-2">
               <template v-for="item in navItems" :key="item.text">
                 <!-- 处理有 action 的直接按钮项 -->
