@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import prisma from '../../../utils/prisma'
+import { invalidateCompetitionCache } from '../../../utils/redis'
 
 const joinCompetitionSchema = z.object({
   teamId: z.string()
@@ -153,6 +154,14 @@ export default defineEventHandler(async (event) => {
         }
       }
     })
+
+    // 清除比赛缓存，确保下次获取比赛信息时能正确显示用户参与状态
+    try {
+      await invalidateCompetitionCache(competitionId)
+    } catch (error) {
+      console.log('Failed to invalidate competition cache:', error)
+      // 不抛出错误，因为这不应该影响参赛操作的成功
+    }
 
     return {
       success: true,
