@@ -1,12 +1,10 @@
 <template>
-  <UApp>
-    <Notivue v-slot="item">
-      <Notification :item="item" />
-    </Notivue>
-    <NuxtLayout>
-      <NuxtPage />
-    </NuxtLayout>
-  </UApp>
+  <Notivue v-slot="item">
+    <Notification :item="item" />
+  </Notivue>
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>
 
 <script setup>
