@@ -630,7 +630,7 @@ const importCdks = async () => {
 
     if (response.success) {
       push.success(
-        `成功导入 ${response.imported} 个CDK，跳过 ${response.skipped} 个重复的CDK`
+        `成功导入 ${response.imported.successful} 个CDK，跳过 ${response.imported.duplicates} 个重复的CDK`
       );
       importForm.value.codes = "";
       importForm.value.batchId = "";

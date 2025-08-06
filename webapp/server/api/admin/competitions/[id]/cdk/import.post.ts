@@ -3,7 +3,7 @@ import prisma from '../../../../../utils/prisma'
 import { requireAdminRole } from '../../../../../utils/auth'
 
 const importCdkSchema = z.object({
-    codes: z.string().min(1).max(50000), // 支持粘贴大量 CDK
+    codes: z.union([z.string().min(1).max(50000), z.array(z.string().min(1).max(500))]), // 支持粘贴大量 CDK 或数组格式
     batchId: z.string().optional(),
     notes: z.string().max(500).optional()
 })
@@ -53,10 +53,17 @@ export default defineEventHandler(async (event) => {
         }
 
         // 解析 CDK 代码（按行分割，去除空行和重复）
-        const codeLines = codes
-            .split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0)
+        let codeLines: string[] = [];
+        if (typeof codes === 'string') {
+            codeLines = codes
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0)
+        } else if (Array.isArray(codes)) {
+            codeLines = codes
+                .map(code => code.trim())
+                .filter(code => code.length > 0)
+        }
 
         if (codeLines.length === 0) {
             throw createError({
