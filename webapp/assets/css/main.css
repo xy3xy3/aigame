@@ -104,4 +104,187 @@
     max-width: calc(100% - 8px) !important;
     max-height: calc(100% - 8px) !important;
   }
+/* 修复select框字体颜色太浅问题 */
+  select {
+    color: rgb(17 24 39) !important; /* text-gray-900 - 深色文字 */
+  }
+
+  /* 确保select的option也有正确的颜色 */
+  select option {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
+    background-color: white !important;
+  }
+
+  /* 修复select在focus状态下的颜色 */
+  select:focus {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
+  }
+
+  /* 针对特定的select样式优化 */
+  .competition-select,
+  .admin-select {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
+    font-weight: 500;
+  }
+/* 管理后台双列布局优化 */
+  .admin-nav-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem !important;
+    max-width: 20rem !important;
+  }
+
+  /* 管理后台导航项样式 */
+  .admin-nav-item {
+    padding: 0.5rem 0.75rem !important;
+    text-align: left !important;
+    border-radius: 0.375rem !important;
+    transition: all 0.2s ease !important;
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+  }
+
+  .admin-nav-item:hover {
+    background-color: rgb(243 244 246) !important; /* bg-gray-100 */
+    transform: translateY(-1px) !important;
+  }
+
+/* 移动端导航修复 */
+  .mobile-nav-container {
+    width: 100% !important;
+    max-width: 20rem !important;
+    background-color: rgb(255 255 255) !important; /* 白色背景 */
+    border-radius: 0.75rem !important;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+    position: relative !important;
+    z-index: 50 !important;
+  }
+
+  /* 移动端导航菜单项间距优化 */
+  .mobile-nav-space {
+    margin-bottom: 0.25rem !important;
+  }
+
+  /* 移动端子菜单样式 */
+  .mobile-nav-submenu {
+    margin-left: 1rem !important;
+    border-left: 2px solid rgb(229 231 235) !important; /* border-gray-200 */
+    padding-left: 0.75rem !important;
+  }
+
+  /* 移动端导航标题样式 */
+  .mobile-nav-title {
+    font-weight: 600 !important;
+    color: rgb(17 24 39) !important; /* text-gray-900 */
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  /* 移动端导航按钮现代化样式 */
+  .mobile-nav-button {
+    color: rgb(55 65 81) !important; /* text-gray-700 */
+    background-color: transparent !important;
+    border-radius: 0.5rem !important;
+    margin: 0.125rem 0 !important;
+    transition: all 0.2s ease-in-out !important;
+    font-weight: 500 !important;
+  }
+
+  .mobile-nav-button:hover {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
+    background-color: rgb(249 250 251) !important; /* bg-gray-50 */
+    transform: translateX(4px) !important;
+  }
+
+  /* 移动端导航按钮选中状态 */
+  .mobile-nav-button[aria-current="page"],
+  .mobile-nav-button.router-link-active {
+    color: rgb(59 130 246) !important; /* text-blue-500 */
+    background-color: rgb(239 246 255) !important; /* bg-blue-50 */
+    border-left: 3px solid rgb(59 130 246) !important;
+  }
+
+  .mobile-nav-button[aria-current="page"]:hover,
+  .mobile-nav-button.router-link-active:hover {
+    color: rgb(37 99 235) !important; /* text-blue-600 */
+    background-color: rgb(219 234 254) !important; /* bg-blue-100 */
+  }
+
+  /* 移动端导航滑动动画优化 */
+  .mobile-nav-container {
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+  }
+
+  /* 移动端导航按钮图标动画 */
+  .mobile-nav-button .group-hover\:scale-110 {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  /* 移动端导航按钮文字渐变效果 */
+  .mobile-nav-button:active {
+    transform: scale(0.98) !important;
+    transition: transform 0.1s ease-in-out !important;
+  }
+
+  /* 移动端子菜单项缩进视觉优化 */
+  .mobile-nav-submenu .mobile-nav-button {
+    margin-left: 0.5rem !important;
+    position: relative !important;
+  }
+
+  .mobile-nav-submenu .mobile-nav-button::before {
+    content: '' !important;
+    position: absolute !important;
+    left: -0.5rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 2px !important;
+    height: 1rem !important;
+    background-color: rgb(209 213 219) !important; /* border-gray-300 */
+    border-radius: 1px !important;
+  }
+
+  /* 确保移动端导航在小屏幕上正确显示 */
+  @media (max-width: 768px) {
+    .mobile-nav-button {
+      width: 100% !important;
+      justify-content: flex-start !important;
+      padding: 0.75rem 1rem !important;
+      font-size: 0.875rem !important;
+      line-height: 1.5rem !important;
+      min-height: 2.75rem !important;
+    }
+
+    .mobile-nav-container {
+      max-width: 18rem !important;
+    }
+
+    .mobile-nav-title {
+      padding: 0.75rem 1rem 0.5rem 1rem !important;
+    }
+  }
+
+  /* 确保 USlideover 组件正常工作 */
+  [data-radix-portal] {
+    z-index: 9999 !important;
+  }
+
+  /* 移动端导航展开时的背景遮罩优化 */
+  [data-state="open"] .mobile-nav-container {
+    animation: slideInFromLeft 0.3s ease-out !important;
+  }
+
+  @keyframes slideInFromLeft {
+    from {
+      transform: translateX(-100%) !important;
+      opacity: 0 !important;
+    }
+    to {
+      transform: translateX(0) !important;
+      opacity: 1 !important;
+    }
+  }
 }

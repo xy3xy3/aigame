@@ -43,8 +43,8 @@
               :highlight="false"
               class="text-sm font-medium"
               :ui="{
-                childList: 'grid grid-cols-2 gap-1 p-2',
-                content: 'w-64 bg-white',
+                childList: 'grid grid-cols-1 gap-1 p-2',
+                content: 'w-48 bg-white',
                 viewport: 'bg-white',
               }"
             />
@@ -60,7 +60,7 @@
         </div>
 
         <!-- 移动端导航 -->
-        <div class="md:hidden flex items-center">
+        <div class="md:hidden flex items-center ml-auto">
           <MobileNav :nav-items="mobileNavItems" @child-action="handleChildAction" />
         </div>
       </div>
@@ -261,12 +261,15 @@ const mobileNavItems = computed(() => {
       });
     }
 
-    // 用户相关项 - 将个人资料和密码修改作为独立项目，退出单独处理
-    items.push(
-      { text: "个人资料", to: "/profile" },
-      { text: "修改密码", to: "/profile/password" },
-      { text: "退出", action: "logout" }
-    );
+    // 用户相关项 - 放到一个可展开的用户菜单中
+    items.push({
+      text: `用户: ${user.value?.username || "用户"}`,
+      children: [
+        { text: "个人资料", to: "/profile" },
+        { text: "修改密码", to: "/profile/password" },
+        { text: "退出", action: "logout" },
+      ],
+    });
   } else {
     // 未登录用户的导航项
     items.push({ text: "登录", to: "/login" }, { text: "注册", to: "/register" });
