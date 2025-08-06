@@ -22,7 +22,9 @@ export default defineNuxtConfig({
 
   // CSS配置
   css: [
-    '~/assets/css/main.css',
+    '~/assets/css/main.css',//本项目唯一css
+    'notivue/notification.css', // 通知插件的css，必须引入
+    'notivue/animations.css' // 通知插件的css，必须引入
   ],
 
   // 运行时配置
