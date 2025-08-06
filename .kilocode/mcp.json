@@ -12,7 +12,8 @@
       "alwaysAllow": [
         "resolve-library-id",
         "get-library-docs"
-      ]
+      ],
+      "disabled": false
     }
   }
 }

@@ -1,16 +1,17 @@
 <template>
-  <div class="min-h-screen bg-gray-50 layout-wrapper">
-    <nav class="bg-white shadow">
-      <div class="max-w-7xl mx-auto px-4">
-        <div class="flex justify-between h-16">
-          <div class="flex">
-            <div class="flex-shrink-0 flex items-center">
-              <NuxtLink to="/" class="text-xl font-bold text-gray-900">
-                {{ settings.title || "AI竞赛平台" }}
-              </NuxtLink>
-            </div>
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 layout-wrapper">
+    <!-- 使用 Nuxt UI 的导航栏 -->
+    <UContainer>
+      <div class="bg-white dark:bg-gray-800 shadow">
+        <div class="flex justify-between h-16 px-4">
+          <div class="flex items-center">
+            <!-- Logo/品牌名 -->
+            <UButton :to="'/'" variant="ghost" color="gray" class="text-xl font-bold">
+              {{ settings.title || "AI竞赛平台" }}
+            </UButton>
+
             <!-- 桌面端导航 -->
-            <div class="hidden md:ml-6 md:flex md:space-x-8">
+            <div class="hidden md:ml-6 md:flex md:space-x-2">
               <template v-for="item in desktopNavItems" :key="item.text">
                 <NavLink :item="item" @child-action="handleChildAction" />
               </template>
@@ -20,23 +21,15 @@
           <!-- 桌面端右侧区域 -->
           <div class="hidden md:flex md:items-center md:space-x-4">
             <template v-if="isLoggedIn">
-              <!-- 临时显示用户名 -->
-              <span class="text-gray-700 text-sm">{{ user?.username || "用户" }}</span>
+              <!-- 用户信息 -->
+              <UBadge color="primary" variant="soft" size="sm">
+                {{ user?.username || "用户" }}
+              </UBadge>
               <NavLink :item="userDropdownItem" @child-action="handleChildAction" />
             </template>
             <template v-else>
-              <NuxtLink
-                to="/login"
-                class="text-gray-500 hover:text-gray-700 text-sm font-medium"
-              >
-                登录
-              </NuxtLink>
-              <NuxtLink
-                to="/register"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-sm font-medium"
-              >
-                注册
-              </NuxtLink>
+              <UButton to="/login" variant="ghost" color="gray" size="sm"> 登录 </UButton>
+              <UButton to="/register" color="primary" size="sm"> 注册 </UButton>
             </template>
           </div>
 
@@ -46,20 +39,24 @@
           </div>
         </div>
       </div>
-    </nav>
+    </UContainer>
 
     <main class="main-content">
       <slot />
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 mt-auto">
-      <div class="max-w-7xl mx-auto px-4 py-6">
-        <div class="text-center text-sm text-gray-500">
-          <div v-html="settings.copyright || '© 2024 AI竞赛平台 版权所有'" />
+    <UContainer>
+      <footer
+        class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto"
+      >
+        <div class="py-6">
+          <div class="text-center text-sm text-gray-500 dark:text-gray-400">
+            <div v-html="settings.copyright || '© 2024 AI竞赛平台 版权所有'" />
+          </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </UContainer>
   </div>
 </template>
 

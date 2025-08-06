@@ -5,26 +5,30 @@ export default defineNuxtConfig({
 
   // 模块配置
   modules: [
-    '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
     '@vueuse/nuxt',
     '@nuxtjs/color-mode',
     '@nuxt/image',
-    'notivue/nuxt'
+    'notivue/nuxt',
+    '@nuxt/ui',
   ],
 
-  // Prisma配置 - 禁用迁移提示
-  prisma: {
-    autoSetupPrisma: false,
-    installStudio: false,
-    runMigration: false
+  // PostCSS 配置 (支持 Tailwind CSS v4)
+  postcss: {
+    plugins: {
+      '@tailwindcss/postcss': {}
+    }
   },
+
+
+  ui: {
+    fonts: false, // 禁用字体模块，避免加载 Google Fonts
+  },
+
 
   // CSS配置
   css: [
     '~/assets/css/main.css',
-    'notivue/notification.css', // Only needed if using built-in notifications
-    'notivue/animations.css' // Only needed if using built-in animations
   ],
 
   // 运行时配置
