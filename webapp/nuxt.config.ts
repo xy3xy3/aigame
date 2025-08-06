@@ -79,8 +79,12 @@ export default defineNuxtConfig({
   vite: {
     optimizeDeps: {
       include: [
-        // 在这里加入你的UI库包名
-        'radix-vue'
+        // 强烈建议：优化大型图表库
+        'echarts',
+        // 建议：优化客户端 Markdown 解析
+        'marked',
+        // 可选：优化日期库
+        'dayjs',
       ]
     }
   }

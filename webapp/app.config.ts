@@ -81,9 +81,9 @@ export default defineAppConfig({
                         root: 'items-center justify-between',
                         list: 'flex items-center',
                         item: 'py-2',
-                        link: 'px-2.5 py-1.5 before:inset-x-1 before:inset-y-0.5 before:rounded-md',
+                        link: 'px-2.5 py-1.5 before:inset-1 before:rounded-md',
                         childList: 'grid p-2 overflow-hidden',
-                        childLink: 'px-3 py-2 gap-2 before:inset-x-1 before:inset-y-0.5 before:rounded-md',
+                        childLink: 'px-3 py-2 gap-2 before:inset-1 before:rounded-md',
                         childLinkLabel: 'font-medium text-gray-700',
                         content: 'absolute top-0 left-0 w-full max-h-[70vh] overflow-hidden'
                     },
