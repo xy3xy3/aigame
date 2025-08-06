@@ -20,8 +20,46 @@
     </div>
 
     <!-- 错误状态 -->
-    <div v-else-if="error" class="bg-red-50 border border-red-200 rounded-md p-4">
-      <p class="text-red-800">加载CDK信息失败: {{ error.message }}</p>
+    <div v-else-if="error" class="rounded-md p-4" :class="getErrorClass">
+      <div class="flex items-center">
+        <svg
+          class="w-5 h-5 mr-2"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          :class="getErrorIconClass"
+        >
+          <path
+            v-if="isEmailVerificationError"
+            fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+            clip-rule="evenodd"
+          />
+          <path
+            v-else
+            fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <div>
+          <p class="font-medium" :class="getErrorTextClass">{{ getErrorTitle }}</p>
+          <p
+            v-if="getErrorDescription"
+            class="mt-1 text-sm"
+            :class="getErrorDescriptionClass"
+          >
+            {{ getErrorDescription }}
+          </p>
+          <div v-if="isEmailVerificationError" class="mt-3">
+            <NuxtLink
+              to="/auth/verify-email"
+              class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+            >
+              前往验证邮箱
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- CDK功能未启用 -->
@@ -319,6 +357,85 @@ const getStatusMessage = computed(() => {
   }
   if (cdkData.value.stats.available <= 0) return "当前库存不足，请稍后再试";
   return "";
+});
+
+// 错误处理相关计算属性
+const isEmailVerificationError = computed(() => {
+  return (
+    error.value?.message?.includes("请先验证邮箱") ||
+    error.value?.statusMessage?.includes("请先验证邮箱")
+  );
+});
+
+const getErrorTitle = computed(() => {
+  if (isEmailVerificationError.value) {
+    return "需要验证邮箱";
+  }
+  if (error.value?.statusCode === 403) {
+    return "访问受限";
+  }
+  return "加载失败";
+});
+
+const getErrorDescription = computed(() => {
+  // 尝试多种方式获取后端返回的友好消息
+  const backendMessage =
+    error.value?.data?.message || // Nuxt fetch 错误可能在 data 中
+    error.value?.statusMessage ||
+    error.value?.message;
+
+  console.log("Error object:", error.value); // 调试用，查看错误对象结构
+  console.log("Backend message:", backendMessage);
+
+  if (
+    backendMessage &&
+    !backendMessage.includes("[GET]") &&
+    !backendMessage.includes("http://")
+  ) {
+    // 如果后端消息不包含技术细节（如URL），直接使用
+    return backendMessage;
+  }
+
+  // 如果后端消息包含技术细节，则使用我们的友好消息
+  if (isEmailVerificationError.value) {
+    return "您需要先验证邮箱才能使用 CDK 功能。";
+  }
+  if (error.value?.statusCode === 403) {
+    return "您没有权限访问此功能。";
+  }
+  if (error.value?.statusCode === 404) {
+    return "比赛不存在或已被删除。";
+  }
+
+  return "加载 CDK 信息时出现问题，请稍后重试。";
+});
+
+const getErrorClass = computed(() => {
+  if (isEmailVerificationError.value) {
+    return "bg-yellow-50 border border-yellow-200";
+  }
+  return "bg-red-50 border border-red-200";
+});
+
+const getErrorIconClass = computed(() => {
+  if (isEmailVerificationError.value) {
+    return "text-yellow-400";
+  }
+  return "text-red-400";
+});
+
+const getErrorTextClass = computed(() => {
+  if (isEmailVerificationError.value) {
+    return "text-yellow-800";
+  }
+  return "text-red-800";
+});
+
+const getErrorDescriptionClass = computed(() => {
+  if (isEmailVerificationError.value) {
+    return "text-yellow-700";
+  }
+  return "text-red-700";
 });
 
 // 工具函数

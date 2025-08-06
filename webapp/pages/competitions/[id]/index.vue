@@ -475,6 +475,9 @@ definePageMeta({
   middleware: "auth",
 });
 
+// 显式导入 CompetitionCdkClaim 组件
+import CompetitionCdkClaim from "~/components/specific/CompetitionCdkClaim.vue";
+
 // 导入题解工具函数
 import {
   getSolutionTimeInfo,
