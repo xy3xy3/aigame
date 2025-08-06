@@ -73,5 +73,15 @@ export default defineNuxtConfig({
     experimental: {
       wasm: true
     }
+  },
+  //vite
+
+  vite: {
+    optimizeDeps: {
+      include: [
+        // 在这里加入你的UI库包名
+        'radix-vue'
+      ]
+    }
   }
 })

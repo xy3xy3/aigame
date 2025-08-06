@@ -39,7 +39,7 @@
                 @click="handleDirectAction(item)"
                 variant="ghost"
                 color="gray"
-                class="w-full justify-start"
+                class="w-full justify-start mobile-nav-button"
                 size="sm"
               >
                 {{ item.text }}
@@ -58,7 +58,7 @@
                       @click="handleNavClick"
                       variant="ghost"
                       color="gray"
-                      class="w-full justify-start"
+                      class="w-full justify-start mobile-nav-button"
                       size="sm"
                     >
                       {{ child.text }}
@@ -68,7 +68,7 @@
                       @click="handleChildAction(child)"
                       variant="ghost"
                       color="gray"
-                      class="w-full justify-start"
+                      class="w-full justify-start mobile-nav-button"
                       size="sm"
                     >
                       {{ child.text }}
@@ -84,7 +84,7 @@
                 @click="handleNavClick"
                 variant="ghost"
                 color="gray"
-                class="w-full justify-start"
+                class="w-full justify-start mobile-nav-button"
                 size="sm"
               >
                 {{ item.text }}
