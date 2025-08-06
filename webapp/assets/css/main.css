@@ -1,33 +1,73 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
+/* 字体渲染优化 */
+@layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+}
+
 /* 自定义样式 */
 @layer components {
-  /* 下拉菜单样式优化 */
-  .dropdown-menu {
-    @apply absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200;
+  /* 导航栏字体优化 */
+  .nav-text {
+    @apply font-medium text-gray-900;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-weight: 500;
   }
 
-  .dropdown-item {
-    @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150;
+  /* 导航栏按钮颜色覆盖 */
+  .nav-button {
+    @apply text-gray-900 hover:text-gray-700;
   }
 
-  /* 管理后台卡片样式 */
-  .admin-card {
-    @apply bg-white rounded-lg shadow-md p-6;
+  .nav-button:hover {
+    @apply bg-gray-100;
   }
 
-  /* 统计卡片样式 */
-  .stat-card {
-    @apply bg-white rounded-lg shadow-md p-6;
+  /* NavigationMenu 样式修复 */
+  /* 修复 hover 时字体消失问题 */
+  [data-navigation-menu] [data-navigation-menu-trigger] {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
   }
 
-  /* 按钮样式优化 */
-  .btn-primary {
-    @apply bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium transition-colors duration-150;
+  [data-navigation-menu] [data-navigation-menu-trigger]:hover {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
   }
 
-  .btn-secondary {
-    @apply bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md font-medium transition-colors duration-150;
+  /* 修复弹出框背景色问题 */
+  [data-navigation-menu-content] {
+    background-color: white !important;
+    border: 1px solid rgb(229 231 235) !important; /* border-gray-200 */
   }
+
+  [data-navigation-menu-viewport] {
+    background-color: white !important;
+  }
+
+  /* 修复个人信息弹出框单列布局 */
+  [data-navigation-menu-content] > div {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 确保子项目正确显示 */
+  [data-navigation-menu] [data-navigation-menu-link] {
+    color: rgb(55 65 81) !important; /* text-gray-700 */
+  }
+
+  [data-navigation-menu] [data-navigation-menu-link]:hover {
+    color: rgb(17 24 39) !important; /* text-gray-900 */
+    background-color: rgb(249 250 251) !important; /* bg-gray-50 */
+  }
+
+
 }

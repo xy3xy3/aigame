@@ -1,45 +1,65 @@
 <template>
   <div class="min-h-screen bg-gray-50 layout-wrapper">
     <!-- 使用 Nuxt UI 的导航栏 -->
-    <UContainer>
-      <div class="bg-white shadow">
-        <div class="flex justify-between h-16 px-4">
-          <div class="flex items-center">
-            <!-- Logo/品牌名 -->
-            <UButton :to="'/'" variant="ghost" color="gray" class="text-xl font-bold">
-              {{ settings.title || "AI竞赛平台" }}
+    <div class="bg-white shadow w-full">
+      <div class="flex items-center h-16 px-4 max-w-none">
+        <!-- Logo/品牌名 -->
+        <UButton
+          :to="'/'"
+          variant="ghost"
+          class="text-xl font-bold nav-text nav-button shrink-0"
+        >
+          {{ settings.title || "AI竞赛平台" }}
+        </UButton>
+
+        <!-- 桌面端导航 - 居中显示 -->
+        <div class="hidden md:flex md:flex-1 md:justify-center">
+          <UNavigationMenu
+            :items="desktopNavigationItems"
+            orientation="horizontal"
+            variant="link"
+            :highlight="false"
+            class="text-sm font-medium"
+            @update:model-value="handleNavigationSelect"
+          />
+        </div>
+
+        <!-- 桌面端右侧区域 -->
+        <div class="hidden md:flex md:items-center md:space-x-4 shrink-0">
+          <template v-if="isLoggedIn">
+            <!-- 用户信息 -->
+            <UBadge color="primary" variant="soft" size="sm">
+              {{ user?.username || "用户" }}
+            </UBadge>
+            <UNavigationMenu
+              :items="[userNavigationItem]"
+              orientation="horizontal"
+              variant="link"
+              :highlight="false"
+              class="text-sm font-medium"
+              :ui="{
+                childList: 'grid grid-cols-1 gap-1 p-2',
+                content: 'w-48 bg-white',
+                viewport: 'bg-white',
+              }"
+            />
+          </template>
+          <template v-else>
+            <UButton to="/login" variant="ghost" size="sm" class="nav-text nav-button">
+              登录
             </UButton>
+            <UButton to="/register" color="primary" size="sm" class="nav-text">
+              注册
+            </UButton>
+          </template>
+        </div>
 
-            <!-- 桌面端导航 -->
-            <div class="hidden md:ml-6 md:flex md:space-x-2">
-              <template v-for="item in desktopNavItems" :key="item.text">
-                <NavLink :item="item" @child-action="handleChildAction" />
-              </template>
-            </div>
-          </div>
-
-          <!-- 桌面端右侧区域 -->
-          <div class="hidden md:flex md:items-center md:space-x-4">
-            <template v-if="isLoggedIn">
-              <!-- 用户信息 -->
-              <UBadge color="primary" variant="soft" size="sm">
-                {{ user?.username || "用户" }}
-              </UBadge>
-              <NavLink :item="userDropdownItem" @child-action="handleChildAction" />
-            </template>
-            <template v-else>
-              <UButton to="/login" variant="ghost" color="gray" size="sm"> 登录 </UButton>
-              <UButton to="/register" color="primary" size="sm"> 注册 </UButton>
-            </template>
-          </div>
-
-          <!-- 移动端导航 -->
-          <div class="md:hidden flex items-center">
-            <MobileNav :nav-items="mobileNavItems" @child-action="handleChildAction" />
-          </div>
+        <!-- 移动端导航 -->
+        <div class="md:hidden flex items-center">
+          <MobileNav :nav-items="mobileNavItems" @child-action="handleChildAction" />
         </div>
       </div>
-    </UContainer>
+    </div>
 
     <main class="main-content">
       <slot />
@@ -127,6 +147,22 @@ const userDropdownItem = computed(() => ({
   ],
 }));
 
+// 用户导航菜单项（NavigationMenu 格式）
+const userNavigationItem = computed(() => ({
+  label: `欢迎, ${user.value?.username}`,
+  children: [
+    { label: "个人资料", to: "/profile" },
+    { label: "修改密码", to: "/profile/password" },
+    {
+      label: "退出",
+      onSelect: (e) => {
+        e.preventDefault();
+        handleLogout();
+      },
+    },
+  ],
+}));
+
 // 桌面端导航项
 const desktopNavItems = computed(() => {
   console.log(
@@ -158,6 +194,47 @@ const desktopNavItems = computed(() => {
   console.log("Desktop nav items:", items);
   return items;
 });
+
+// 转换为 NavigationMenu 兼容格式
+const desktopNavigationItems = computed(() => {
+  const convertToNavigationItem = (item) => {
+    const navItem = {
+      label: item.text,
+      to: item.to,
+    };
+
+    // 处理子菜单
+    if (item.children && item.children.length > 0) {
+      navItem.children = item.children.map((child) => ({
+        label: child.text,
+        to: child.to,
+        onSelect: child.action
+          ? (e) => {
+              e.preventDefault();
+              handleChildAction(child);
+            }
+          : undefined,
+      }));
+    }
+
+    // 处理直接动作
+    if (item.action) {
+      navItem.onSelect = (e) => {
+        e.preventDefault();
+        handleChildAction(item);
+      };
+    }
+
+    return navItem;
+  };
+
+  return desktopNavItems.value.map(convertToNavigationItem);
+});
+
+// 处理导航选择事件
+const handleNavigationSelect = (value) => {
+  console.log("Navigation selected:", value);
+};
 
 // 移动端导航项（包含所有项目）
 const mobileNavItems = computed(() => {
