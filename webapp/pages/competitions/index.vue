@@ -10,7 +10,7 @@
       <select
         v-model="selectedStatus"
         @change="fetchCompetitions"
-        class="border border-gray-300 rounded-md px-3 py-2"
+        class="border border-gray-300 rounded-md px-3 py-2 competition-select"
       >
         <option value="">全部状态</option>
         <option value="upcoming">即将开始</option>
