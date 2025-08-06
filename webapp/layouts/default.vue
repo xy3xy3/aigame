@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 layout-wrapper">
+  <div class="min-h-screen bg-gray-50 layout-wrapper">
     <!-- 使用 Nuxt UI 的导航栏 -->
     <UContainer>
-      <div class="bg-white dark:bg-gray-800 shadow">
+      <div class="bg-white shadow">
         <div class="flex justify-between h-16 px-4">
           <div class="flex items-center">
             <!-- Logo/品牌名 -->
@@ -47,11 +47,9 @@
 
     <!-- Footer -->
     <UContainer>
-      <footer
-        class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto"
-      >
+      <footer class="bg-white border-t border-gray-200 mt-auto">
         <div class="py-6">
-          <div class="text-center text-sm text-gray-500 dark:text-gray-400">
+          <div class="text-center text-sm text-gray-500">
             <div v-html="settings.copyright || '© 2024 AI竞赛平台 版权所有'" />
           </div>
         </div>

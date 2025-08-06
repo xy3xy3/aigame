@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@nuxt/ui";
 
 /* 自定义样式 */
 @layer components {

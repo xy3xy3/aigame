@@ -14,13 +14,11 @@
     <USlideover v-model="isOpen" side="left">
       <UCard
         class="flex flex-col flex-1"
-        :ui="{ ring: '', divide: 'divide-y divide-gray-200 dark:divide-gray-800' }"
+        :ui="{ ring: '', divide: 'divide-y divide-gray-200' }"
       >
         <template #header>
           <div class="flex items-center justify-between">
-            <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-              菜单
-            </h3>
+            <h3 class="text-base font-semibold leading-6 text-gray-900">菜单</h3>
             <UButton
               color="gray"
               variant="ghost"
@@ -49,7 +47,7 @@
 
               <!-- 处理有子菜单的项目 -->
               <div v-else-if="item.children" class="space-y-1">
-                <div class="px-3 py-2 text-sm font-medium text-gray-900 dark:text-white">
+                <div class="px-3 py-2 text-sm font-medium text-gray-900">
                   {{ item.text }}
                 </div>
                 <div class="ml-4 space-y-1">
