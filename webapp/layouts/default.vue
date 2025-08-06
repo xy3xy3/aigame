@@ -1,61 +1,142 @@
 <template>
   <div class="min-h-screen bg-gray-50 layout-wrapper">
-    <!-- 使用 Nuxt UI 的导航栏 -->
+    <!-- 自研导航栏 -->
     <div class="bg-white shadow w-full">
       <div class="flex items-center h-16 px-4 max-w-none">
         <!-- Logo/品牌名 -->
-        <UButton
-          :to="'/'"
-          variant="ghost"
-          class="text-xl font-bold nav-text nav-button shrink-0"
+        <NuxtLink
+          to="/"
+          class="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-150 shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md px-2 py-1"
         >
           {{ settings.title || "AI竞赛平台" }}
-        </UButton>
+        </NuxtLink>
 
         <!-- 桌面端导航 - 居中显示 -->
         <div class="hidden md:flex md:flex-1 md:justify-center">
-          <UNavigationMenu
-            :items="desktopNavigationItems"
-            orientation="horizontal"
-            variant="link"
-            :highlight="false"
-            class="text-sm font-medium"
-            :ui="{
-              childList: 'grid grid-cols-1 gap-1 p-2',
-              content: 'w-48 bg-white',
-              viewport: 'bg-white',
-            }"
-            @update:model-value="handleNavigationSelect"
-          />
+          <nav class="flex items-center space-x-1">
+            <template v-for="item in desktopNavItems" :key="item.text">
+              <!-- 有子菜单的导航项 -->
+              <div v-if="item.children && item.children.length" class="relative group">
+                <button
+                  class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  {{ item.text }}
+                  <svg
+                    class="ml-1 h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+                <!-- 下拉菜单 -->
+                <div
+                  class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+                >
+                  <div class="py-1">
+                    <NuxtLink
+                      v-for="child in item.children"
+                      :key="child.to || child.text"
+                      :to="child.to"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                    >
+                      {{ child.text }}
+                    </NuxtLink>
+                  </div>
+                </div>
+              </div>
+              <!-- 普通导航项 -->
+              <NuxtLink
+                v-else
+                :to="item.to"
+                class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                :class="
+                  isActiveRoute(item.to)
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                "
+              >
+                {{ item.text }}
+              </NuxtLink>
+            </template>
+          </nav>
         </div>
 
         <!-- 桌面端右侧区域 -->
         <div class="hidden md:flex md:items-center md:space-x-4 shrink-0">
           <template v-if="isLoggedIn">
             <!-- 用户信息 -->
-            <UBadge color="primary" variant="soft" size="sm">
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+            >
               {{ user?.username || "用户" }}
-            </UBadge>
-            <UNavigationMenu
-              :items="[userNavigationItem]"
-              orientation="horizontal"
-              variant="link"
-              :highlight="false"
-              class="text-sm font-medium"
-              :ui="{
-                childList: 'grid grid-cols-1 gap-1 p-2',
-                content: 'w-48 bg-white',
-                viewport: 'bg-white',
-              }"
-            />
+            </span>
+            <!-- 用户下拉菜单 -->
+            <div class="relative group">
+              <button
+                class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                欢迎, {{ user?.username }}
+                <svg
+                  class="ml-1 h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+              <!-- 用户下拉菜单 -->
+              <div
+                class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+              >
+                <div class="py-1">
+                  <NuxtLink
+                    to="/profile"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                  >
+                    个人资料
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/profile/password"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                  >
+                    修改密码
+                  </NuxtLink>
+                  <button
+                    @click="handleLogout"
+                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                  >
+                    退出
+                  </button>
+                </div>
+              </div>
+            </div>
           </template>
           <template v-else>
-            <UButton to="/login" variant="ghost" size="sm" class="nav-text nav-button">
+            <NuxtLink
+              to="/login"
+              class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
               登录
-            </UButton>
-            <UButton to="/register" color="primary" size="sm" class="nav-text">
+            </NuxtLink>
+            <NuxtLink
+              to="/register"
+              class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
               注册
-            </UButton>
+            </NuxtLink>
           </template>
         </div>
 
@@ -71,7 +152,7 @@
     </main>
 
     <!-- Footer -->
-    <UContainer>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <footer class="bg-white border-t border-gray-200 mt-auto">
         <div class="py-6">
           <div class="text-center text-sm text-gray-500">
@@ -79,7 +160,7 @@
           </div>
         </div>
       </footer>
-    </UContainer>
+    </div>
   </div>
 </template>
 
@@ -97,7 +178,6 @@
 
 <script setup>
 // 导入组件
-import NavLink from "~/components/layout/NavLink.vue";
 import MobileNav from "~/components/layout/MobileNav.vue";
 
 // 使用认证状态管理
@@ -105,6 +185,9 @@ const { user, isLoggedIn, logout, fetchUser } = useCustomAuth();
 
 // 使用 useSettings 获取全局设置数据
 const { settings } = useSettings();
+
+// 路由状态
+const route = useRoute();
 
 // 更新浏览器标签页标题
 useHead({
@@ -129,6 +212,15 @@ const handleChildAction = (child) => {
   }
 };
 
+// 路由激活状态判断
+const isActiveRoute = (path) => {
+  if (!path) return false;
+  if (path === "/") {
+    return route.path === "/";
+  }
+  return route.path.startsWith(path);
+};
+
 // 管理员导航项
 const adminNavItems = computed(() => [
   { text: "管理仪表板", to: "/admin/dashboard" },
@@ -141,32 +233,6 @@ const adminNavItems = computed(() => [
   { text: "公告管理", to: "/admin/announcements" },
   { text: "系统设置", to: "/admin/settings" },
 ]);
-
-// 用户下拉菜单项
-const userDropdownItem = computed(() => ({
-  text: `欢迎, ${user.value?.username}`,
-  children: [
-    { text: "个人资料", to: "/profile" },
-    { text: "修改密码", to: "/profile/password" },
-    { text: "退出", action: "logout" },
-  ],
-}));
-
-// 用户导航菜单项（NavigationMenu 格式）
-const userNavigationItem = computed(() => ({
-  label: `欢迎, ${user.value?.username}`,
-  children: [
-    { label: "个人资料", to: "/profile" },
-    { label: "修改密码", to: "/profile/password" },
-    {
-      label: "退出",
-      onSelect: (e) => {
-        e.preventDefault();
-        handleLogout();
-      },
-    },
-  ],
-}));
 
 // 桌面端导航项
 const desktopNavItems = computed(() => {
@@ -199,47 +265,6 @@ const desktopNavItems = computed(() => {
   console.log("Desktop nav items:", items);
   return items;
 });
-
-// 转换为 NavigationMenu 兼容格式
-const desktopNavigationItems = computed(() => {
-  const convertToNavigationItem = (item) => {
-    const navItem = {
-      label: item.text,
-      to: item.to,
-    };
-
-    // 处理子菜单
-    if (item.children && item.children.length > 0) {
-      navItem.children = item.children.map((child) => ({
-        label: child.text,
-        to: child.to,
-        onSelect: child.action
-          ? (e) => {
-              e.preventDefault();
-              handleChildAction(child);
-            }
-          : undefined,
-      }));
-    }
-
-    // 处理直接动作
-    if (item.action) {
-      navItem.onSelect = (e) => {
-        e.preventDefault();
-        handleChildAction(item);
-      };
-    }
-
-    return navItem;
-  };
-
-  return desktopNavItems.value.map(convertToNavigationItem);
-});
-
-// 处理导航选择事件
-const handleNavigationSelect = (value) => {
-  console.log("Navigation selected:", value);
-};
 
 // 移动端导航项（包含所有项目）
 const mobileNavItems = computed(() => {

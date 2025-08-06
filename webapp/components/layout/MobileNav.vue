@@ -1,26 +1,41 @@
 <template>
   <div class="md:hidden">
     <!-- 汉堡包图标按钮 -->
-    <UButton
+    <button
       @click="toggleMenu"
-      variant="ghost"
-      color="gray"
-      icon="i-heroicons-bars-3-20-solid"
+      :aria-expanded="isOpen"
+      :aria-controls="`mobile-nav-${navId}`"
       aria-label="打开主菜单"
-      class="p-2 text-gray-800 hover:text-gray-900 hover:bg-gray-100"
-    />
+      class="p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 6h16M4 12h16M4 18h16"
+        />
+      </svg>
+    </button>
 
     <!-- 移动端侧边栏菜单 - 只在打开时渲染 -->
     <Teleport to="body" v-if="isOpen">
-      <div class="fixed inset-0 z-50 md:hidden">
+      <div
+        class="fixed inset-0 z-50 md:hidden"
+        role="dialog"
+        :aria-labelledby="`mobile-nav-title-${navId}`"
+      >
         <!-- 背景遮罩 -->
         <div
-          class="fixed inset-0 bg-gray-900/20 backdrop-blur-sm"
+          class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity duration-300"
+          :class="{ 'opacity-100': isAnimating, 'opacity-0': !isAnimating }"
           @click="closeMenu"
+          aria-hidden="true"
         ></div>
 
         <!-- 侧边栏内容 -->
         <div
+          :id="`mobile-nav-${navId}`"
           class="fixed left-0 top-0 h-full w-80 bg-white shadow-2xl transform transition-transform duration-300 ease-out flex flex-col"
           :class="isAnimating ? 'translate-x-0' : '-translate-x-full'"
         >
@@ -32,20 +47,46 @@
               <div
                 class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center"
               >
-                <UIcon
-                  name="i-heroicons-squares-2x2-16-solid"
+                <svg
                   class="w-4 h-4 text-white"
-                />
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                  />
+                </svg>
               </div>
-              <h3 class="text-lg font-bold text-gray-900">导航菜单</h3>
+              <h3
+                :id="`mobile-nav-title-${navId}`"
+                class="text-lg font-bold text-gray-900"
+              >
+                导航菜单
+              </h3>
             </div>
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-x-mark-20-solid"
-              class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            <button
               @click="closeMenu"
-            />
+              class="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              aria-label="关闭菜单"
+            >
+              <svg
+                class="w-5 h-5 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
 
           <!-- 菜单内容 -->
@@ -53,88 +94,75 @@
             <nav class="space-y-2">
               <template v-for="item in navItems" :key="item.text">
                 <!-- 处理有 action 的直接按钮项 -->
-                <UButton
+                <button
                   v-if="item.action"
                   @click="handleDirectAction(item)"
-                  variant="ghost"
-                  color="gray"
-                  class="w-full justify-start mobile-nav-button group"
-                  size="sm"
-                  :ui="{ rounded: 'rounded-lg' }"
+                  class="w-full text-left px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   {{ item.text }}
-                </UButton>
+                </button>
 
                 <!-- 处理有子菜单的项目 -->
                 <div v-else-if="item.children" class="space-y-2">
-                  <UButton
+                  <button
                     @click="toggleSubmenu(item.text)"
-                    variant="ghost"
-                    color="gray"
-                    class="w-full justify-start mobile-nav-button group"
-                    size="sm"
-                    :ui="{ rounded: 'rounded-lg' }"
+                    :aria-expanded="expandedSubmenus[item.text]"
+                    :aria-controls="`submenu-${item.text.replace(/\s+/g, '-')}`"
+                    class="w-full flex items-center justify-start px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
-                    <template #leading>
-                      <UIcon
-                        :name="
-                          expandedSubmenus[item.text]
-                            ? 'i-heroicons-chevron-down-16-solid'
-                            : 'i-heroicons-chevron-right-16-solid'
-                        "
-                        class="w-4 h-4 transition-transform"
+                    <svg
+                      class="w-4 h-4 mr-2 transition-transform duration-200"
+                      :class="{ 'rotate-90': expandedSubmenus[item.text] }"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 5l7 7-7 7"
                       />
-                    </template>
+                    </svg>
                     {{ item.text }}
-                  </UButton>
+                  </button>
                   <div
                     v-show="expandedSubmenus[item.text]"
-                    class="mobile-nav-submenu space-y-1"
+                    :id="`submenu-${item.text.replace(/\s+/g, '-')}`"
+                    class="ml-4 space-y-1 border-l-2 border-gray-200 pl-4"
                   >
                     <template
                       v-for="child in item.children"
                       :key="child.to || child.text"
                     >
-                      <UButton
+                      <NuxtLink
                         v-if="child.to"
                         :to="child.to"
                         @click="handleNavClick"
-                        variant="ghost"
-                        color="gray"
-                        class="w-full justify-start mobile-nav-button group"
-                        size="sm"
-                        :ui="{ rounded: 'rounded-lg' }"
+                        class="block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                       >
                         {{ child.text }}
-                      </UButton>
-                      <UButton
+                      </NuxtLink>
+                      <button
                         v-else-if="child.action"
                         @click="handleChildAction(child)"
-                        variant="ghost"
-                        color="gray"
-                        class="w-full justify-start mobile-nav-button group"
-                        size="sm"
-                        :ui="{ rounded: 'rounded-lg' }"
+                        class="block w-full text-left px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                       >
                         {{ child.text }}
-                      </UButton>
+                      </button>
                     </template>
                   </div>
                 </div>
 
                 <!-- 处理普通导航项 -->
-                <UButton
+                <NuxtLink
                   v-else
                   :to="item.to"
                   @click="handleNavClick"
-                  variant="ghost"
-                  color="gray"
-                  class="w-full justify-start mobile-nav-button group"
-                  size="sm"
-                  :ui="{ rounded: 'rounded-lg' }"
+                  class="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   {{ item.text }}
-                </UButton>
+                </NuxtLink>
               </template>
             </nav>
           </div>
@@ -166,6 +194,7 @@ const emit = defineEmits(["navClick", "childAction"]);
 const isOpen = ref(false);
 const isAnimating = ref(false);
 const expandedSubmenus = ref({});
+const navId = ref(`nav-${Math.random().toString(36).substr(2, 9)}`);
 
 // 切换子菜单展开状态
 const toggleSubmenu = (itemText) => {
@@ -186,6 +215,16 @@ const openMenu = () => {
   isOpen.value = true;
   nextTick(() => {
     isAnimating.value = true;
+    // 焦点管理 - 将焦点移到菜单内容
+    const menuContent = document.getElementById(`mobile-nav-${navId.value}`);
+    if (menuContent) {
+      const firstFocusable = menuContent.querySelector(
+        'button, a, [tabindex]:not([tabindex="-1"])'
+      );
+      if (firstFocusable) {
+        firstFocusable.focus();
+      }
+    }
   });
 };
 
@@ -194,6 +233,11 @@ const closeMenu = () => {
   isAnimating.value = false;
   setTimeout(() => {
     isOpen.value = false;
+    // 将焦点返回到触发按钮
+    const trigger = document.querySelector(`[aria-controls="mobile-nav-${navId.value}"]`);
+    if (trigger) {
+      trigger.focus();
+    }
   }, 300);
 };
 
@@ -228,11 +272,42 @@ const handleKeydown = (e) => {
   }
 };
 
+// 焦点陷阱 - 简化版本
+const handleFocusTrap = (e) => {
+  if (!isOpen.value) return;
+
+  if (e.key === "Tab") {
+    const menuContent = document.getElementById(`mobile-nav-${navId.value}`);
+    if (!menuContent) return;
+
+    const focusableElements = menuContent.querySelectorAll(
+      'button, a, [tabindex]:not([tabindex="-1"])'
+    );
+
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
+    if (e.shiftKey) {
+      if (document.activeElement === firstFocusable) {
+        e.preventDefault();
+        lastFocusable.focus();
+      }
+    } else {
+      if (document.activeElement === lastFocusable) {
+        e.preventDefault();
+        firstFocusable.focus();
+      }
+    }
+  }
+};
+
 onMounted(() => {
   document.addEventListener("keydown", handleKeydown);
+  document.addEventListener("keydown", handleFocusTrap);
 });
 
 onUnmounted(() => {
   document.removeEventListener("keydown", handleKeydown);
+  document.removeEventListener("keydown", handleFocusTrap);
 });
 </script>

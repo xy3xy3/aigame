@@ -10,7 +10,6 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
     '@nuxt/image',
     'notivue/nuxt',
-    '@nuxt/ui',
   ],
 
   // PostCSS 配置 (支持 Tailwind CSS v4)
@@ -18,11 +17,6 @@ export default defineNuxtConfig({
     plugins: {
       '@tailwindcss/postcss': {}
     }
-  },
-
-
-  ui: {
-    fonts: false, // 禁用字体模块，避免加载 Google Fonts
   },
 
 

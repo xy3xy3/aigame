@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "@nuxt/ui";
 
 /* 字体渲染优化 */
 @layer base {
