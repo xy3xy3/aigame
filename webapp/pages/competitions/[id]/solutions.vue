@@ -631,7 +631,7 @@ const validateAndSetFile = (file) => {
   // 检查文件大小
   const maxSize = 50 * 1024 * 1024; // 50MB
   if (file.size > maxSize) {
-    showNotification("error", "文件大小不能超过 50MB");
+    push.error("文件大小不能超过 50MB");
     return;
   }
 
@@ -641,7 +641,7 @@ const validateAndSetFile = (file) => {
   const isValidExtension = allowedExtensions.some((ext) => fileName.endsWith(ext));
 
   if (!isValidExtension) {
-    showNotification("error", "只支持 PDF 格式的文件");
+    push.error("只支持 PDF 格式的文件");
     return;
   }
 
@@ -684,7 +684,7 @@ const submitSolution = async () => {
     uploadProgress.value = 100;
 
     if (response.success) {
-      showNotification("success", "解决方案提交成功！");
+      push.success("解决方案提交成功！");
 
       // 重置表单
       uploadForm.value = {
@@ -697,10 +697,7 @@ const submitSolution = async () => {
     }
   } catch (error) {
     console.error("解决方案提交失败:", error);
-    showNotification(
-      "error",
-      error.data?.message || error.message || "解决方案提交失败，请重试"
-    );
+    push.error(error.data?.message || error.message || "解决方案提交失败，请重试");
   } finally {
     isUploading.value = false;
     uploadProgress.value = 0;
@@ -714,11 +711,11 @@ const viewSolution = async (solutionId) => {
     if (response.success && response.solution.downloadUrl) {
       window.open(response.solution.downloadUrl, "_blank");
     } else {
-      showNotification("warning", "无法预览此文件，请尝试下载");
+      push.warning("无法预览此文件，请尝试下载");
     }
   } catch (error) {
     console.error("获取解决方案详情失败:", error);
-    showNotification("error", "获取解决方案详情失败");
+    push.error("获取解决方案详情失败");
   }
 };
 
@@ -734,11 +731,11 @@ const downloadSolution = async (solutionId) => {
       link.click();
       document.body.removeChild(link);
     } else {
-      showNotification("error", "无法获取下载链接");
+      push.error("无法获取下载链接");
     }
   } catch (error) {
     console.error("下载解决方案失败:", error);
-    showNotification("error", "下载解决方案失败");
+    push.error("下载解决方案失败");
   }
 };
 
@@ -746,20 +743,6 @@ const downloadSolution = async (solutionId) => {
 const goToPage = (page) => {
   currentPage.value = page;
   refreshSolutions();
-};
-
-// 显示通知
-const showNotification = (type, message) => {
-  notification.value = {
-    show: true,
-    type,
-    message,
-  };
-
-  // 3秒后自动隐藏
-  setTimeout(() => {
-    notification.value.show = false;
-  }, 3000);
 };
 
 // 监听路由参数变化

@@ -443,18 +443,6 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString("zh-CN");
 };
 
-const showNotification = (type, message) => {
-  notification.value = {
-    show: true,
-    type,
-    message,
-  };
-
-  setTimeout(() => {
-    notification.value.show = false;
-  }, 3000);
-};
-
 // CDK领取
 const claimCdk = async () => {
   if (!canClaim.value || isClaiming.value) return;
@@ -467,15 +455,12 @@ const claimCdk = async () => {
     });
 
     if (response.success) {
-      showNotification("success", "成功领取CDK！");
+      push.success("成功领取CDK！");
       await refresh(); // 刷新数据
     }
   } catch (error) {
     console.error("领取CDK失败:", error);
-    showNotification(
-      "error",
-      error.data?.message || error.message || "领取CDK失败，请重试"
-    );
+    push.error(error.data?.message || error.message || "领取CDK失败，请重试");
   } finally {
     isClaiming.value = false;
   }
@@ -491,7 +476,7 @@ const copyCdk = async (code) => {
     }, 2000);
   } catch (error) {
     console.error("复制失败:", error);
-    showNotification("error", "复制失败，请手动复制");
+    push.error("复制失败，请手动复制");
   }
 };
 </script>

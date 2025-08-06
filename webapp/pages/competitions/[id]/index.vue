@@ -578,20 +578,6 @@ const closeJoinModal = () => {
   isJoining.value = false;
 };
 
-// 显示通知
-const showNotification = (type, message) => {
-  notification.value = {
-    show: true,
-    type,
-    message,
-  };
-
-  // 3秒后自动隐藏
-  setTimeout(() => {
-    notification.value.show = false;
-  }, 3000);
-};
-
 // 确认参加比赛
 const confirmJoinCompetition = async () => {
   if (!selectedTeamId.value || !data.value?.competition) return;
@@ -608,7 +594,7 @@ const confirmJoinCompetition = async () => {
 
     if (response.success) {
       // 显示成功消息
-      showNotification("success", response.message || "成功参加比赛！");
+      push.success(response.message || "成功参加比赛！");
 
       // 关闭弹窗
       closeJoinModal();
@@ -619,10 +605,7 @@ const confirmJoinCompetition = async () => {
     }
   } catch (error) {
     console.error("参加比赛失败:", error);
-    showNotification(
-      "error",
-      error.data?.message || error.message || "参加比赛失败，请重试"
-    );
+    push.error(error.data?.message || error.message || "参加比赛失败，请重试");
   } finally {
     isJoining.value = false;
   }
