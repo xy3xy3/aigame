@@ -18,7 +18,12 @@
               <!-- 有子菜单的导航项 -->
               <div v-if="item.children && item.children.length" class="relative group">
                 <button
-                  class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  :class="
+                    isAdminSectionActive(item)
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                  "
                 >
                   {{ item.text }}
                   <svg
@@ -44,7 +49,12 @@
                       v-for="child in item.children"
                       :key="child.to || child.text"
                       :to="child.to"
-                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                      class="block px-4 py-2 text-sm transition-colors duration-150"
+                      :class="
+                        isActiveRoute(child.to)
+                          ? 'text-blue-600 bg-blue-50'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      "
                     >
                       {{ child.text }}
                     </NuxtLink>
@@ -219,6 +229,13 @@ const isActiveRoute = (path) => {
     return route.path === "/";
   }
   return route.path.startsWith(path);
+};
+
+// 判断管理后台区域是否激活
+const isAdminSectionActive = (item) => {
+  if (!item.children) return false;
+  // 检查当前路由是否匹配任何管理后台子项
+  return item.children.some((child) => child.to && route.path.startsWith(child.to));
 };
 
 // 管理员导航项

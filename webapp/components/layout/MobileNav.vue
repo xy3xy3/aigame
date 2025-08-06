@@ -108,7 +108,12 @@
                     @click="toggleSubmenu(item.text)"
                     :aria-expanded="expandedSubmenus[item.text]"
                     :aria-controls="`submenu-${item.text.replace(/\s+/g, '-')}`"
-                    class="w-full flex items-center justify-start px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    class="w-full flex items-center justify-start px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    :class="
+                      isAdminSectionActive(item)
+                        ? 'text-blue-600 bg-blue-50'
+                        : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                    "
                   >
                     <svg
                       class="w-4 h-4 mr-2 transition-transform duration-200"
@@ -139,7 +144,12 @@
                         v-if="child.to"
                         :to="child.to"
                         @click="handleNavClick"
-                        class="block px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        :class="
+                          isActiveRoute(child.to)
+                            ? 'text-blue-600 bg-blue-50'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        "
                       >
                         {{ child.text }}
                       </NuxtLink>
@@ -264,6 +274,22 @@ const route = useRoute();
 watch(route, () => {
   closeMenu();
 });
+
+// 路由激活状态判断
+const isActiveRoute = (path) => {
+  if (!path) return false;
+  if (path === "/") {
+    return route.path === "/";
+  }
+  return route.path.startsWith(path);
+};
+
+// 判断管理后台区域是否激活
+const isAdminSectionActive = (item) => {
+  if (!item.children) return false;
+  // 检查当前路由是否匹配任何管理后台子项
+  return item.children.some((child) => child.to && route.path.startsWith(child.to));
+};
 
 // 监听 ESC 键关闭菜单
 const handleKeydown = (e) => {
