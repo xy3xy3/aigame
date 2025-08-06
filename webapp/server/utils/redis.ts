@@ -186,3 +186,9 @@ export async function invalidateUserTeamsCache(userId: string): Promise<void> {
   const key = `user:${userId}:teams`
   await deleteCache(key)
 }
+
+// 清除所有缓存
+export async function clearAllCache(): Promise<void> {
+  const client = getRedisClient()
+  await client.flushall()
+}

@@ -221,6 +221,13 @@
         >
           {{ isStartingWorker ? "启动中..." : "启动评测工作器" }}
         </button>
+        <button
+          @click="clearCache"
+          :disabled="isClearingCache"
+          class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-medium disabled:opacity-50"
+        >
+          {{ isClearingCache ? "清除中..." : "清除Redis缓存" }}
+        </button>
       </div>
     </div>
   </div>
@@ -241,6 +248,7 @@ const stats = ref({
 const queueStats = ref(null);
 const isRefreshingQueue = ref(false);
 const isStartingWorker = ref(false);
+const isClearingCache = ref(false);
 
 const fetchStats = async () => {
   try {
@@ -275,6 +283,20 @@ const startWorker = async () => {
     push.error("启动评测工作器失败: " + (error.data?.message || error.message));
   } finally {
     isStartingWorker.value = false;
+  }
+};
+
+const clearCache = async () => {
+  isClearingCache.value = true;
+  try {
+    const result = await $fetch("/api/admin/cache/clear", {
+      method: "POST",
+    });
+    push.success(result.message || "Redis缓存清除成功！");
+  } catch (error) {
+    push.error("清除Redis缓存失败: " + (error.data?.message || error.message));
+  } finally {
+    isClearingCache.value = false;
   }
 };
 
