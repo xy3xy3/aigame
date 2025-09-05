@@ -45,6 +45,7 @@ docker compose up -d
 cd webapp
 pnpm i
 pnpm npx generate
+cp .env.example .env
 ```
 
 ### 启动测试
