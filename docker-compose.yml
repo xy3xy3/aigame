@@ -1,7 +1,7 @@
 services:
   # DB
   mongo:
-    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/mongodb/mongodb-community-server:8.0.11-ubi9
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/mongodb/mongodb-community-server:8.0.13-ubuntu2204
     container_name: mongo
     restart: always
     networks:

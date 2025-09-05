@@ -9,14 +9,8 @@ Redis,Mongodb,minio
 需要设置data权限
 
 ```shell
-mkdir ./data/mongo
-sudo chown -R 998:998 ./data/mongo
-openssl rand -base64 756 > ./data/mongodb.key
-sudo chown 998:998 ./data/mongodb.key
-sudo chmod 400 ./data/mongodb.key
-docker compose up -d mongo
-docker compose logs mongo
-docker compose exec mongo mongosh -u root -p password --authenticationDatabase admin --eval 'rs.initiate({ _id: "rs0", members: [ { _id: 0, host: "mongo:27017" } ]})'
+chmod 755 ./init.sh
+sh ./init.sh
 ```
 
 ### 后续正常启动docker compose
@@ -58,4 +52,12 @@ pnpm npx generate
 ```shell
 cd webapp
 pnpm dev
+```
+
+## 备注
+
+### docker mongodb验证用户id的方法
+
+```shell
+docker run --rm swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/mongodb/mongodb-community-server:8.0.13-ubuntu2204 id -u mongodb
 ```
