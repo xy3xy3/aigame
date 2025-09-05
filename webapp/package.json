@@ -8,9 +8,10 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "init-admin": "node scripts/init-admin.js",
-    "init-minio": "node scripts/init-minio.cjs",
-    "db:seed": "node scripts/generate-test-data.js"
+    "db:init": "node --env-file=.env scripts/init-db.js",
+    "db:admin": "node --env-file=.env scripts/init-admin.js",
+    "minio:init": "node --env-file=.env scripts/init-minio.cjs",
+    "db:seed": "node --env-file=.env scripts/generate-test-data.js"
   },
   "dependencies": {
     "@nuxtjs/color-mode": "^3.5.2",
