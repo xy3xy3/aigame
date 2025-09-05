@@ -81,12 +81,6 @@
         <!-- 桌面端右侧区域 -->
         <div class="hidden md:flex md:items-center md:space-x-4 shrink-0">
           <template v-if="isLoggedIn">
-            <!-- 用户信息 -->
-            <span
-              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-            >
-              {{ user?.username || "用户" }}
-            </span>
             <!-- 用户下拉菜单 -->
             <div class="relative group">
               <button
@@ -114,13 +108,23 @@
                 <div class="py-1">
                   <NuxtLink
                     to="/profile"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                    class="block px-4 py-2 text-sm transition-colors duration-150"
+                    :class="
+                      isActiveRoute('/profile')
+                        ? 'text-blue-600 bg-blue-50'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    "
                   >
                     个人资料
                   </NuxtLink>
                   <NuxtLink
                     to="/profile/password"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                    class="block px-4 py-2 text-sm transition-colors duration-150"
+                    :class="
+                      isActiveRoute('/profile/password')
+                        ? 'text-blue-600 bg-blue-50'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    "
                   >
                     修改密码
                   </NuxtLink>
@@ -225,6 +229,10 @@ const handleChildAction = (child) => {
 // 路由激活状态判断
 const isActiveRoute = (path) => {
   if (!path) return false;
+  // 完全匹配 /profile 路径
+  if (path === '/profile') {
+    return route.path === '/profile';
+  }
   if (path === "/") {
     return route.path === "/";
   }
