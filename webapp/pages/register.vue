@@ -1,99 +1,99 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50">
-    <div class="max-w-md w-full space-y-8">
-      <div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">创建新账户</h2>
-      </div>
-      <form class="mt-8 space-y-6" @submit.prevent="handleRegister">
-        <div class="rounded-md shadow-sm space-y-4">
-          <div>
-            <label for="username" class="sr-only">用户名</label>
-            <input
-              id="username"
-              v-model="form.username"
-              name="username"
-              type="text"
-              required
-              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="用户名"
-            />
-          </div>
-          <div>
-            <label for="email" class="sr-only">邮箱地址</label>
-            <input
-              id="email"
-              v-model="form.email"
-              name="email"
-              type="email"
-              autocomplete="email"
-              required
-              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="邮箱地址"
-            />
-          </div>
-          <div>
-            <label for="password" class="sr-only">密码</label>
-            <input
-              id="password"
-              v-model="form.password"
-              name="password"
-              type="password"
-              autocomplete="new-password"
-              required
-              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="密码 (至少6位)"
-            />
-          </div>
-          <div>
-            <label for="realName" class="sr-only">真实姓名</label>
-            <input
-              id="realName"
-              v-model="form.realName"
-              name="realName"
-              type="text"
-              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="真实姓名"
-            />
-          </div>
-          <div>
-            <label for="studentId" class="sr-only">学号</label>
-            <input
-              id="studentId"
-              v-model="form.studentId"
-              name="studentId"
-              type="text"
-              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="学号"
-            />
-          </div>
-          <div>
-            <label for="phoneNumber" class="sr-only">手机号</label>
-            <input
-              id="phoneNumber"
-              v-model="form.phoneNumber"
-              name="phoneNumber"
-              type="tel"
-              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="手机号"
-            />
-          </div>
-          <div>
-            <label for="education" class="block text-sm font-medium text-gray-700 mb-1"
-              >学历</label
-            >
-            <select
-              id="education"
-              v-model="form.education"
-              name="education"
-              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-            >
-              <option value="">请选择学历</option>
-              <option value="BACHELOR">本科</option>
-              <option value="MASTER">硕士</option>
-              <option value="DOCTORATE">博士</option>
-            </select>
-          </div>
+  <div class="min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+      <div class="space-y-8">
+        <div>
+          <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">创建新账户</h2>
         </div>
+        <form class="mt-8 space-y-6" @submit.prevent="handleRegister">
+          <div class="space-y-4">
+            <div>
+              <label for="username" class="sr-only">用户名</label>
+              <input
+                id="username"
+                v-model="form.username"
+                name="username"
+                type="text"
+                required
+                class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                placeholder="用户名"
+              />
+            </div>
+            <div>
+              <label for="email" class="sr-only">邮箱地址</label>
+              <input
+                id="email"
+                v-model="form.email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                placeholder="邮箱地址"
+              />
+            </div>
+            <div>
+              <label for="password" class="sr-only">密码</label>
+              <input
+                id="password"
+                v-model="form.password"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                required
+                class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                placeholder="密码 (至少6位)"
+              />
+            </div>
+            <div>
+              <label for="realName" class="sr-only">真实姓名</label>
+              <input
+                id="realName"
+                v-model="form.realName"
+                name="realName"
+                type="text"
+                class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                placeholder="真实姓名"
+              />
+            </div>
+            <div>
+              <label for="studentId" class="sr-only">学号</label>
+              <input
+                id="studentId"
+                v-model="form.studentId"
+                name="studentId"
+                type="text"
+                class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                placeholder="学号"
+              />
+            </div>
+            <div>
+              <label for="phoneNumber" class="sr-only">手机号</label>
+              <input
+                id="phoneNumber"
+                v-model="form.phoneNumber"
+                name="phoneNumber"
+                type="tel"
+                class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                placeholder="手机号"
+              />
+            </div>
+            <div>
+              <label for="education" class="sr-only">学历</label>
+              <select
+                id="education"
+                v-model="form.education"
+                name="education"
+                class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                :class="{ 'text-gray-500': !form.education }"
+              >
+                <option disabled value="">请选择学历</option>
+                <option value="BACHELOR">本科</option>
+                <option value="MASTER">硕士</option>
+                <option value="DOCTORATE">博士</option>
+              </select>
+            </div>
+          </div>
 
         <div v-if="error" class="text-red-600 text-sm text-center">
           {{ error }}
@@ -114,7 +114,8 @@
             已有账户？登录
           </NuxtLink>
         </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
 </template>

@@ -1,40 +1,41 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50">
-    <div class="max-w-md w-full space-y-8">
-      <div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          登录到您的账户
-        </h2>
-      </div>
-      <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
-        <div class="rounded-md shadow-sm space-y-4">
-          <div>
-            <label for="identifier" class="sr-only">邮箱地址或用户名</label>
-            <input
-              id="identifier"
-              v-model="form.identifier"
-              name="identifier"
-              type="text"
-              autocomplete="username"
-              required
-              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="邮箱地址或用户名"
-            />
-          </div>
-          <div>
-            <label for="password" class="sr-only">密码</label>
-            <input
-              id="password"
-              v-model="form.password"
-              name="password"
-              type="password"
-              autocomplete="current-password"
-              required
-              class="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="密码"
-            />
-          </div>
+  <div class="min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+      <div class="space-y-8">
+        <div>
+          <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            登录到您的账户
+          </h2>
         </div>
+        <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
+          <div class="space-y-4">
+            <div>
+              <label for="identifier" class="sr-only">邮箱地址或用户名</label>
+              <input
+                id="identifier"
+                v-model="form.identifier"
+                name="identifier"
+                type="text"
+                autocomplete="username"
+                required
+                class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                placeholder="邮箱地址或用户名"
+              />
+            </div>
+            <div>
+              <label for="password" class="sr-only">密码</label>
+              <input
+                id="password"
+                v-model="form.password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
+                class="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                placeholder="密码"
+              />
+            </div>
+          </div>
 
         <div v-if="error" class="text-red-600 text-sm text-center">
           {{ error }}
@@ -50,22 +51,13 @@
           </button>
         </div>
 
-        <div class="text-center space-y-2">
-          <div>
-            <NuxtLink
-              to="/auth/forgot-password"
-              class="text-indigo-600 hover:text-indigo-500 text-sm"
-            >
-              忘记密码？
-            </NuxtLink>
-          </div>
-          <div>
-            <NuxtLink to="/register" class="text-indigo-600 hover:text-indigo-500">
-              还没有账户？注册
-            </NuxtLink>
-          </div>
+        <div class="text-center">
+          <NuxtLink to="/register" class="text-indigo-600 hover:text-indigo-500">
+            还没有账户？注册
+          </NuxtLink>
         </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
 </template>
