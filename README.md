@@ -20,6 +20,13 @@ docker compose up -d
 ```
 
 
+## python evaluate
+
+需要先安装uv，之后
+```shell
+uv sync
+```
+
 
 ## Nuxt Web APP
 
