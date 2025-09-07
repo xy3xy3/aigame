@@ -138,7 +138,7 @@
             </button>
             <NuxtLink
               :to="{ path: '/admin/problems', query: { competitionId: competition.id } }"
-              class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium text-center"
+              class="bg-primary hover:bg-primary-hover text-primary-text-light px-4 py-2 rounded-md text-sm font-medium text-center"
             >
               题目管理
             </NuxtLink>

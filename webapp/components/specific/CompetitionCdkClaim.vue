@@ -83,7 +83,7 @@
     <div v-else class="space-y-6">
       <!-- 状态信息卡片 -->
       <div
-        class="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4"
+        class="bg-primary-bg-light border border-primary-border rounded-lg p-4"
       >
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center">
@@ -115,7 +115,7 @@
             <div class="text-gray-600">总限制</div>
           </div>
           <div class="text-center">
-            <div class="text-2xl font-bold text-purple-600">
+            <div class="text-2xl font-bold text-primary">
               {{ cdkData.stats.available }}
             </div>
             <div class="text-gray-600">可用库存</div>

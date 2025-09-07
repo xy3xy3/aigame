@@ -1,5 +1,94 @@
 @import "tailwindcss";
 
+/* 蓝色主题CSS变量 */
+@layer base {
+  :root {
+    /* 主色调 - 蓝色系统 */
+    --color-primary: theme('colors.blue.500');
+    --color-primary-hover: theme('colors.blue.600');
+    --color-primary-focus: theme('colors.blue.700');
+    
+    /* 背景色 */
+    --color-primary-bg-light: theme('colors.blue.50');
+    --color-primary-bg: theme('colors.blue.100');
+    
+    /* 边框色 */
+    --color-primary-border: theme('colors.blue.300');
+    
+    /* 文字色 */
+    --color-primary-text-light: theme('colors.white');
+    --color-primary-text: theme('colors.blue.600');
+  }
+}
+
+/* 语义化CSS类 */
+@layer components {
+  .bg-primary {
+    background-color: var(--color-primary);
+  }
+  
+  .bg-primary-hover {
+    background-color: var(--color-primary-hover);
+  }
+  
+  .bg-primary-focus {
+    background-color: var(--color-primary-focus);
+  }
+  
+  .bg-primary-bg-light {
+    background-color: var(--color-primary-bg-light);
+  }
+  
+  .bg-primary-bg {
+    background-color: var(--color-primary-bg);
+  }
+  
+  .border-primary {
+    border-color: var(--color-primary);
+  }
+  
+  .border-primary-border {
+    border-color: var(--color-primary-border);
+  }
+  
+  .text-primary {
+    color: var(--color-primary-text);
+  }
+  
+  .text-primary-text-light {
+    color: var(--color-primary-text-light);
+  }
+  
+  .hover\:bg-primary-hover:hover {
+    background-color: var(--color-primary-hover);
+  }
+  
+  .hover\:text-primary:hover {
+    color: var(--color-primary-text);
+  }
+  
+  .focus\:ring-primary:focus {
+    --tw-ring-color: var(--color-primary);
+  }
+  
+  /* 渐变背景 */
+  .from-primary {
+    --tw-gradient-from: var(--color-primary);
+  }
+  
+  .via-primary-hover {
+    --tw-gradient-via: var(--color-primary-hover);
+  }
+  
+  .to-primary-hover {
+    --tw-gradient-to: var(--color-primary-hover);
+  }
+  
+  .to-primary-focus {
+    --tw-gradient-to: var(--color-primary-focus);
+  }
+}
+
 /* 字体渲染优化 */
 @layer base {
   * {

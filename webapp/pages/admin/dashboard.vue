@@ -88,7 +88,7 @@
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <div
-              class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center"
+              class="w-8 h-8 bg-primary rounded-md flex items-center justify-center"
             >
               <svg
                 class="w-5 h-5 text-white"
@@ -198,7 +198,7 @@
         </NuxtLink>
         <NuxtLink
           to="/admin/problems"
-          class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-md text-center font-medium"
+          class="bg-primary hover:bg-primary-hover text-primary-text-light px-6 py-3 rounded-md text-center font-medium"
         >
           题目管理
         </NuxtLink>

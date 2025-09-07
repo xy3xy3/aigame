@@ -21,7 +21,7 @@
 
     <div v-if="pending" class="text-center py-8">
       <div
-        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"
       ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
@@ -49,7 +49,7 @@
         </div>
         <div
           v-else
-          class="h-48 bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center"
+          class="h-48 bg-gradient-to-br from-primary via-primary-hover to-primary-focus flex items-center justify-center"
         >
           <h3 class="text-white text-xl font-bold text-center px-4">
             {{ competition.title }}
@@ -143,13 +143,13 @@
           <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
             <NuxtLink
               :to="`/competitions/${competition.id}`"
-              class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+              class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-primary-text-light bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200"
             >
               查看详情
             </NuxtLink>
             <NuxtLink
               :to="`/competitions/${competition.id}/leaderboard`"
-              class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+              class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-primary-text-light bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200"
             >
               排行榜
             </NuxtLink>
@@ -167,7 +167,7 @@
               :class="[
                 'flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm transition-all duration-200',
                 getSolutionTimeInfo(competition.endTime).canSubmit
-                  ? 'text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500'
+                  ? 'text-primary-text-light bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
                   : 'text-gray-500 bg-gray-200 cursor-not-allowed',
               ]"
             >
@@ -189,7 +189,7 @@
           :key="page"
           @click="goToPage(page)"
           :class="{
-            'bg-indigo-600 text-white': page === currentPage,
+            'bg-primary text-primary-text-light': page === currentPage,
             'bg-white text-gray-700 hover:bg-gray-50': page !== currentPage,
           }"
           class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium"
@@ -259,7 +259,7 @@
             </label>
             <div v-if="teamsLoading" class="text-center py-4">
               <div
-                class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"
+                class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"
               ></div>
               <p class="mt-2 text-sm text-gray-600">加载队伍中...</p>
             </div>
@@ -278,7 +278,7 @@
             <select
               v-else
               v-model="selectedTeamId"
-              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">请选择队伍</option>
               <option v-for="team in availableTeams" :key="team.id" :value="team.id">
