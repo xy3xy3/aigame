@@ -2,7 +2,7 @@
   <div class="max-w-2xl mx-auto py-12 px-4">
     <div v-if="pending" class="text-center py-8">
       <div
-        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
       ></div>
       <p class="mt-2 text-gray-600">正在加载邀请信息...</p>
     </div>
@@ -23,12 +23,12 @@
         <template v-if="invitation.inviter">
           <span class="font-semibold">{{ invitation.inviter.username }}</span>
           邀请您加入队伍
-          <span class="font-semibold text-indigo-600">{{ invitation.team.name }}</span
+          <span class="font-semibold text-blue-600">{{ invitation.team.name }}</span
           >。
         </template>
         <template v-else>
           您被邀请加入队伍
-          <span class="font-semibold text-indigo-600">{{ invitation.team.name }}</span
+          <span class="font-semibold text-blue-600">{{ invitation.team.name }}</span
           >。
         </template>
       </p>
@@ -45,7 +45,7 @@
           <button
             @click="rejectInvitation"
             :disabled="isProcessing"
-            class="px-6 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            class="px-6 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
             {{ isProcessing ? "处理中..." : "拒绝邀请" }}
           </button>
@@ -66,7 +66,7 @@
         <NuxtLink
           v-if="invitation.status === 'ACCEPTED'"
           :to="`/teams/${invitation.team.id}`"
-          class="mt-4 inline-block text-indigo-600 hover:text-indigo-800"
+          class="mt-4 inline-block text-blue-600 hover:text-blue-800"
         >
           前往队伍页面 &rarr;
         </NuxtLink>

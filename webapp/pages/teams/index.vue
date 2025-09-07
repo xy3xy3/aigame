@@ -7,7 +7,7 @@
 
     <div v-if="pending" class="text-center py-8">
       <div
-        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
       ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
@@ -30,7 +30,7 @@
               v-model="newTeamName"
               type="text"
               required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="输入队伍名称"
             />
           </div>
@@ -40,7 +40,7 @@
           <button
             type="submit"
             :disabled="isCreating"
-            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
           >
             {{ isCreating ? "创建中..." : "创建队伍" }}
           </button>
@@ -68,9 +68,9 @@
                   />
                   <div
                     v-else
-                    class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center"
+                    class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"
                   >
-                    <span class="text-indigo-600 font-bold">
+                    <span class="text-blue-600 font-bold">
                       {{ team.name.charAt(0).toUpperCase() }}
                     </span>
                   </div>
@@ -95,7 +95,7 @@
             <div class="space-y-2">
               <NuxtLink
                 :to="`/teams/${team.id}`"
-                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium inline-block text-center"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium inline-block text-center"
               >
                 查看详情
               </NuxtLink>

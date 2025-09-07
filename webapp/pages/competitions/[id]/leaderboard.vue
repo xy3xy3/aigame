@@ -4,7 +4,7 @@
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">
         <li>
-          <NuxtLink to="/competitions" class="hover:text-indigo-600">比赛列表</NuxtLink>
+          <NuxtLink to="/competitions" class="hover:text-blue-600">比赛列表</NuxtLink>
         </li>
         <li class="flex items-center">
           <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
@@ -16,7 +16,7 @@
           </svg>
         </li>
         <li>
-          <NuxtLink :to="`/competitions/${route.params.id}`" class="hover:text-indigo-600"
+          <NuxtLink :to="`/competitions/${route.params.id}`" class="hover:text-blue-600"
             >比赛详情</NuxtLink
           >
         </li>
@@ -118,9 +118,9 @@
                 />
                 <div
                   v-else
-                  class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center"
+                  class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"
                 >
-                  <span class="font-bold text-indigo-600">{{
+                  <span class="font-bold text-blue-600">{{
                     entry.team.name.charAt(0).toUpperCase()
                   }}</span>
                 </div>
@@ -223,9 +223,9 @@
                               />
                               <div
                                 v-else
-                                class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center mr-2"
+                                class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center mr-2"
                               >
-                                <span class="text-indigo-600 font-bold text-xs">
+                                <span class="text-blue-600 font-bold text-xs">
                                   {{
                                     problemScore.bestSubmission.user.username
                                       .charAt(0)

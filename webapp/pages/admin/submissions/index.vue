@@ -4,7 +4,7 @@
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">
         <li>
-          <NuxtLink to="/admin/dashboard" class="hover:text-indigo-600"
+          <NuxtLink to="/admin/dashboard" class="hover:text-blue-600"
             >管理后台</NuxtLink
           >
         </li>
@@ -114,7 +114,7 @@
                 <div class="flex space-x-2">
                   <button
                     @click="downloadSubmission(submission.id)"
-                    class="text-indigo-600 hover:text-indigo-900"
+                    class="text-blue-600 hover:text-blue-900"
                   >
                     下载
                   </button>

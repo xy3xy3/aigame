@@ -4,7 +4,7 @@
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">
         <li>
-          <NuxtLink to="/" class="hover:text-indigo-600">首页</NuxtLink>
+          <NuxtLink to="/" class="hover:text-blue-600">首页</NuxtLink>
         </li>
         <li class="flex items-center">
           <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
@@ -16,7 +16,7 @@
           </svg>
         </li>
         <li>
-          <NuxtLink to="/profile" class="hover:text-indigo-600">个人资料</NuxtLink>
+          <NuxtLink to="/profile" class="hover:text-blue-600">个人资料</NuxtLink>
         </li>
         <li class="flex items-center">
           <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
@@ -49,7 +49,7 @@
             v-model="oldPassword"
             type="password"
             required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
@@ -62,7 +62,7 @@
             v-model="newPassword"
             type="password"
             required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
@@ -78,7 +78,7 @@
             v-model="confirmPassword"
             type="password"
             required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
@@ -93,7 +93,7 @@
           <button
             type="submit"
             :disabled="isUpdating"
-            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
           >
             {{ isUpdating ? "更新中..." : "更新密码" }}
           </button>

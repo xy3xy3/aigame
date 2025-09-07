@@ -11,7 +11,7 @@
       <!-- 验证中状态 -->
       <div v-if="verificationStatus === 'verifying'" class="text-center">
         <div
-          class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"
+          class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"
         ></div>
         <p class="text-gray-600">正在验证您的邮箱，请稍候...</p>
       </div>
@@ -46,7 +46,7 @@
         </p>
         <button
           @click="navigateToLogin"
-          class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           立即前往登录
         </button>
@@ -97,7 +97,7 @@
         <div v-else class="space-y-4">
           <button
             @click="navigateToLogin"
-            class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             返回登录页面
           </button>
@@ -129,7 +129,7 @@
         </p>
         <button
           @click="navigateToLogin"
-          class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           返回登录页面
         </button>
@@ -137,7 +137,7 @@
 
       <!-- 返回登录链接 -->
       <div v-if="verificationStatus !== 'success'" class="text-center">
-        <NuxtLink to="/login" class="text-indigo-600 hover:text-indigo-500 text-sm">
+        <NuxtLink to="/login" class="text-blue-600 hover:text-blue-500 text-sm">
           返回登录页面
         </NuxtLink>
       </div>

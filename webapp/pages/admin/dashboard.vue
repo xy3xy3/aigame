@@ -4,7 +4,7 @@
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">
         <li>
-          <NuxtLink to="/admin/dashboard" class="hover:text-indigo-600"
+          <NuxtLink to="/admin/dashboard" class="hover:text-blue-600"
             >管理后台</NuxtLink
           >
         </li>
@@ -156,7 +156,7 @@
         <button
           @click="refreshQueueStats"
           :disabled="isRefreshingQueue"
-          class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
         >
           {{ isRefreshingQueue ? "刷新中..." : "刷新" }}
         </button>
@@ -204,7 +204,7 @@
         </NuxtLink>
         <NuxtLink
           to="/admin/users"
-          class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-center font-medium"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md text-center font-medium"
         >
           用户管理
         </NuxtLink>

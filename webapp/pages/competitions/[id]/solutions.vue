@@ -4,7 +4,7 @@
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">
         <li>
-          <NuxtLink to="/competitions" class="hover:text-indigo-600">比赛列表</NuxtLink>
+          <NuxtLink to="/competitions" class="hover:text-blue-600">比赛列表</NuxtLink>
         </li>
         <li class="flex items-center">
           <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
@@ -16,7 +16,7 @@
           </svg>
         </li>
         <li>
-          <NuxtLink :to="`/competitions/${competitionId}`" class="hover:text-indigo-600">
+          <NuxtLink :to="`/competitions/${competitionId}`" class="hover:text-blue-600">
             比赛详情
           </NuxtLink>
         </li>
@@ -42,7 +42,7 @@
     <!-- 加载状态 -->
     <div v-if="competitionPending" class="text-center py-8">
       <div
-        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
       ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
@@ -189,7 +189,7 @@
             <select
               v-model="uploadForm.teamId"
               required
-              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">请选择团队</option>
               <option v-for="team in participatingTeams" :key="team.id" :value="team.id">
@@ -208,7 +208,7 @@
               @dragover="handleDragOver"
               @dragleave="handleDragLeave"
               :class="{
-                'border-indigo-500 bg-indigo-50': isDragOver,
+                'border-blue-500 bg-blue-50': isDragOver,
                 'border-gray-300': !isDragOver,
               }"
               class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md transition-colors"
@@ -231,7 +231,7 @@
                 <div class="flex text-sm text-gray-600">
                   <label
                     for="file-upload"
-                    class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                    class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
                   >
                     <span>选择文件</span>
                     <input
@@ -288,7 +288,7 @@
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
               <div
-                class="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                class="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 :style="{ width: uploadProgress + '%' }"
               ></div>
             </div>
@@ -300,8 +300,8 @@
               type="submit"
               :disabled="isUploading || !canSubmitForm"
               :class="{
-                'bg-indigo-600 hover:bg-indigo-700': !isUploading && canSubmitForm,
-                'bg-indigo-400 cursor-not-allowed': isUploading || !canSubmitForm,
+                'bg-blue-600 hover:bg-blue-700': !isUploading && canSubmitForm,
+                'bg-blue-400 cursor-not-allowed': isUploading || !canSubmitForm,
               }"
               class="text-white px-6 py-2 rounded-md text-sm font-medium"
             >
@@ -318,7 +318,7 @@
           <button
             @click="refreshSolutions"
             :disabled="solutionsPending"
-            class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+            class="text-blue-600 hover:text-blue-800 text-sm font-medium"
           >
             {{ solutionsPending ? "刷新中..." : "刷新" }}
           </button>
@@ -326,7 +326,7 @@
 
         <div v-if="solutionsPending" class="text-center py-8">
           <div
-            class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"
+            class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"
           ></div>
           <p class="mt-2 text-gray-600">加载解决方案中...</p>
         </div>
@@ -379,13 +379,13 @@
               <div class="flex space-x-2">
                 <button
                   @click="viewSolution(solution.id)"
-                  class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                  class="text-blue-600 hover:text-blue-800 text-sm font-medium"
                 >
                   查看详情
                 </button>
                 <button
                   @click="downloadSolution(solution.id)"
-                  class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm font-medium"
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium"
                 >
                   下载
                 </button>
@@ -405,7 +405,7 @@
               :key="page"
               @click="goToPage(page)"
               :class="{
-                'bg-indigo-600 text-white': page === currentPage,
+                'bg-blue-600 text-white': page === currentPage,
                 'bg-white text-gray-700 hover:bg-gray-50': page !== currentPage,
               }"
               class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium"

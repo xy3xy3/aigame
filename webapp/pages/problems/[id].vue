@@ -4,7 +4,7 @@
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">
         <li>
-          <NuxtLink to="/competitions" class="hover:text-indigo-600">比赛列表</NuxtLink>
+          <NuxtLink to="/competitions" class="hover:text-blue-600">比赛列表</NuxtLink>
         </li>
         <li class="flex items-center">
           <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
@@ -18,7 +18,7 @@
         <li>
           <NuxtLink
             :to="`/competitions/${data?.problem?.competitionId}`"
-            class="hover:text-indigo-600"
+            class="hover:text-blue-600"
             >比赛详情</NuxtLink
           >
         </li>
@@ -37,7 +37,7 @@
 
     <div v-if="pending" class="text-center py-8">
       <div
-        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
       ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
@@ -81,7 +81,7 @@
                 <span class="font-medium">所属比赛:</span>
                 <NuxtLink
                   :to="`/competitions/${data.problem.competitionId}`"
-                  class="text-indigo-600 hover:text-indigo-800"
+                  class="text-blue-600 hover:text-blue-800"
                 >
                   {{ data.problem.competition?.title }}
                 </NuxtLink>
@@ -147,7 +147,7 @@
                   teamsError ||
                   !isTeamRegistered
                 "
-                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {{ isSubmitting ? "提交中..." : "提交解答" }}
               </button>
@@ -189,7 +189,7 @@
             <p class="text-gray-600 mb-3">您没有已报名此比赛的团队</p>
             <NuxtLink
               :to="`/competitions/${data.problem.competitionId}`"
-              class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+              class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
             >
               前往比赛页面
             </NuxtLink>
@@ -215,7 +215,7 @@
             <a
               :href="data.problem.datasetUrl"
               target="_blank"
-              class="inline-flex items-center text-indigo-600 hover:text-indigo-800"
+              class="inline-flex items-center text-blue-600 hover:text-blue-800"
             >
               <svg
                 class="w-4 h-4 mr-2"
@@ -242,7 +242,7 @@
 
         <div v-if="submissionsPending" class="text-center py-4">
           <div
-            class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"
+            class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"
           ></div>
           <p class="mt-2 text-gray-600">加载提交记录中...</p>
         </div>
@@ -298,7 +298,7 @@
               >
               <NuxtLink
                 :to="`/submissions/${submission.id}`"
-                class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                class="text-blue-600 hover:text-blue-800 text-sm font-medium"
               >
                 查看详情
               </NuxtLink>

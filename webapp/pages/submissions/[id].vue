@@ -4,7 +4,7 @@
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">
         <li>
-          <NuxtLink to="/competitions" class="hover:text-indigo-600">比赛列表</NuxtLink>
+          <NuxtLink to="/competitions" class="hover:text-blue-600">比赛列表</NuxtLink>
         </li>
         <li class="flex items-center">
           <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
@@ -18,7 +18,7 @@
         <li v-if="data?.submission?.competition">
           <NuxtLink
             :to="`/competitions/${data.submission.competition.id}`"
-            class="hover:text-indigo-600"
+            class="hover:text-blue-600"
           >
             {{ data.submission.competition.title }}
           </NuxtLink>
@@ -35,7 +35,7 @@
         <li v-if="data?.submission?.problem">
           <NuxtLink
             :to="`/problems/${data.submission.problem.id}`"
-            class="hover:text-indigo-600"
+            class="hover:text-blue-600"
           >
             {{ data.submission.problem.title }}
           </NuxtLink>
@@ -55,7 +55,7 @@
 
     <div v-if="pending" class="text-center py-8">
       <div
-        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
       ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
@@ -90,7 +90,7 @@
                 <span class="text-gray-600">题目:</span>
                 <NuxtLink
                   :to="`/problems/${data.submission.problem.id}`"
-                  class="text-indigo-600 hover:text-indigo-800 font-medium"
+                  class="text-blue-600 hover:text-blue-800 font-medium"
                 >
                   {{ data.submission.problem.title }}
                 </NuxtLink>
@@ -99,7 +99,7 @@
                 <span class="text-gray-600">比赛:</span>
                 <NuxtLink
                   :to="`/competitions/${data.submission.competition.id}`"
-                  class="text-indigo-600 hover:text-indigo-800 font-medium"
+                  class="text-blue-600 hover:text-blue-800 font-medium"
                 >
                   {{ data.submission.competition.title }}
                 </NuxtLink>
@@ -108,7 +108,7 @@
                 <span class="text-gray-600">队伍:</span>
                 <NuxtLink
                   :to="`/teams/${data.submission.team.id}`"
-                  class="text-indigo-600 hover:text-indigo-800 font-medium"
+                  class="text-blue-600 hover:text-blue-800 font-medium"
                 >
                   {{ data.submission.team.name }}
                 </NuxtLink>
@@ -139,7 +139,7 @@
                 v-if="data.submission.score !== null"
                 class="text-center p-4 bg-gray-50 rounded-lg"
               >
-                <div class="text-3xl font-bold text-indigo-600">
+                <div class="text-3xl font-bold text-blue-600">
                   {{ data.submission.score }}
                 </div>
                 <div class="text-sm text-gray-600">得分</div>
@@ -245,7 +245,7 @@
         <div class="flex space-x-4">
           <NuxtLink
             :to="`/problems/${data.submission.problem.id}`"
-            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
           >
             返回题目
           </NuxtLink>

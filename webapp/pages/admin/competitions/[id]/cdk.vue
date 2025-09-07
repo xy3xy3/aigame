@@ -4,7 +4,7 @@
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">
         <li>
-          <NuxtLink to="/admin/dashboard" class="hover:text-indigo-600"
+          <NuxtLink to="/admin/dashboard" class="hover:text-blue-600"
             >管理后台</NuxtLink
           >
         </li>
@@ -18,7 +18,7 @@
           </svg>
         </li>
         <li>
-          <NuxtLink to="/admin/competitions" class="hover:text-indigo-600"
+          <NuxtLink to="/admin/competitions" class="hover:text-blue-600"
             >比赛管理</NuxtLink
           >
         </li>
@@ -176,7 +176,7 @@
               v-model="importForm.codes"
               rows="4"
               required
-              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="每行一个CDK代码，例如：&#10;ABCD1234&#10;EFGH5678&#10;IJKL9012"
             ></textarea>
             <p class="mt-1 text-sm text-gray-500">
@@ -192,7 +192,7 @@
                 id="batch-id"
                 v-model="importForm.batchId"
                 type="text"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="例如：batch-001"
               />
               <p class="mt-1 text-sm text-gray-500">用于批量管理，不填写则自动生成</p>
@@ -205,14 +205,14 @@
                 id="notes"
                 v-model="importForm.notes"
                 type="text"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="备注信息"
               />
             </div>
             <button
               type="submit"
               :disabled="isImporting || !importForm.codes.trim()"
-              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
             >
               {{ isImporting ? "导入中..." : "导入 CDK" }}
             </button>
@@ -257,7 +257,7 @@
             @input="debounceSearch"
             type="text"
             placeholder="输入CDK代码搜索..."
-            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
         <div class="flex items-end">
@@ -321,7 +321,7 @@
     <!-- 加载状态 -->
     <div v-if="pending" class="text-center py-8">
       <div
-        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
       ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
@@ -342,7 +342,7 @@
                 type="checkbox"
                 :checked="isAllSelected"
                 @change="toggleSelectAll"
-                class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mr-2"
+                class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 mr-2"
               />
               全选当前页
             </label>
@@ -397,7 +397,7 @@
                     type="checkbox"
                     :value="cdk.id"
                     v-model="selectedCdks"
-                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                   />
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">

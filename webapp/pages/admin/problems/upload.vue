@@ -4,7 +4,7 @@
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">
         <li>
-          <NuxtLink to="/admin/dashboard" class="hover:text-indigo-600"
+          <NuxtLink to="/admin/dashboard" class="hover:text-blue-600"
             >管理后台</NuxtLink
           >
         </li>
@@ -18,7 +18,7 @@
           </svg>
         </li>
         <li>
-          <NuxtLink to="/admin/problems" class="hover:text-indigo-600">题目管理</NuxtLink>
+          <NuxtLink to="/admin/problems" class="hover:text-blue-600">题目管理</NuxtLink>
         </li>
         <li class="flex items-center">
           <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
@@ -67,7 +67,7 @@
               <div class="flex text-sm text-gray-600">
                 <label
                   for="file-upload"
-                  class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500"
+                  class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
                 >
                   <span>选择文件</span>
                   <input
@@ -136,7 +136,7 @@
             v-model="formData.competitionId"
             required
             :disabled="competitionsPending"
-            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="" disabled>请选择竞赛</option>
             <option
@@ -163,7 +163,7 @@
                 type="radio"
                 name="mode"
                 value="create"
-                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
               />
               <label
                 for="mode-create"
@@ -182,7 +182,7 @@
                 type="radio"
                 name="mode"
                 value="overwrite"
-                class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300"
+                class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300"
               />
               <label
                 for="mode-overwrite"
@@ -209,9 +209,9 @@
             type="submit"
             :disabled="isSubmitting || selectedFiles.length === 0"
             :class="{
-              'bg-indigo-600 hover:bg-indigo-700':
+              'bg-blue-600 hover:bg-blue-700':
                 !isSubmitting && selectedFiles.length > 0,
-              'bg-indigo-400 cursor-not-allowed':
+              'bg-blue-400 cursor-not-allowed':
                 isSubmitting || selectedFiles.length === 0,
             }"
             class="text-white px-4 py-2 rounded-md text-sm font-medium"

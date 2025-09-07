@@ -32,7 +32,7 @@
     </div>
 
     <div v-if="pending" class="text-center py-8">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
 
@@ -44,7 +44,7 @@
       <p class="text-gray-600">暂无提交记录</p>
       <NuxtLink
         to="/competitions"
-        class="mt-4 inline-block bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+        class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
       >
         参加比赛
       </NuxtLink>
@@ -72,7 +72,7 @@
             </span>
           </div>
           <div class="text-right">
-            <div v-if="submission.score !== null" class="text-lg font-bold text-indigo-600">
+            <div v-if="submission.score !== null" class="text-lg font-bold text-blue-600">
               {{ submission.score }} 分
             </div>
             <div class="text-sm text-gray-500">{{ formatDate(submission.createdAt) }}</div>
@@ -84,7 +84,7 @@
             <p class="text-sm text-gray-600 mb-1">比赛</p>
             <NuxtLink
               :to="`/competitions/${submission.competition.id}`"
-              class="text-indigo-600 hover:text-indigo-800 font-medium"
+              class="text-blue-600 hover:text-blue-800 font-medium"
             >
               {{ submission.competition.title }}
             </NuxtLink>
@@ -93,7 +93,7 @@
             <p class="text-sm text-gray-600 mb-1">队伍</p>
             <NuxtLink
               :to="`/teams/${submission.team.id}`"
-              class="text-indigo-600 hover:text-indigo-800 font-medium"
+              class="text-blue-600 hover:text-blue-800 font-medium"
             >
               {{ submission.team.name }}
             </NuxtLink>
@@ -115,13 +115,13 @@
           <div class="flex space-x-2">
             <NuxtLink
               :to="`/problems/${submission.problem.id}`"
-              class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+              class="text-blue-600 hover:text-blue-800 text-sm font-medium"
             >
               查看题目
             </NuxtLink>
             <NuxtLink
               :to="`/submissions/${submission.id}`"
-              class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm font-medium"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium"
             >
               查看详情
             </NuxtLink>
@@ -138,7 +138,7 @@
           :key="page"
           @click="goToPage(page)"
           :class="{
-            'bg-indigo-600 text-white': page === currentPage,
+            'bg-blue-600 text-white': page === currentPage,
             'bg-white text-gray-700 hover:bg-gray-50': page !== currentPage
           }"
           class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium"

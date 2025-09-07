@@ -4,7 +4,7 @@
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">
         <li>
-          <NuxtLink to="/" class="hover:text-indigo-600">首页</NuxtLink>
+          <NuxtLink to="/" class="hover:text-blue-600">首页</NuxtLink>
         </li>
         <li class="flex items-center">
           <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
@@ -21,7 +21,7 @@
 
     <div v-if="pending" class="text-center py-8">
       <div
-        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
       ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
@@ -49,9 +49,9 @@
               />
               <div
                 v-else
-                class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center"
+                class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center"
               >
-                <span class="text-indigo-600 font-bold text-xl">
+                <span class="text-blue-600 font-bold text-xl">
                   {{ data.user.username.charAt(0).toUpperCase() }}
                 </span>
               </div>
@@ -64,7 +64,7 @@
           <button
             v-if="!isEditing"
             @click="startEditing"
-            class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+            class="text-blue-600 hover:text-blue-800 text-sm font-medium"
           >
             编辑资料
           </button>
@@ -235,7 +235,7 @@
                 v-model="editForm.username"
                 type="text"
                 maxlength="50"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <div class="sm:col-span-1">
@@ -246,7 +246,7 @@
                 id="email"
                 v-model="editForm.email"
                 type="email"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <div class="sm:col-span-1">
@@ -261,7 +261,7 @@
                 v-model="editForm.phoneNumber"
                 type="text"
                 maxlength="20"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <div class="sm:col-span-1">
@@ -273,7 +273,7 @@
                 v-model="editForm.studentId"
                 type="text"
                 maxlength="50"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <div class="sm:col-span-1">
@@ -285,7 +285,7 @@
                 v-model="editForm.realName"
                 type="text"
                 maxlength="50"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <div class="sm:col-span-1">
@@ -295,7 +295,7 @@
               <select
                 id="education"
                 v-model="editForm.education"
-                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">请选择学历</option>
                 <option value="BACHELOR">本科</option>
@@ -321,7 +321,7 @@
                   type="file"
                   accept="image/*"
                   @change="handleAvatarSelect"
-                  class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                  class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
                 <p class="text-xs text-gray-500 mt-1">
                   支持 JPG, PNG, GIF, WebP 格式，最大 5MB
@@ -349,7 +349,7 @@
             <button
               @click="updateProfile"
               :disabled="isUpdating"
-              class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
             >
               {{ isUpdating ? "更新中..." : "更新资料" }}
             </button>
@@ -383,16 +383,16 @@
                 </div>
                 <div v-else class="flex-shrink-0">
                   <div
-                    class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center"
+                    class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"
                   >
-                    <span class="text-indigo-600 font-medium text-sm">
+                    <span class="text-blue-600 font-medium text-sm">
                       {{ team.name.charAt(0).toUpperCase() }}
                     </span>
                   </div>
                   <div class="min-w-0 flex-1">
                     <NuxtLink
                       :to="`/teams/${team.id}`"
-                      class="text-sm font-medium text-gray-900 hover:text-indigo-600 truncate"
+                      class="text-sm font-medium text-gray-900 hover:text-blue-600 truncate"
                     >
                       {{ team.name }}
                     </NuxtLink>
@@ -425,9 +425,9 @@
                 </div>
                 <div v-else class="flex-shrink-0">
                   <div
-                    class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center"
+                    class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center"
                   >
-                    <span class="text-indigo-600 font-medium text-sm">
+                    <span class="text-blue-600 font-medium text-sm">
                       {{ team.name.charAt(0).toUpperCase() }}
                     </span>
                   </div>
@@ -435,7 +435,7 @@
                 <div class="min-w-0 flex-1">
                   <NuxtLink
                     :to="`/teams/${team.id}`"
-                    class="text-sm font-medium text-gray-900 hover:text-indigo-600 truncate"
+                    class="text-sm font-medium text-gray-900 hover:text-blue-600 truncate"
                   >
                     {{ team.name }}
                   </NuxtLink>

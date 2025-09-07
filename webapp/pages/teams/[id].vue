@@ -4,7 +4,7 @@
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">
         <li>
-          <NuxtLink to="/teams" class="hover:text-indigo-600">队伍列表</NuxtLink>
+          <NuxtLink to="/teams" class="hover:text-blue-600">队伍列表</NuxtLink>
         </li>
         <li class="flex items-center">
           <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
@@ -21,7 +21,7 @@
 
     <div v-if="pending" class="text-center py-8">
       <div
-        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
       ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
@@ -44,9 +44,9 @@
               />
               <div
                 v-else
-                class="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center"
+                class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center"
               >
-                <span class="text-indigo-600 font-bold text-xl">
+                <span class="text-blue-600 font-bold text-xl">
                   {{ data.team.name.charAt(0).toUpperCase() }}
                 </span>
               </div>
@@ -76,7 +76,7 @@
           <button
             v-if="isCaptain && !isEditing"
             @click="startEditing"
-            class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+            class="text-blue-600 hover:text-blue-800 text-sm font-medium"
           >
             编辑
           </button>
@@ -101,7 +101,7 @@
               v-model="newDescription"
               rows="4"
               maxlength="500"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="请输入队伍介绍..."
             ></textarea>
             <div class="text-right text-sm text-gray-500 mt-1">
@@ -125,7 +125,7 @@
                   type="file"
                   accept="image/*"
                   @change="handleFileSelect"
-                  class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                  class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
                 <p class="text-xs text-gray-500 mt-1">
                   支持 JPG, PNG, GIF, WebP 格式，最大 5MB
@@ -153,7 +153,7 @@
             <button
               @click="updateTeamInfo"
               :disabled="isUpdating"
-              class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
             >
               {{ isUpdating ? "更新中..." : "更新信息" }}
             </button>
@@ -172,9 +172,9 @@
           >
             <div class="flex items-center space-x-3">
               <div
-                class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center"
+                class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center"
               >
-                <span class="text-indigo-600 font-medium">
+                <span class="text-blue-600 font-medium">
                   {{ member.user.username.charAt(0).toUpperCase() }}
                 </span>
               </div>
@@ -221,7 +221,7 @@
               v-model="inviteEmail"
               type="email"
               required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="输入要邀请成员的邮箱"
             />
           </div>
@@ -234,7 +234,7 @@
           <button
             type="submit"
             :disabled="isInviting"
-            class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
           >
             {{ isInviting ? "邀请中..." : "发送邀请" }}
           </button>
@@ -250,11 +250,11 @@
               type="text"
               readonly
               :value="generatedInvitationLink"
-              class="flex-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              class="flex-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
             <button
               @click="copyToClipboard"
-              class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               复制
             </button>

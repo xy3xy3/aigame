@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white rounded-lg shadow-md p-6">
     <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-      <svg class="w-6 h-6 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+      <svg class="w-6 h-6 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
         <path
           fill-rule="evenodd"
           d="M18 8a6 6 0 01-7.743 5.743L10 14l-0.257-0.257A6 6 0 1118 8zM2 8a6 6 0 1010.257 5.743L12 14l-0.257-0.257A6 6 0 012 8zm8 2a2 2 0 100-4 2 2 0 000 4z"
@@ -14,7 +14,7 @@
     <!-- 加载状态 -->
     <div v-if="pending" class="text-center py-8">
       <div
-        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
       ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
@@ -53,7 +53,7 @@
           <div v-if="isEmailVerificationError" class="mt-3">
             <NuxtLink
               to="/auth/verify-email"
-              class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+              class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             >
               前往验证邮箱
             </NuxtLink>
@@ -87,7 +87,7 @@
       >
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center">
-            <div class="w-3 h-3 bg-indigo-500 rounded-full mr-2"></div>
+            <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
             <span class="font-medium text-gray-900">
               {{ cdkData.claimMode === "TEAM" ? "团队模式" : "个人模式" }}
             </span>
@@ -99,7 +99,7 @@
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div class="text-center">
-            <div class="text-2xl font-bold text-indigo-600">
+            <div class="text-2xl font-bold text-blue-600">
               {{ cdkData.stats.claimed }}
             </div>
             <div class="text-gray-600">已领取</div>
@@ -182,7 +182,7 @@
                   </code>
                   <button
                     @click="copyCdk(cdk.code)"
-                    class="flex items-center px-2 py-1 text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded transition-colors"
+                    class="flex items-center px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors"
                   >
                     <svg
                       class="w-3 h-3 mr-1"

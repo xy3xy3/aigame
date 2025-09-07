@@ -4,7 +4,7 @@
     <nav class="mb-4 text-sm">
       <ol class="flex items-center space-x-2 text-gray-500">
         <li>
-          <NuxtLink to="/admin/dashboard" class="hover:text-indigo-600"
+          <NuxtLink to="/admin/dashboard" class="hover:text-blue-600"
             >管理后台</NuxtLink
           >
         </li>
@@ -27,7 +27,7 @@
       </div>
       <button
         @click="openModal()"
-        class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium"
       >
         新建比赛
       </button>
@@ -63,7 +63,7 @@
     <!-- 加载状态 -->
     <div v-if="pending" class="text-center py-8">
       <div
-        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
       ></div>
       <p class="mt-2 text-gray-600">加载中...</p>
     </div>
@@ -178,7 +178,7 @@
       <p class="text-gray-600 mb-6">开始创建你的第一个AI竞赛吧！</p>
       <button
         @click="openModal()"
-        class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md font-medium"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium"
       >
         创建新比赛
       </button>
@@ -233,7 +233,7 @@
                         v-model="competitionForm.title"
                         type="text"
                         required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="输入比赛标题"
                       />
                     </div>
@@ -249,7 +249,7 @@
                         v-model="competitionForm.description"
                         rows="4"
                         required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="详细描述比赛内容和目标"
                       ></textarea>
                     </div>
@@ -265,7 +265,7 @@
                         v-model="competitionForm.rules"
                         rows="6"
                         required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="详细说明比赛规则、评分标准等"
                       ></textarea>
                     </div>
@@ -327,7 +327,7 @@
                           v-model="competitionForm.startTime"
                           type="datetime-local"
                           required
-                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
                       <div>
@@ -342,7 +342,7 @@
                           v-model="competitionForm.endTime"
                           type="datetime-local"
                           required
-                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
                     </div>
@@ -360,7 +360,7 @@
                         min="1"
                         max="30"
                         required
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         placeholder="输入题解提交截止天数"
                       />
                       <p class="mt-1 text-sm text-gray-500">
@@ -377,7 +377,7 @@
               @click="saveCompetition"
               type="button"
               :disabled="isSubmitting"
-              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
             >
               {{
                 isSubmitting
@@ -392,7 +392,7 @@
             <button
               @click="closeModal"
               type="button"
-              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
             >
               取消
             </button>
@@ -429,7 +429,7 @@
                         <input
                           v-model="cdkForm.cdkEnabled"
                           type="checkbox"
-                          class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                          class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                         />
                         <span class="ml-2 text-sm font-medium text-gray-700"
                           >启用 CDK 功能</span
@@ -453,7 +453,7 @@
                               v-model="cdkForm.cdkClaimMode"
                               type="radio"
                               value="TEAM"
-                              class="text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                              class="text-blue-600 focus:ring-blue-500 border-gray-300"
                             />
                             <span class="ml-2 text-sm text-gray-700">按团队领取</span>
                           </label>
@@ -462,7 +462,7 @@
                               v-model="cdkForm.cdkClaimMode"
                               type="radio"
                               value="MEMBER"
-                              class="text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                              class="text-blue-600 focus:ring-blue-500 border-gray-300"
                             />
                             <span class="ml-2 text-sm text-gray-700">按成员领取</span>
                           </label>
@@ -489,7 +489,7 @@
                           min="1"
                           max="100"
                           required
-                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="输入限制数量"
                         />
                         <p class="mt-1 text-sm text-gray-500">
@@ -509,14 +509,14 @@
               @click="saveCdkSettings"
               type="button"
               :disabled="isCdkSubmitting"
-              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
             >
               {{ isCdkSubmitting ? "保存中..." : "保存设置" }}
             </button>
             <button
               @click="closeCdkModal"
               type="button"
-              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
             >
               取消
             </button>

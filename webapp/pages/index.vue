@@ -11,13 +11,13 @@
       <div v-if="!isLoggedIn" class="space-x-4">
         <NuxtLink
           to="/register"
-          class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-lg font-medium"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md text-lg font-medium"
         >
           开始使用
         </NuxtLink>
         <NuxtLink
           to="/competitions"
-          class="bg-white hover:bg-gray-50 text-indigo-600 border border-indigo-600 px-6 py-3 rounded-md text-lg font-medium"
+          class="bg-white hover:bg-gray-50 text-blue-600 border border-blue-600 px-6 py-3 rounded-md text-lg font-medium"
         >
           查看比赛
         </NuxtLink>
@@ -26,13 +26,13 @@
       <div v-else class="space-x-4">
         <NuxtLink
           to="/competitions"
-          class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md text-lg font-medium"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md text-lg font-medium"
         >
           参加比赛
         </NuxtLink>
         <NuxtLink
           to="/teams"
-          class="bg-white hover:bg-gray-50 text-indigo-600 border border-indigo-600 px-6 py-3 rounded-md text-lg font-medium"
+          class="bg-white hover:bg-gray-50 text-blue-600 border border-blue-600 px-6 py-3 rounded-md text-lg font-medium"
         >
           队伍管理
         </NuxtLink>
@@ -41,7 +41,7 @@
 
     <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
       <div class="text-center">
-        <div class="bg-indigo-100 rounded-lg p-6">
+        <div class="bg-blue-100 rounded-lg p-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-2">组队参赛</h3>
           <p class="text-gray-600">创建或加入队伍，与队友协作参加AI比赛</p>
         </div>
