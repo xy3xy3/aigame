@@ -190,7 +190,7 @@ export default defineEventHandler(async (event) => {
         teamId,
         userId: user.id,
         submissionUrl: `aigame/${objectName}`,
-        status: 'PENDING'
+        status: 'QUEUED'
       },
       include: {
         problem: {

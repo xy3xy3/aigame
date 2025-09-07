@@ -152,7 +152,15 @@ export default async () => {
     }
 
     try {
-      // 1. 从数据库中获取 submission 和关联的 problem 的详细信息
+      console.log(`[Worker] Processing submission: ${job.data.submissionId}`)
+      
+      // 1. 更新提交状态为 RUNNING
+      await prisma.submission.update({
+        where: { id: job.data.submissionId },
+        data: { status: 'RUNNING' },
+      })
+
+      // 2. 从数据库中获取 submission 和关联的 problem 的详细信息
       const submission = await prisma.submission.findUnique({
         where: { id: job.data.submissionId },
         include: {
@@ -168,7 +176,7 @@ export default async () => {
         throw new Error(`Problem for submission ${job.data.submissionId} not found`)
       }
 
-      // 2. 使用 MinIO 客户端下载两个文件
+      // 3. 使用 MinIO 客户端下载两个文件
       // 解析 submission 文件路径
       const submissionPath = submission.submissionUrl
       // 预处理 submissionPath，确保它是绝对 URL
@@ -192,60 +200,33 @@ export default async () => {
       const submissionFileBuffer = await downloadFile(submissionBucket, submissionObject)
       const judgeFileBuffer = await downloadFile(judgeBucket, judgeObject)
 
-      // 3. 将这两个文件打包到一个 FormData 对象中
+      // 4. 将这两个文件和 submissionId 打包到一个 FormData 对象中
       const formData = new FormData()
-      formData.append('submission_file', new Blob([submissionFileBuffer]), submissionObject)
-      formData.append('judge_file', new Blob([judgeFileBuffer]), judgeObject)
+      formData.append('submission_id', job.data.submissionId)
+      formData.append('submission_zip', new Blob([submissionFileBuffer]), submissionObject)
+      formData.append('judge_zip', new Blob([judgeFileBuffer]), judgeObject)
 
-      // 4. 发送到新的 evaluateapp API 端点
+      // 5. 发送到 evaluateapp API 端点（Fire-and-forget 模式）
+      console.log(`[Worker] Dispatching submission ${job.data.submissionId} to evaluateapp`)
+      
       const response = await ofetch(`${evaluateAppUrl}/api/evaluate`, {
         method: 'POST',
         body: formData
       })
 
-      console.log(`Successfully evaluated submission ${job.data.submissionId}`, response)
+      console.log(`[Worker] Successfully dispatched submission ${job.data.submissionId} to evaluateapp:`, response)
 
-      // 5. 将返回的评测结果更新到数据库中对应的 submission 记录
-      const submissionResult = await prisma.submission.update({
-        where: { id: job.data.submissionId },
-        data: {
-          status: response.status === 'COMPLETED' ? 'COMPLETED' : 'ERROR',
-          score: response.score,
-          executionLogs: response.logs,
-          judgedAt: new Date()
-        },
-        include: {
-          team: true,
-          competition: true
-        }
-      })
+      // 注意：我们不再等待最终评测结果，evaluateapp 会通过回调API发送结果
 
-      // 6. 如果评测成功，更新排行榜
-      if (response.status === 'COMPLETED' && response.score !== null && response.score !== undefined) {
-        await updateLeaderboardScore(
-          submissionResult.competitionId,
-          submissionResult.teamId,
-          submissionResult.problemId,
-          response.score,
-          submissionResult.id
-        )
-
-        // 触发排行榜同步任务（异步）
-        addLeaderboardSyncJob(submissionResult.competitionId).catch(err => {
-          console.error('Failed to add leaderboard sync job:', err)
-        })
-      }
-
-      return response
     } catch (error: any) {
-      console.error(`Failed to evaluate submission ${job.data.submissionId}:`, error)
+      console.error(`[Worker] Failed to dispatch submission ${job.data.submissionId}:`, error)
 
-      // 如果调用失败，将数据库中对应 submissionId 的记录状态更新为 "ERROR"
+      // 如果调度失败，立即将状态更新为 ERROR
       await prisma.submission.update({
         where: { id: job.data.submissionId },
         data: {
           status: 'ERROR',
-          executionLogs: error.message || 'Unknown error occurred during evaluation',
+          logs: `Failed to dispatch to evaluation service: ${error.message}`,
           judgedAt: new Date()
         }
       })

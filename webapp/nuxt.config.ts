@@ -41,6 +41,7 @@ export default defineNuxtConfig({
     minioInternalUrl: process.env.MINIO_INTERNAL_URL || 'http://minio:9000',
     jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key',
     evaluateAppUrl: process.env.EVALUATE_APP_URL || 'http://localhost:8000',
+    evaluateAppSecret: process.env.EVALUATE_APP_SECRET,
 
     // 公共配置（客户端也可用）
     public: {

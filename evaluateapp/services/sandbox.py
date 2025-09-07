@@ -13,6 +13,10 @@ from pathlib import Path
 import pyseccomp
 from pyseccomp import SyscallFilter, ALLOW, ERRNO
 
+# 添加 httpx 用于回调
+import httpx
+from core.config import settings
+
 from schemas.evaluation import EvaluationResponse
 
 # 创建一个进程池，用于在隔离的进程中运行评测代码
@@ -23,7 +27,7 @@ def _create_ml_seccomp_filter() -> SyscallFilter:
     """
     创建一个为机器学习评测任务定制的 seccomp 安全过滤器。
 
-    采用“默认拒绝，白名单放行”的原则。
+    采用"默认拒绝，白名单放行"的原则。
     """
     # 默认情况下，拒绝所有系统调用，并返回 EPERM (Operation not permitted) 错误。
     # 相比于直接 KILL，这有时能让程序以更明确的方式失败。
@@ -140,6 +144,69 @@ def _execute_judge_code(
             sys.path.remove(judge_dir)
 
 
+async def post_results_to_webapp(submission_id: str, result: dict):
+    """向 webapp 发送回调请求"""
+    headers = {
+        "Authorization": f"Bearer {settings.WEBAPP_CALLBACK_SECRET}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "submissionId": submission_id,
+        **result
+    }
+    
+    print(f"[Callback] Sending results for submission {submission_id}: {payload}")
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(settings.WEBAPP_CALLBACK_URL, json=payload, headers=headers, timeout=30.0)
+            response.raise_for_status()  # 如果状态码不是 2xx，则抛出异常
+            print(f"[Callback] Successfully sent callback for submission {submission_id}")
+        except httpx.HTTPStatusError as e:
+            print(f"[Callback] Error sending callback for {submission_id}: Status {e.response.status_code}, Body: {e.response.text}")
+        except httpx.TimeoutException as e:
+            print(f"[Callback] Timeout sending callback for {submission_id}: {e}")
+        except Exception as e:
+            print(f"[Callback] An unexpected error occurred during callback for {submission_id}: {e}")
+
+
+async def run_in_sandbox_and_callback(submission_id: str, submission_data: bytes, judge_data: bytes, semaphore: asyncio.Semaphore):
+    """
+    准备环境，执行评测，然后调用回调函数发送结果。
+    """
+    print(f"[Sandbox] Starting evaluation for submission {submission_id}")
+    
+    async with semaphore:
+        print(f"[Sandbox] Semaphore acquired for submission {submission_id}")
+        loop = asyncio.get_running_loop()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir)
+            submission_dir = workspace / "submission"
+            judge_dir = workspace / "judge"
+            submission_dir.mkdir()
+            judge_dir.mkdir()
+    
+            with zipfile.ZipFile(io.BytesIO(submission_data)) as zf:
+                zf.extractall(submission_dir)
+            with zipfile.ZipFile(io.BytesIO(judge_data)) as zf:
+                zf.extractall(judge_dir)
+            
+            # 执行评测代码
+            print(f"[Sandbox] Starting evaluation process for submission {submission_id}")
+            result_dict = await loop.run_in_executor(
+                executor,
+                _execute_judge_code,
+                str(submission_dir),
+                str(judge_dir),
+            )
+            print(f"[Sandbox] Evaluation completed for submission {submission_id}: {result_dict['status']}")
+        
+        # 评测完成后，发送回调
+        await post_results_to_webapp(submission_id, result_dict)
+
+
+# 保留原有函数用于兼容性
 async def run_in_sandbox(submission_data: bytes, judge_data: bytes) -> EvaluationResponse:
     """
     准备环境并调用进程池来安全地执行评测。
