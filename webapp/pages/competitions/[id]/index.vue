@@ -33,7 +33,7 @@
     <div v-else-if="data?.competition" class="space-y-8">
       <!-- 比赛头部信息 -->
       <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div v-if="data.competition.bannerUrl" class="h-64 bg-gray-200">
+        <div v-if="data.competition.bannerUrl" class="h-48 bg-gray-200">
           <img
             :src="data.competition.bannerUrl"
             :alt="data.competition.title"
@@ -42,9 +42,9 @@
         </div>
         <div
           v-else
-          class="h-64 bg-gradient-to-br from-primary via-primary-hover to-primary-focus flex items-center justify-center"
+          class="h-48 bg-gradient-to-br from-primary via-primary-hover to-primary-focus flex items-center justify-center"
         >
-          <h1 class="text-white text-4xl font-bold text-center px-4">
+          <h1 class="text-white text-xl font-bold text-center px-4">
             {{ data.competition.title }}
           </h1>
         </div>
