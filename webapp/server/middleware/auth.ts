@@ -24,7 +24,9 @@ export default defineEventHandler(async (event) => {
     '/api/competitions',
     '/api/competitions/simple',
     '/api/problems',
-    '/api/announcements'
+    '/api/announcements',
+
+    '/api/submissions/callback' // Sandbox callback endpoint
   ]
 
   // Check if the current path matches any public route pattern

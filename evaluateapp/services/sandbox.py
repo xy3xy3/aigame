@@ -1,5 +1,6 @@
 import asyncio
 import io
+import json
 import tempfile
 import zipfile
 import sys
@@ -154,16 +155,20 @@ async def post_results_to_webapp(submission_id: str, result: dict):
         "submissionId": submission_id,
         **result
     }
-    
-    print(f"[Callback] Sending results for submission {submission_id}: {payload}")
-    
+
+    print(f"[Callback] Sending results for submission {submission_id}: {json.dumps(payload)}")
+
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(settings.WEBAPP_CALLBACK_URL, json=payload, headers=headers, timeout=30.0)
             response.raise_for_status()  # 如果状态码不是 2xx，则抛出异常
             print(f"[Callback] Successfully sent callback for submission {submission_id}")
         except httpx.HTTPStatusError as e:
-            print(f"[Callback] Error sending callback for {submission_id}: Status {e.response.status_code}, Body: {e.response.text}")
+            # 获取响应体，如果为空则显示"(empty body)"或"(no body)"
+            response_body = e.response.text if e.response.text else "(empty body)"
+            print(f"[Callback] Error sending callback for {submission_id}: Status {e.response.status_code}, Body: {response_body}")
+            # 可选：打印响应头以提供更多调试信息
+            # print(f"[Callback] Response headers: {e.response.headers}")
         except httpx.TimeoutException as e:
             print(f"[Callback] Timeout sending callback for {submission_id}: {e}")
         except Exception as e:
@@ -175,7 +180,7 @@ async def run_in_sandbox_and_callback(submission_id: str, submission_data: bytes
     准备环境，执行评测，然后调用回调函数发送结果。
     """
     print(f"[Sandbox] Starting evaluation for submission {submission_id}")
-    
+
     async with semaphore:
         print(f"[Sandbox] Semaphore acquired for submission {submission_id}")
         loop = asyncio.get_running_loop()
@@ -186,12 +191,12 @@ async def run_in_sandbox_and_callback(submission_id: str, submission_data: bytes
             judge_dir = workspace / "judge"
             submission_dir.mkdir()
             judge_dir.mkdir()
-    
+
             with zipfile.ZipFile(io.BytesIO(submission_data)) as zf:
                 zf.extractall(submission_dir)
             with zipfile.ZipFile(io.BytesIO(judge_data)) as zf:
                 zf.extractall(judge_dir)
-            
+
             # 执行评测代码
             print(f"[Sandbox] Starting evaluation process for submission {submission_id}")
             result_dict = await loop.run_in_executor(
@@ -201,7 +206,7 @@ async def run_in_sandbox_and_callback(submission_id: str, submission_data: bytes
                 str(judge_dir),
             )
             print(f"[Sandbox] Evaluation completed for submission {submission_id}: {result_dict['status']}")
-        
+
         # 评测完成后，发送回调
         await post_results_to_webapp(submission_id, result_dict)
 
