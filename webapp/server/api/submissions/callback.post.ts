@@ -73,7 +73,7 @@ async function updateLeaderboardScore(competitionId: string, teamId: string, pro
 async function recalculateRanks(leaderboardId: string): Promise<void> {
   const entries = await prisma.leaderboardEntry.findMany({
     where: { leaderboardId },
-    orderBy: [{ totalScore: 'desc' }, { updatedAt: 'asc' }]
+    orderBy: [{ totalScore: 'desc' }, { id: 'asc' }]
   });
 
   for (let i = 0; i < entries.length; i++) {
