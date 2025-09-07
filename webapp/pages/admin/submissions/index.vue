@@ -26,6 +26,91 @@
       <p class="mt-2 text-gray-600">查看和管理所有用户的提交记录</p>
     </div>
 
+    <!-- 搜索和筛选 -->
+    <div class="mb-6 bg-white rounded-lg shadow-md p-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div>
+          <label for="search-id" class="block text-sm font-medium text-gray-700 mb-1"
+            >提交ID</label
+          >
+          <input
+            id="search-id"
+            v-model="searchId"
+            type="text"
+            placeholder="输入提交ID"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            @keyup.enter="searchSubmissions"
+          />
+        </div>
+        <div>
+          <label for="search-user" class="block text-sm font-medium text-gray-700 mb-1"
+            >用户名</label
+          >
+          <input
+            id="search-user"
+            v-model="searchUser"
+            type="text"
+            placeholder="输入用户名"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            @keyup.enter="searchSubmissions"
+          />
+        </div>
+        <div>
+          <label for="search-team" class="block text-sm font-medium text-gray-700 mb-1"
+            >队伍名</label
+          >
+          <input
+            id="search-team"
+            v-model="searchTeam"
+            type="text"
+            placeholder="输入队伍名"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            @keyup.enter="searchSubmissions"
+          />
+        </div>
+        <div>
+          <label for="search-problem" class="block text-sm font-medium text-gray-700 mb-1"
+            >题目标题</label
+          >
+          <input
+            id="search-problem"
+            v-model="searchProblem"
+            type="text"
+            placeholder="输入题目标题"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            @keyup.enter="searchSubmissions"
+          />
+        </div>
+        <div>
+          <label for="search-competition" class="block text-sm font-medium text-gray-700 mb-1"
+            >比赛标题</label
+          >
+          <input
+            id="search-competition"
+            v-model="searchCompetition"
+            type="text"
+            placeholder="输入比赛标题"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            @keyup.enter="searchSubmissions"
+          />
+        </div>
+      </div>
+      <div class="mt-4 flex justify-end space-x-3">
+        <button
+          @click="clearSearch"
+          class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+        >
+          清空
+        </button>
+        <button
+          @click="searchSubmissions"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+        >
+          搜索
+        </button>
+      </div>
+    </div>
+
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -53,6 +138,12 @@
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
+                比赛
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
                 题目
               </th>
               <th
@@ -60,6 +151,12 @@
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
                 状态
+              </th>
+              <th
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                得分
               </th>
               <th
                 scope="col"
@@ -77,56 +174,110 @@
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr v-if="submissionsPending" v-for="n in 5" :key="n">
-              <td class="px-6 py-4" colspan="7">
+              <td class="px-6 py-4" colspan="9">
                 <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
               </td>
             </tr>
-            <tr
-              v-else
-              v-for="submission in submissions"
-              :key="submission.id"
-              class="hover:bg-gray-50"
-            >
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {{ submission.id }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ submission.user.username }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ submission.team.name }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ submission.problem.title }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <span
-                  :class="statusClass(submission.status)"
-                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                >
-                  {{ submission.status }}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ new Date(submission.createdAt).toLocaleString() }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
-                  <button
-                    @click="downloadSubmission(submission.id)"
-                    class="text-blue-600 hover:text-blue-900"
+            <template v-else v-for="submission in submissions" :key="submission.id">
+              <tr
+                class="hover:bg-gray-50 cursor-pointer"
+                @click="toggleExpand(submission.id)"
+              >
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {{ submission.id }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ submission.user.username }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ submission.team.name }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ submission.competition.title }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ submission.problem.title }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <span
+                    :class="statusClass(submission.status)"
+                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                   >
-                    下载
-                  </button>
-                  <button
-                    @click="requeueSubmission(submission.id)"
-                    class="text-yellow-600 hover:text-yellow-900"
-                  >
-                    重新入队
-                  </button>
-                </div>
-              </td>
-            </tr>
+                    {{ getStatusText(submission.status) }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ submission.score !== null ? submission.score : '-' }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ new Date(submission.createdAt).toLocaleString() }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" @click.stop>
+                  <div class="flex space-x-2">
+                    <button
+                      @click="downloadSubmission(submission.id)"
+                      class="text-blue-600 hover:text-blue-900"
+                    >
+                      下载
+                    </button>
+                    <button
+                      @click="requeueSubmission(submission.id)"
+                      class="text-yellow-600 hover:text-yellow-900"
+                    >
+                      重新入队
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="expandedRows.includes(submission.id)">
+                <td colspan="9" class="px-6 py-4 bg-gray-50">
+                  <div class="space-y-4">
+                    <div>
+                      <h4 class="text-sm font-medium text-gray-900 mb-2">详细信息</h4>
+                      <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span class="text-gray-600">评测时间:</span>
+                          <span class="ml-2 font-medium">
+                            {{ submission.judgedAt ? new Date(submission.judgedAt).toLocaleString() : '未评测' }}
+                          </span>
+                        </div>
+                        <div>
+                          <span class="text-gray-600">提交URL:</span>
+                          <a
+                            :href="submission.submissionUrl"
+                            target="_blank"
+                            class="ml-2 text-blue-600 hover:text-blue-800 font-medium truncate block"
+                          >
+                            {{ submission.submissionUrl }}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div v-if="submission.executionLogs">
+                      <h4 class="text-sm font-medium text-gray-900 mb-2">执行日志</h4>
+                      <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto max-h-60 overflow-y-auto">
+                        <pre>{{ submission.executionLogs }}</pre>
+                      </div>
+                    </div>
+
+                    <div v-if="submission.stdout">
+                      <h4 class="text-sm font-medium text-gray-900 mb-2">标准输出</h4>
+                      <div class="bg-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+                        <pre>{{ submission.stdout }}</pre>
+                      </div>
+                    </div>
+
+                    <div v-if="submission.stderr">
+                      <h4 class="text-sm font-medium text-gray-900 mb-2">标准错误</h4>
+                      <div class="bg-red-50 text-red-800 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+                        <pre>{{ submission.stderr }}</pre>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
@@ -157,10 +308,25 @@ definePageMeta({
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
 
+// 搜索状态
+const searchId = ref("");
+const searchUser = ref("");
+const searchTeam = ref("");
+const searchProblem = ref("");
+const searchCompetition = ref("");
+
+// 展开行状态
+const expandedRows = ref<string[]>([]);
+
 // 构建查询参数
 const queryParams = computed(() => ({
   page: currentPage.value,
   limit: itemsPerPage.value,
+  id: searchId.value,
+  user: searchUser.value,
+  team: searchTeam.value,
+  problem: searchProblem.value,
+  competition: searchCompetition.value,
 }));
 
 // 数据获取
@@ -171,17 +337,39 @@ const { data, pending, refresh } = useFetch("/api/admin/submissions", {
 const submissionsPending = pending;
 const refreshSubmissions = refresh;
 
+// 切换展开/折叠状态
+function toggleExpand(submissionId: string) {
+  const index = expandedRows.value.indexOf(submissionId);
+  if (index > -1) {
+    expandedRows.value.splice(index, 1);
+  } else {
+    expandedRows.value.push(submissionId);
+  }
+}
+
 function statusClass(status: string) {
   switch (status) {
     case "PENDING":
       return "bg-yellow-100 text-yellow-800";
+    case "JUDGING":
+      return "bg-blue-100 text-blue-800";
     case "COMPLETED":
       return "bg-green-100 text-green-800";
-    case "FAILED":
+    case "ERROR":
       return "bg-red-100 text-red-800";
     default:
       return "bg-gray-100 text-gray-800";
   }
+}
+
+function getStatusText(status: string) {
+  const statusMap = {
+    PENDING: "等待评测",
+    JUDGING: "评测中",
+    COMPLETED: "已完成",
+    ERROR: "评测失败",
+  };
+  return statusMap[status] || status;
 }
 
 function downloadSubmission(submissionId: string) {
@@ -201,6 +389,23 @@ async function requeueSubmission(submissionId: string) {
     push.error("重新入队提交失败。");
   }
 }
+
+// 搜索功能
+const searchSubmissions = () => {
+  currentPage.value = 1;
+  refreshSubmissions();
+};
+
+// 清空搜索
+const clearSearch = () => {
+  searchId.value = "";
+  searchUser.value = "";
+  searchTeam.value = "";
+  searchProblem.value = "";
+  searchCompetition.value = "";
+  currentPage.value = 1;
+  refreshSubmissions();
+};
 
 // 分页相关方法
 const goToPage = (page: number) => {
