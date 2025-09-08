@@ -99,6 +99,7 @@
                   @click="handleDirectAction(item)"
                   class="w-full text-left px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
+                  <i v-if="item.icon" :class="['nav-icon', item.icon, 'mr-2']" aria-hidden="true"></i>
                   {{ item.text }}
                 </button>
 
@@ -115,6 +116,7 @@
                         : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                     "
                   >
+                    <i v-if="item.icon" :class="['nav-icon', item.icon, 'mr-2']" aria-hidden="true"></i>
                     <svg
                       class="w-4 h-4 mr-2 transition-transform duration-200"
                       :class="{ 'rotate-90': expandedSubmenus[item.text] }"
@@ -151,6 +153,7 @@
                             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                         "
                       >
+                        <i v-if="child.icon" :class="['nav-icon', child.icon, 'mr-2']" aria-hidden="true"></i>
                         {{ child.text }}
                       </NuxtLink>
                       <button
@@ -158,6 +161,7 @@
                         @click="handleChildAction(child)"
                         class="block w-full text-left px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                       >
+                        <i v-if="child.icon" :class="['nav-icon', child.icon, 'mr-2']" aria-hidden="true"></i>
                         {{ child.text }}
                       </button>
                     </template>
@@ -171,6 +175,7 @@
                   @click="handleNavClick"
                   class="block px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
+                  <i v-if="item.icon" :class="['nav-icon', item.icon, 'mr-2']" aria-hidden="true"></i>
                   {{ item.text }}
                 </NuxtLink>
               </template>

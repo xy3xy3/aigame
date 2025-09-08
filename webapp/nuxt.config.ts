@@ -23,6 +23,7 @@ export default defineNuxtConfig({
   // CSS配置
   css: [
     '~/assets/css/main.css',//本项目唯一css
+    '@fortawesome/fontawesome-free/css/all.min.css', // Font Awesome 全局样式
     'notivue/notification.css', // 通知插件的css，必须引入
     'notivue/animations.css' // 通知插件的css，必须引入
   ],

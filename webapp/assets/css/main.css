@@ -113,6 +113,14 @@
     font-weight: 500;
   }
 
+  /* 导航图标统一尺寸 */
+  .nav-icon {
+    font-size: 1rem; /* 统一图标大小 */
+    line-height: 1;
+    width: 1em; /* 保持占位一致 */
+    vertical-align: -0.125em; /* 与文字更好对齐 */
+  }
+
   /* 导航栏按钮颜色覆盖 */
   .nav-button {
     @apply text-gray-700 hover:text-gray-900;

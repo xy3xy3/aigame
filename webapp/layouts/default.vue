@@ -25,6 +25,7 @@
                       : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                   "
                 >
+                  <i v-if="item.icon" :class="['nav-icon', item.icon, 'mr-2']" aria-hidden="true"></i>
                   {{ item.text }}
                   <svg
                     class="ml-1 h-4 w-4"
@@ -56,6 +57,7 @@
                           : 'text-gray-700 hover:bg-gray-100'
                       "
                     >
+                      <i v-if="child.icon" :class="['nav-icon', child.icon, 'mr-2']" aria-hidden="true"></i>
                       {{ child.text }}
                     </NuxtLink>
                   </div>
@@ -72,6 +74,7 @@
                     : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                 "
               >
+                <i v-if="item.icon" :class="['nav-icon', item.icon, 'mr-2']" aria-hidden="true"></i>
                 {{ item.text }}
               </NuxtLink>
             </template>
@@ -86,6 +89,7 @@
               <button
                 class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
+                <i class="nav-icon fa-solid fa-user mr-2" aria-hidden="true"></i>
                 欢迎, {{ user?.username }}
                 <svg
                   class="ml-1 h-4 w-4"
@@ -115,6 +119,7 @@
                         : 'text-gray-700 hover:bg-gray-100'
                     "
                   >
+                    <i class="nav-icon fa-solid fa-id-card mr-2" aria-hidden="true"></i>
                     个人资料
                   </NuxtLink>
                   <NuxtLink
@@ -126,12 +131,14 @@
                         : 'text-gray-700 hover:bg-gray-100'
                     "
                   >
+                    <i class="nav-icon fa-solid fa-key mr-2" aria-hidden="true"></i>
                     修改密码
                   </NuxtLink>
                   <button
                     @click="handleLogout"
                     class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150"
                   >
+                    <i class="nav-icon fa-solid fa-right-from-bracket mr-2" aria-hidden="true"></i>
                     退出
                   </button>
                 </div>
@@ -143,12 +150,14 @@
               to="/login"
               class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
+              <i class="nav-icon fa-solid fa-right-to-bracket mr-2" aria-hidden="true"></i>
               登录
             </NuxtLink>
             <NuxtLink
               to="/register"
               class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
+              <i class="nav-icon fa-solid fa-user-plus mr-2" aria-hidden="true"></i>
               注册
             </NuxtLink>
           </template>
@@ -248,15 +257,15 @@ const isAdminSectionActive = (item) => {
 
 // 管理员导航项
 const adminNavItems = computed(() => [
-  { text: "管理仪表板", to: "/admin/dashboard" },
-  { text: "比赛管理", to: "/admin/competitions" },
-  { text: "题目管理", to: "/admin/problems" },
-  { text: "用户管理", to: "/admin/users" },
-  { text: "队伍管理", to: "/admin/teams" },
-  { text: "提交管理", to: "/admin/submissions" },
-  { text: "题解管理", to: "/admin/solutions" },
-  { text: "公告管理", to: "/admin/announcements" },
-  { text: "系统设置", to: "/admin/settings" },
+  { text: "管理仪表板", to: "/admin/dashboard", icon: "fa-solid fa-gauge" },
+  { text: "比赛管理", to: "/admin/competitions", icon: "fa-solid fa-flag-checkered" },
+  { text: "题目管理", to: "/admin/problems", icon: "fa-solid fa-book" },
+  { text: "用户管理", to: "/admin/users", icon: "fa-solid fa-users" },
+  { text: "队伍管理", to: "/admin/teams", icon: "fa-solid fa-people-group" },
+  { text: "提交管理", to: "/admin/submissions", icon: "fa-solid fa-file-arrow-up" },
+  { text: "题解管理", to: "/admin/solutions", icon: "fa-solid fa-lightbulb" },
+  { text: "公告管理", to: "/admin/announcements", icon: "fa-solid fa-bullhorn" },
+  { text: "系统设置", to: "/admin/settings", icon: "fa-solid fa-gear" },
 ]);
 
 // 桌面端导航项
@@ -268,20 +277,21 @@ const desktopNavItems = computed(() => {
     user.value
   );
 
-  const items = [{ text: "比赛", to: "/competitions" }];
+  const items = [{ text: "比赛", to: "/competitions", icon: "fa-solid fa-trophy" }];
 
   // 登录用户的导航项
   if (isLoggedIn.value) {
     items.push(
-      { text: "我的队伍", to: "/teams" },
-      { text: "我的提交", to: "/submissions" },
-      { text: "公告", to: "/announcements" }
+      { text: "我的队伍", to: "/teams", icon: "fa-solid fa-users" },
+      { text: "我的提交", to: "/submissions", icon: "fa-solid fa-file-arrow-up" },
+      { text: "公告", to: "/announcements", icon: "fa-solid fa-bullhorn" }
     );
 
     // 管理员导航项
     if (user.value?.role === "admin") {
       items.push({
         text: "管理后台",
+        icon: "fa-solid fa-gear",
         children: adminNavItems.value,
       });
     }
@@ -293,20 +303,21 @@ const desktopNavItems = computed(() => {
 
 // 移动端导航项（包含所有项目）
 const mobileNavItems = computed(() => {
-  const items = [{ text: "比赛", to: "/competitions" }];
+  const items = [{ text: "比赛", to: "/competitions", icon: "fa-solid fa-trophy" }];
 
   if (isLoggedIn.value) {
     // 登录用户的导航项
     items.push(
-      { text: "我的队伍", to: "/teams" },
-      { text: "我的提交", to: "/submissions" },
-      { text: "公告", to: "/announcements" }
+      { text: "我的队伍", to: "/teams", icon: "fa-solid fa-users" },
+      { text: "我的提交", to: "/submissions", icon: "fa-solid fa-file-arrow-up" },
+      { text: "公告", to: "/announcements", icon: "fa-solid fa-bullhorn" }
     );
 
     // 管理员导航项（在移动端展开显示）
     if (user.value?.role === "admin") {
       items.push({
         text: "管理后台",
+        icon: "fa-solid fa-gear",
         children: adminNavItems.value,
       });
     }
@@ -314,15 +325,19 @@ const mobileNavItems = computed(() => {
     // 用户相关项 - 放到一个可展开的用户菜单中
     items.push({
       text: `用户: ${user.value?.username || "用户"}`,
+      icon: "fa-solid fa-user",
       children: [
-        { text: "个人资料", to: "/profile" },
-        { text: "修改密码", to: "/profile/password" },
-        { text: "退出", action: "logout" },
+        { text: "个人资料", to: "/profile", icon: "fa-solid fa-id-card" },
+        { text: "修改密码", to: "/profile/password", icon: "fa-solid fa-key" },
+        { text: "退出", action: "logout", icon: "fa-solid fa-right-from-bracket" },
       ],
     });
   } else {
     // 未登录用户的导航项
-    items.push({ text: "登录", to: "/login" }, { text: "注册", to: "/register" });
+    items.push(
+      { text: "登录", to: "/login", icon: "fa-solid fa-right-to-bracket" },
+      { text: "注册", to: "/register", icon: "fa-solid fa-user-plus" }
+    );
   }
 
   return items;
