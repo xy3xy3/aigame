@@ -157,19 +157,25 @@
             >
               参加比赛
             </button>
-            <!-- 题解提交快速链接 -->
-            <NuxtLink
-              v-if="canAccessSolutionSubmission(teamsData?.teams || [], competition.id)"
-              :to="`/competitions/${competition.id}/solutions`"
-              :class="[
-                'flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm transition-all duration-200',
-                getSolutionTimeInfo(competition.endTime).canSubmit
-                  ? 'text-primary-text-light bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary'
-                  : 'text-gray-500 bg-gray-200 cursor-not-allowed',
-              ]"
-            >
-              题解提交
-            </NuxtLink>
+            <!-- 题解提交：结束前禁用且不可跳转 -->
+            <template v-if="canAccessSolutionSubmission(teamsData?.teams || [], competition.id)">
+              <NuxtLink
+                v-if="getSolutionTimeInfo(competition.endTime).canSubmit"
+                :to="`/competitions/${competition.id}/solutions`"
+                class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm transition-all duration-200 text-primary-text-light bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                题解提交
+              </NuxtLink>
+              <button
+                v-else
+                type="button"
+                disabled
+                aria-disabled="true"
+                class="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm transition-all duration-200 text-gray-500 bg-gray-200 cursor-not-allowed"
+              >
+                题解提交
+              </button>
+            </template>
           </div>
         </div>
       </div>

@@ -114,19 +114,23 @@
                 >
                   参加比赛
                 </button>
-                <!-- 题解提交按钮 -->
+                <!-- 题解提交按钮：结束前禁用且不可跳转 -->
                 <NuxtLink
-                  v-if="showSolutionButton"
+                  v-if="showSolutionButton && solutionTimeInfo.canSubmit"
                   :to="`/competitions/${data.competition.id}/solutions`"
-                  :class="[
-                    'flex-1 px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all duration-200 transform hover:scale-105 text-center',
-                    solutionTimeInfo.canSubmit
-                      ? 'bg-primary hover:bg-primary-hover text-primary-text-light'
-                      : 'bg-gray-400 text-white cursor-not-allowed',
-                  ]"
+                  class="flex-1 px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all duration-200 transform hover:scale-105 text-center bg-primary hover:bg-primary-hover text-primary-text-light"
                 >
                   题解提交
                 </NuxtLink>
+                <button
+                  v-else-if="showSolutionButton && !solutionTimeInfo.canSubmit"
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  class="flex-1 px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all duration-200 text-center bg-gray-400 text-white cursor-not-allowed"
+                >
+                  题解提交
+                </button>
               </div>
 
               <!-- 题解提交状态信息 -->
