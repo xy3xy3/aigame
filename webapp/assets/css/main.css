@@ -130,6 +130,17 @@
     @apply bg-gray-100;
   }
 
+  /* 竞赛页 Banner 无图时的渐变背景 */
+  .banner-fallback {
+    background-color: var(--color-primary-bg);
+    background-image: linear-gradient(
+      135deg,
+      var(--color-primary) 0%,
+      var(--color-primary-hover) 50%,
+      var(--color-primary-focus) 100%
+    );
+  }
+
   /* 移动端导航按钮样式统一 */
   .mobile-nav-button {
     color: rgb(55 65 81) !important; /* text-gray-700 - 与主导航统一 */

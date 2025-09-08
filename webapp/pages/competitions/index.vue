@@ -47,10 +47,7 @@
             class="w-full h-full object-cover"
           />
         </div>
-        <div
-          v-else
-          class="h-48 bg-gradient-to-br from-primary via-primary-hover to-primary-focus flex items-center justify-center"
-        >
+        <div v-else class="h-48 banner-fallback flex items-center justify-center">
           <h3 class="text-white text-xl font-bold text-center px-4">
             {{ competition.title }}
           </h3>
