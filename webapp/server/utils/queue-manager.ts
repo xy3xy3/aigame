@@ -63,3 +63,61 @@ export async function cleanQueue() {
   await queue.clean(24 * 60 * 60 * 1000, 100, 'completed') // 清理24小时前的完成任务
   await queue.clean(24 * 60 * 60 * 1000, 50, 'failed')    // 清理24小时前的失败任务
 }
+
+// 获取队列中的任务
+export async function getJobs(
+  types: ('waiting' | 'active' | 'completed' | 'failed' | 'delayed' | 'paused')[],
+  start?: number,
+  end?: number,
+  asc?: boolean,
+) {
+  const queue = getEvaluationQueue()
+  const jobs = await queue.getJobs(types, start, end, asc)
+
+  return Promise.all(jobs.map(async (job) => ({
+    id: job.id,
+    name: job.name,
+    data: job.data,
+    attemptsMade: job.attemptsMade,
+    maxAttempts: job.opts.attempts,
+    delay: job.delay,
+    timestamp: job.timestamp,
+    processedOn: job.processedOn,
+    finishedOn: job.finishedOn,
+    returnvalue: job.returnvalue,
+    failedReason: job.failedReason,
+    stacktrace: job.stacktrace,
+    opts: job.opts,
+    state: await job.getState()
+  })))
+}
+
+// 获取指定类型任务的总数
+export async function getJobCount(
+  types: ('waiting' | 'active' | 'completed' | 'failed' | 'delayed')[]
+) {
+  const queue = getEvaluationQueue();
+
+  // 使用 BullMQ 提供的特定状态计数方法以提高效率
+  const countPromises = types.map(async (type) => {
+    switch (type) {
+      case 'waiting':
+        return await queue.getWaitingCount();
+      case 'active':
+        return await queue.getActiveCount();
+      case 'completed':
+        return await queue.getCompletedCount();
+      case 'failed':
+        return await queue.getFailedCount();
+      case 'delayed':
+        return await queue.getDelayedCount();
+      default:
+        return 0;
+    }
+  });
+
+  const counts = await Promise.all(countPromises);
+  const count = counts.reduce((acc: number, curr: number) => acc + curr, 0);
+
+  return count;
+}

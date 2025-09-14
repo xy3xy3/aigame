@@ -153,13 +153,21 @@
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold text-gray-900">评测队列状态</h2>
-        <button
-          @click="refreshQueueStats"
-          :disabled="isRefreshingQueue"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
-        >
-          {{ isRefreshingQueue ? "刷新中..." : "刷新" }}
-        </button>
+        <div class="flex items-center space-x-2">
+          <NuxtLink
+            to="/admin/queue"
+            class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md text-sm font-medium"
+          >
+            查看详情
+          </NuxtLink>
+          <button
+            @click="refreshQueueStats"
+            :disabled="isRefreshingQueue"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50"
+          >
+            {{ isRefreshingQueue ? "刷新中..." : "刷新" }}
+          </button>
+        </div>
       </div>
 
       <div v-if="queueStats" class="grid grid-cols-1 md:grid-cols-4 gap-4">
