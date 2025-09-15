@@ -50,19 +50,13 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    // 检查是否有相关的提交记录
-    if (problem._count.submissions > 0) {
-        throw createError({
-            statusCode: 400,
-            statusMessage: 'Cannot delete problem with existing submissions'
-        })
-    }
-
     try {
-        // 删除题目
-        await prisma.problem.delete({
-            where: { id: problemId }
-        })
+        // 级联清理：先删除与该题目关联的 ProblemScore，再依赖 Prisma 关系自动级联删除 Submission 记录
+        // LeaderboardEntry 不直接依赖 Problem，但其下的 ProblemScore 已被清理，从而不会残留该题目的得分
+        await prisma.$transaction([
+            prisma.problemScore.deleteMany({ where: { problemId: problemId } }),
+            prisma.problem.delete({ where: { id: problemId } })
+        ])
 
         // 清除缓存
         try {

@@ -124,8 +124,8 @@ model Problem {
 
   // 关系
   competition   Competition    @relation(fields: [competitionId], references: [id], onDelete: Cascade) // 所属比赛
-  submissions   Submission[] // 题目的提交
-  problemScores ProblemScore[]
+  submissions   Submission[]    // 题目的提交（由 Submission.problem 上的 onDelete: Cascade 负责级联）
+  problemScores ProblemScore[]  // 由 ProblemScore.problem 上的 onDelete: Cascade 负责级联
 
   @@map("problems")
 }
