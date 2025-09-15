@@ -355,15 +355,34 @@
                       for="problem-sampleSubmissionUrl"
                       class="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      提交样例URL（展示用）
+                      提交样例（可填URL或上传）
                     </label>
-                    <input
-                      id="problem-sampleSubmissionUrl"
-                      v-model="problemForm.sampleSubmissionUrl"
-                      type="text"
-                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="例如公开示例提交/结果文件URL"
-                    />
+                    <div class="mt-2 flex items-center space-x-4">
+                      <div class="flex-grow">
+                        <input
+                          id="problem-sample"
+                          type="file"
+                          accept=".zip,application/zip,application/x-zip-compressed"
+                          class="hidden"
+                          @change="handleSampleUpload"
+                        />
+                        <label
+                          for="problem-sample"
+                          class="cursor-pointer rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                        >
+                          上传样例ZIP
+                        </label>
+                        <p v-if="sampleUploading" class="mt-1 text-sm text-gray-500">上传中...</p>
+                        <p v-if="sampleUploadError" class="mt-1 text-sm text-red-600">{{ sampleUploadError }}</p>
+                        <input
+                          id="problem-sampleSubmissionUrl"
+                          v-model="problemForm.sampleSubmissionUrl"
+                          type="text"
+                          class="w-full mt-2 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="可直接填写样例zip的URL，或点击上方上传"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div class="mb-4">
@@ -639,6 +658,8 @@ const datasetUploading = ref<boolean>(false);
 const datasetUploadError = ref<string>("");
 const scriptUploading = ref<boolean>(false);
 const scriptUploadError = ref<string>("");
+const sampleUploading = ref<boolean>(false);
+const sampleUploadError = ref<string>("");
 
 const openModal = (problem: Problem | null = null) => {
   if (problem) {
@@ -740,6 +761,30 @@ const handleScriptUpload = async (event: Event) => {
     scriptUploadError.value = err.data?.message || "上传失败";
   } finally {
     scriptUploading.value = false;
+  }
+};
+
+const handleSampleUpload = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  sampleUploading.value = true;
+  sampleUploadError.value = "";
+
+  const formData = new FormData();
+  formData.append("sample", file);
+
+  try {
+    const data = await $fetch<{ url: string }>("/api/admin/problems/sample/upload", {
+      method: "POST",
+      body: formData,
+    });
+    problemForm.value.sampleSubmissionUrl = data.url;
+  } catch (err: any) {
+    sampleUploadError.value = err.data?.message || "上传失败";
+  } finally {
+    sampleUploading.value = false;
   }
 };
 
