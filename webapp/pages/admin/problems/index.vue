@@ -150,7 +150,7 @@
               <span v-else>数据集: 未上传</span>
               <span v-if="problem.judgingScriptUrl">评测脚本: 已上传</span>
               <span v-if="problem.sampleSubmissionUrl">样例: 已配置</span>
-              <span v-else>评测脚本: 未上传</span>
+              <span v-else>样例: 未配置</span>
             </div>
           </div>
 
@@ -528,6 +528,7 @@ interface Problem {
   status: string;
   datasetUrl?: string;
   judgingScriptUrl?: string;
+  sampleSubmissionUrl?: string;
   score?: number;
   competition: {
     id: string;
@@ -648,6 +649,7 @@ const problemForm = ref({
   detailedDescription: "",
   datasetUrl: "",
   judgingScriptUrl: "",
+  sampleSubmissionUrl: "",
   startTime: "",
   endTime: "",
   score: undefined as number | undefined,
@@ -673,6 +675,7 @@ const openModal = (problem: Problem | null = null) => {
       detailedDescription: problem.detailedDescription,
       datasetUrl: problem.datasetUrl || "",
       judgingScriptUrl: problem.judgingScriptUrl || "",
+      sampleSubmissionUrl: problem.sampleSubmissionUrl || "",
       startTime: new Date(problem.startTime).toISOString().slice(0, 16),
       endTime: new Date(problem.endTime).toISOString().slice(0, 16),
       score: problem.score || undefined,
