@@ -200,11 +200,7 @@
       <!-- 题目详细描述 -->
       <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">题目描述</h2>
-        <div class="prose max-w-none">
-          <div class="text-gray-700 whitespace-pre-wrap">
-            {{ data.problem.detailedDescription }}
-          </div>
-        </div>
+        <MarkdownRenderer :content="data.problem.detailedDescription || ''" />
       </div>
 
       <!-- 相关资源：数据集与测试用例zip/样例 -->
@@ -309,6 +305,7 @@
 </template>
 
 <script setup>
+import MarkdownRenderer from '~/components/common/MarkdownRenderer.client.vue'
 definePageMeta({
   middleware: "auth",
 });
