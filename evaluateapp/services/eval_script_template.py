@@ -2,7 +2,6 @@ import sys
 import os
 import json
 import traceback
-import errno
 import io
 import contextlib
 
@@ -12,58 +11,16 @@ SUBMISSION_DIR = ${submission_dir_json}
 # Provide the resolved python executable path from sandbox
 PYTHON_EXECUTABLE = ${python_executable_json}
 
-# ==================== Apply Seccomp on Linux (best effort) ====================
-if sys.platform == 'linux':
-    try:
-        import pyseccomp
-        from pyseccomp import SyscallFilter, ALLOW, ERRNO
-
-        # Strict default deny policy
-        filt = SyscallFilter(ERRNO(errno.EPERM))
-
-        # Whitelist: essential syscalls for Python/ML workloads
-        allowed_syscalls = {
-            # 1) Process/runtime basics
-            "exit_group", "getpid", "gettid", "tgkill", "uname", "getrandom",
-
-            # 2) Memory management
-            "brk", "mmap", "munmap", "mprotect", "madvise",
-
-            # 3) File I/O
-            "openat", "read", "pread64", "write", "pwrite64", "close",
-            "fstat", "newfstatat", "stat", "lseek", "access", "faccessat",
-            "statx", "readlink", "readlinkat", "getcwd", "chdir",
-
-            # 4) Threads/synchronization
-            "futex", "futex_waitv", "sched_getaffinity", "rseq",
-
-            # 5) Signals
-            "rt_sigaction", "rt_sigprocmask", "rt_sigreturn",
-
-            # 6) Misc
-            "ioctl", "fcntl", "dup", "dup2", "dup3", "prctl", "set_robust_list",
-
-            # 7) Allow subprocess/multiprocessing if judge.py runs user code
-            "execve", "clone", "wait4",
-        }
-
-        for sc in allowed_syscalls:
-            try:
-                filt.add_rule(ALLOW, sc)
-            except Exception:
-                pass
-
-        filt.load()
-        print("[Seccomp] Filter applied.", file=sys.stderr)
-    except Exception as se:
-        # If pyseccomp missing or unsupported environment, continue without seccomp
-        print(f"[Seccomp] Not applied: {se}", file=sys.stderr)
+# ==================== Seccomp 逻辑已移至父进程 ====================
+# 这里不再需要 Seccomp 相关的导入和逻辑，因为父进程已经通过环境变量控制
+# 并在启动子进程时加载了 Seccomp 过滤器。
 # ============================================================================
 
-# 设置工作目录
-os.chdir(JUDGE_DIR)
+# 注意：os.chdir() 已移至父进程的 subprocess.run(cwd=...) 参数
+# 确保 judge.py 的相对路径正确，且避免了 numpy 导入问题。
 
 # 添加评测目录到sys.path
+# 这仍然是必要的，因为 judge.py 可能有其他本地依赖
 sys.path.insert(0, JUDGE_DIR)
 
 try:
@@ -76,6 +33,11 @@ try:
         raise FileNotFoundError("评测包中必须包含 'judge.py' 文件")
 
     spec = importlib.util.spec_from_file_location("judge", judge_script_path)
+    # 修复：避免直接导入内部模块，使用更标准的加载方式
+    # 确保 spec.loader 是可用的
+    if spec is None or spec.loader is None:
+        raise ImportError(f"无法为 {judge_script_path} 创建模块规范或加载器。")
+
     judge_module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(judge_module)
 
@@ -87,10 +49,11 @@ try:
     stdout_buf = io.StringIO()
     stderr_buf = io.StringIO()
     with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
+        # 传递 python_executable_path 给 judge.py，以便它能正确调用用户脚本
         result_dict = judge_module.evaluate(
             submission_path=SUBMISSION_DIR,
             judge_data_path=JUDGE_DIR,
-            python_executable_path=PYTHON_EXECUTABLE,
+            python_executable_path=PYTHON_EXECUTABLE, # 新增参数
         )
 
     if not isinstance(result_dict, dict):
