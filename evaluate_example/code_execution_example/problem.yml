@@ -1,31 +1,39 @@
-title: "示例题目：代码执行-线性回归"
-shortDescription: "一个简单的线性回归任务，演示如何提交代码进行评测。"
+
+title: "示例题目：代码执行-线性回归 (函数导入模式)"
+shortDescription: "一个简单的线性回归任务，演示如何通过实现指定函数进行评测。"
 detailedDescription: |
   ### 任务描述
   欢迎来到代码执行评测示例！本次任务是构建一个简单的线性回归模型。
-  给定一组训练数据 `train.csv`，其中包含特征 `feature` 和目标 `target`。你需要训练一个模型，该模型能够根据测试数据 `test.csv` 中的 `feature` 预测其 `target` 值。
+  你需要训练一个模型，该模型能够根据测试数据中的 `feature` 预测其 `target` 值。
 
   ### 数据说明
   你可以在 "数据集" 标签页下载 `data.zip`，其中包含：
   - `train.csv`: 训练数据，包含 `feature` 和 `target` 两列。
-  - `test.csv`: 测试数据，包含 `id` 和 `feature` 两列。你需要为每一行预测 `target`。
+  - `test.csv`: 测试数据，包含 `id` 和 `feature` 两列。
 
   ### 提交要求 (重要！)
-  你需要提交一个 包含 `main.py` 脚本的 `zip` 压缩包。评测系统将通过以下命令来执行你的代码：
-  ```bash
-  python main.py --input <测试数据路径> --output <你的输出路径>
-  ```
-  - `--input`: 评测机传入的测试数据文件路径 (格式同 `test.csv`)。
-  - `--output`: 你需要将预测结果保存到的文件路径。
+  你需要提交一个包含 `main.py` 脚本的 `zip` 压缩包。评测系统希望你的 `main.py` 中包含一个名为 `predict` 的函数，其定义如下：
 
-  ### 输出格式要求
-  你生成的输出文件必须是一个 `csv` 文件，包含两列：`id` 和 `prediction`。`id` 必须与输入测试文件中的 `id` 保持一致。
-  ```csv
-  id,prediction
-  1,12.34
-  2,56.78
-  ...
+  ```python
+  import pandas as pd
+
+  def predict(test_df: pd.DataFrame) -> pd.DataFrame:
+      """
+      使用预先训练好的模型对测试数据进行预测。
+
+      参数:
+      test_df (pd.DataFrame): 测试数据，包含 'id' 和 'feature' 列。
+
+      返回:
+      pd.DataFrame: 预测结果，必须包含 'id' 和 'prediction' 两列。
+      """
+      # ... 在这里实现你的预测逻辑 ...
+      pass
   ```
+
+  **注意**:
+  - 你的模型训练过程应该在 `predict` 函数之外完成（例如，在模块加载时），以避免每次调用都重复训练。
+  - 评测系统会自动导入你的 `main.py` 并使用测试数据调用 `predict` 函数。
 
   ### 评测指标
   评测系统将使用 均方误差 (Mean Squared Error, MSE) 来评估你的预测结果。MSE 越小，表示模型性能越好。
@@ -34,4 +42,3 @@ detailedDescription: |
 startTime: "2024-01-01T00:00:00Z"
 endTime: "2026-12-31T23:59:59Z"
 score: 100
-

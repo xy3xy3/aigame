@@ -1,96 +1,85 @@
 import os
-import subprocess
+import sys
 import pandas as pd
 from sklearn.metrics import mean_squared_error
+import importlib.util
+import traceback
 
-def evaluate(submission_path: str, judge_data_path: str, python_executable_path: str | None = None) -> dict:
+def evaluate(submission_path: str, judge_data_path: str, **kwargs) -> dict:
     """
-    评测逻辑：
-    1. 找到用户提交的 main.py 脚本。
-    2. 使用 subprocess 调用该脚本，并传入测试数据路径和指定的输出路径。
-    3. 读取用户脚本生成的 predictions.csv 和标准答案 ground_truth.csv。
-    4. 计算均方误差 (MSE) 并转换为最终分数。
+    评测逻辑 (函数导入模式):
+    1. 动态导入用户提交的 main.py 模块。
+    2. 检查模块中是否存在 'predict' 函数。
+    3. 加载测试数据和标准答案。
+    4. 调用用户的 'predict' 函数并获取预测结果。
+    5. 验证预测结果的格式。
+    6. 计算均方误差 (MSE) 并转换为最终分数。
     """
     logs = []
     score = 0.0
+    user_module = None
 
     try:
         # 定义文件路径
-        user_script = os.path.join(submission_path, 'main.py')
-        test_data = os.path.join(judge_data_path, 'test.csv')
-        ground_truth_file = os.path.join(judge_data_path, 'ground_truth.csv')
-        user_output_file = os.path.join(submission_path, 'predictions.csv')
+        user_script_path = os.path.join(submission_path, 'main.py')
+        test_data_path = os.path.join(judge_data_path, 'test.csv')
+        ground_truth_path = os.path.join(judge_data_path, 'ground_truth.csv')
 
-        # 检查必要文件是否存在
-        if not os.path.exists(user_script):
+        if not os.path.exists(user_script_path):
             raise FileNotFoundError("提交的压缩包中未找到 'main.py'。")
-        if not os.path.exists(test_data) or not os.path.exists(ground_truth_file):
-            raise FileNotFoundError("评测包配置错误，缺少测试数据或标准答案。")
 
-        # 用于执行用户脚本的 Python 解释器
-        python_bin = python_executable_path or 'python'
+        # 1. 动态导入用户模块
+        logs.append(f"正在动态导入用户模块: {user_script_path}")
+        spec = importlib.util.spec_from_file_location("user_main", user_script_path)
+        if spec is None:
+            raise ImportError("无法为 user_main 创建模块规范。")
+        user_module = importlib.util.module_from_spec(spec)
+        sys.modules["user_main"] = user_module
+        spec.loader.exec_module(user_module)
+        logs.append("用户模块导入成功。")
 
-        # 构造并执行用户脚本的命令
-        command = [
-            python_bin, user_script,
-            '--input', test_data,
-            '--output', user_output_file
-        ]
-        logs.append(f"执行命令: {' '.join(command)}")
+        # 2. 检查 'predict' 函数是否存在
+        if not hasattr(user_module, 'predict') or not callable(user_module.predict):
+            raise AttributeError("提交的 'main.py' 中未找到可调用的 'predict' 函数。")
+        logs.append("'predict' 函数找到。")
 
-        # 使用 subprocess 执行用户代码，设置5分钟超时
-        process = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            timeout=300
-        )
+        # 3. 加载数据
+        test_df = pd.read_csv(test_data_path)
+        truth_df = pd.read_csv(ground_truth_path)
+        logs.append("测试数据和标准答案加载成功。")
 
-        # 记录用户脚本的输出日志，便于调试
-        if process.stdout:
-            logs.append("--- 用户脚本标准输出 (stdout) ---")
-            logs.append(process.stdout)
-        if process.stderr:
-            logs.append("--- 用户脚本标准错误 (stderr) ---")
-            logs.append(process.stderr)
+        # 4. 调用用户的 predict 函数
+        logs.append("正在调用用户的 'predict' 函数...")
+        pred_df = user_module.predict(test_df.copy()) # 传入副本以防用户修改原始数据
+        logs.append("'predict' 函数执行完毕。")
 
-        # 检查用户脚本是否成功运行
-        if process.returncode != 0:
-            raise RuntimeError(f"用户脚本执行失败，返回码: {process.returncode}")
+        # 5. 验证返回结果
+        if not isinstance(pred_df, pd.DataFrame):
+            raise TypeError(f"'predict' 函数必须返回一个 pandas DataFrame，但返回了 {type(pred_df)}。")
+        if 'id' not in pred_df.columns or 'prediction' not in pred_df.columns:
+            raise ValueError("返回的 DataFrame 必须包含 'id' 和 'prediction' 列。")
+        logs.append("预测结果格式验证通过。")
 
-        logs.append("用户脚本执行成功。")
-
-        # 检查用户是否生成了输出文件
-        if not os.path.exists(user_output_file):
-            raise FileNotFoundError("用户脚本执行成功，但未在指定路径生成 'predictions.csv'。")
-
-        # 读取预测结果和标准答案
-        pred_df = pd.read_csv(user_output_file)
-        truth_df = pd.read_csv(ground_truth_file)
-
-        # 合并以确保 id 对齐
+        # 6. 合并与计算
         merged_df = pd.merge(truth_df, pred_df, on='id', suffixes=('_true', '_pred'))
-        
+
         if len(merged_df) != len(truth_df):
             logs.append(f"警告：提交结果的 ID 与标准答案不完全匹配。仅评测匹配上的 {len(merged_df)} 条数据。")
 
         if len(merged_df) == 0:
             raise ValueError("提交结果的 ID 与标准答案完全不匹配，无法评测。")
 
-        # 计算 MSE
         mse = mean_squared_error(merged_df['target'], merged_df['prediction'])
         logs.append(f"\n评测指标: 均方误差 (MSE) = {mse:.4f}")
 
-        # 计算最终分数
         score = max(0, 100 - mse)
         logs.append(f"最终得分: Score = max(0, 100 - MSE) = {score:.2f}")
 
-    except subprocess.TimeoutExpired:
-        logs.append("错误：用户脚本执行超时（超过5分钟）。")
-        score = 0.0
     except Exception as e:
-        import traceback
-        logs.append(f"评测过程中发生严重错误: {e}")
+        logs.append("\n--- 评测过程中发生严重错误 ---")
+        logs.append(f"错误类型: {type(e).__name__}")
+        logs.append(f"错误信息: {e}")
+        logs.append("详细追溯信息:")
         logs.append(traceback.format_exc())
         score = 0.0
 
@@ -98,4 +87,3 @@ def evaluate(submission_path: str, judge_data_path: str, python_executable_path:
         "score": float(score),
         "logs": "\n".join(logs)
     }
-
