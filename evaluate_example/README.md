@@ -36,6 +36,17 @@ def evaluate(submission_path: str, judge_data_path: str) -> dict:
             }
 ```
 
-# 测试说明
+将需要验证的标签和judge.py压缩为`judge.zip`，用于评测
+将示例数据`data.json`压缩为`data.zip`，用于做演示数据
+将`judge.zip`，`data.zip`，`problem.yml`放在同一目录下压缩后即可上传到网页。
 
-TODO
+参考的样子：
+```
+evaluate_example/label_compare/
+├── correct_labels.json
+├── data.json
+├── data.zip
+├── judge.py
+├── label_compare.zip
+└── problem.yml
+```
