@@ -44,6 +44,7 @@ export default defineEventHandler(async (event) => {
       detailedDescription: true,
       competitionId: true,
       datasetUrl: true,
+      sampleSubmissionUrl: true,
       startTime: true,
       endTime: true,
       createdAt: true,

@@ -112,8 +112,9 @@ model Problem {
   shortDescription    String // 简短描述
   detailedDescription String // 详细描述
   competitionId       String   @db.ObjectId // 所属比赛ID
-  datasetUrl          String? // 数据集URL
-  judgingScriptUrl    String? // 评测脚本URL
+  datasetUrl          String? // 数据集URL（可为直链或对象存储）
+  judgingScriptUrl    String? // 评测脚本URL（仅URL）
+  sampleSubmissionUrl String? // 提交样例URL（展示用）
   startTime           DateTime // 题目开始时间
   endTime             DateTime // 题目结束时间
   createdAt           DateTime @default(now()) // 创建时间

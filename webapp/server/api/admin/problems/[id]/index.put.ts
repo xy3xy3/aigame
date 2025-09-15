@@ -9,6 +9,7 @@ const updateProblemSchema = z.object({
     detailedDescription: z.string(),
     datasetUrl: z.string().url().optional(),
     judgingScriptUrl: z.string().url().optional(),
+    sampleSubmissionUrl: z.string().url().optional(),
     startTime: z.string().datetime(),
     endTime: z.string().datetime(),
     score: z.number().int().optional()
@@ -41,7 +42,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
 
     try {
-        const { title, shortDescription, detailedDescription, datasetUrl, judgingScriptUrl, startTime, endTime, score } = updateProblemSchema.parse(body)
+        const { title, shortDescription, detailedDescription, datasetUrl, judgingScriptUrl, sampleSubmissionUrl, startTime, endTime, score } = updateProblemSchema.parse(body)
 
         // 验证时间逻辑
         const start = new Date(startTime)
@@ -100,6 +101,7 @@ export default defineEventHandler(async (event) => {
             detailedDescription,
             datasetUrl,
             judgingScriptUrl,
+            sampleSubmissionUrl,
             startTime: start,
             endTime: end
         }

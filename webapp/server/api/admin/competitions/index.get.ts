@@ -61,7 +61,8 @@ export default defineEventHandler(async (event) => {
                         startTime: true,
                         endTime: true,
                         datasetUrl: true,
-                        judgingScriptUrl: true
+                        judgingScriptUrl: true,
+                        sampleSubmissionUrl: true
                     }
                 },
                 _count: {

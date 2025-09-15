@@ -207,30 +207,24 @@
         </div>
       </div>
 
-      <!-- 数据集 -->
-      <div v-if="data.problem.datasetUrl" class="bg-white rounded-lg shadow-md p-6">
+      <!-- 相关资源：数据集与测试用例zip/样例 -->
+      <div v-if="data.problem.datasetUrl || data.problem.sampleSubmissionUrl" class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">相关资源</h2>
         <div class="space-y-3">
           <div v-if="data.problem.datasetUrl">
-            <a
-              :href="data.problem.datasetUrl"
-              target="_blank"
-              class="inline-flex items-center text-blue-600 hover:text-blue-800"
-            >
-              <svg
-                class="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                ></path>
+            <a :href="data.problem.datasetUrl" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
               </svg>
               下载数据集
+            </a>
+          </div>
+          <div v-if="data.problem.sampleSubmissionUrl">
+            <a :href="data.problem.sampleSubmissionUrl" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7H7v6m0 0h6m-6 0l8 8"></path>
+              </svg>
+              下载测试用例/提交样例 zip
             </a>
           </div>
         </div>

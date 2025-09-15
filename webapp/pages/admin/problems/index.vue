@@ -149,6 +149,7 @@
               <span v-if="problem.datasetUrl">数据集: 已上传</span>
               <span v-else>数据集: 未上传</span>
               <span v-if="problem.judgingScriptUrl">评测脚本: 已上传</span>
+              <span v-if="problem.sampleSubmissionUrl">样例: 已配置</span>
               <span v-else>评测脚本: 未上传</span>
             </div>
           </div>
@@ -314,7 +315,7 @@
                       for="problem-dataset"
                       class="block text-sm font-medium text-gray-700 mb-1"
                     >
-                      数据集
+                      数据集（可填URL或上传）
                     </label>
                     <div class="mt-2 flex items-center space-x-4">
                       <div class="flex-grow">
@@ -338,16 +339,31 @@
                           {{ datasetUploadError }}
                         </p>
                         <input
-                          v-if="problemForm.datasetUrl"
                           id="problem-datasetUrl"
                           v-model="problemForm.datasetUrl"
                           type="text"
                           class="w-full mt-2 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="数据集URL"
-                          readonly
+                          placeholder="可直接填写数据集直链URL，或点击上方上传"
                         />
+                        <p class="text-xs text-gray-500 mt-1">较大数据集可使用外链，无需上传至对象存储。</p>
                       </div>
                     </div>
+                  </div>
+
+                  <div class="mb-4">
+                    <label
+                      for="problem-sampleSubmissionUrl"
+                      class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      提交样例URL（展示用）
+                    </label>
+                    <input
+                      id="problem-sampleSubmissionUrl"
+                      v-model="problemForm.sampleSubmissionUrl"
+                      type="text"
+                      class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="例如公开示例提交/结果文件URL"
+                    />
                   </div>
 
                   <div class="mb-4">
@@ -651,6 +667,7 @@ const openModal = (problem: Problem | null = null) => {
       detailedDescription: "",
       datasetUrl: "",
       judgingScriptUrl: "",
+      sampleSubmissionUrl: "",
       startTime: "",
       endTime: "",
       score: undefined,
@@ -753,6 +770,7 @@ const saveProblem = async () => {
           detailedDescription: problemForm.value.detailedDescription,
           datasetUrl: problemForm.value.datasetUrl || undefined,
           judgingScriptUrl: problemForm.value.judgingScriptUrl || undefined,
+          sampleSubmissionUrl: problemForm.value.sampleSubmissionUrl || undefined,
           startTime: startDate.toISOString(),
           endTime: endDate.toISOString(),
           score: problemForm.value.score
@@ -772,6 +790,7 @@ const saveProblem = async () => {
             detailedDescription: problemForm.value.detailedDescription,
             datasetUrl: problemForm.value.datasetUrl || undefined,
             judgingScriptUrl: problemForm.value.judgingScriptUrl || undefined,
+            sampleSubmissionUrl: problemForm.value.sampleSubmissionUrl || undefined,
             startTime: startDate.toISOString(),
             endTime: endDate.toISOString(),
             score: problemForm.value.score

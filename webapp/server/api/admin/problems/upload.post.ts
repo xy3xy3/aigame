@@ -297,9 +297,10 @@ async function processProblemFile(file: any, competitionId: string, mode: string
         })
     }
 
-    // Upload judge.zip and data.zip to MinIO if they exist
+    // Upload judge.zip and test_submit.zip/data.zip to MinIO if they exist
     let judgingScriptUrl = null
     let datasetUrl = null
+    let sampleSubmissionUrl = null
 
     if (extractedFiles['judge.zip']) {
         const objectName = `problems/scripts/${randomUUID()}.zip`
@@ -311,6 +312,16 @@ async function processProblemFile(file: any, competitionId: string, mode: string
         judgingScriptUrl = getPublicFileUrl('aigame', objectName)
     }
 
+    // Prefer new test_submit.zip as sample submission; keep data.zip optional dataset
+    if (extractedFiles['test_submit.zip']) {
+        const objectName = `problems/samples/${randomUUID()}.zip`
+        await uploadFile('aigame', objectName, extractedFiles['test_submit.zip'], {
+            'Content-Type': 'application/zip',
+            'Original-Name': 'test_submit.zip',
+            'Uploaded-By': userId,
+        })
+        sampleSubmissionUrl = getPublicFileUrl('aigame', objectName)
+    }
     if (extractedFiles['data.zip']) {
         const objectName = `problems/datasets/${randomUUID()}.zip`
         await uploadFile('aigame', objectName, extractedFiles['data.zip'], {
@@ -322,13 +333,14 @@ async function processProblemFile(file: any, competitionId: string, mode: string
     }
 
     // Prepare problem data for database
-    const problemDbData = {
+    const problemDbData: any = {
         title: problemData.title,
         shortDescription: problemData.shortDescription || '',
         detailedDescription: problemData.detailedDescription || '',
         competitionId: competitionId,
         datasetUrl: datasetUrl,
         judgingScriptUrl: judgingScriptUrl,
+        sampleSubmissionUrl: sampleSubmissionUrl,
         startTime: new Date(problemData.startTime),
         endTime: new Date(problemData.endTime),
         score: problemData.score || null
