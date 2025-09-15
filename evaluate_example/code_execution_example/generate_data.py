@@ -42,6 +42,8 @@ def main():
         [3.2, 9.4],
     ]
     write_csv(DATA_DIR / "train.csv", ["feature", "target"], train_rows)
+    # 核心变更：同样将 train.csv 写入 judge 目录，确保评测包自洽
+    write_csv(JUDGE_DIR / "train.csv", ["feature", "target"], train_rows)
 
     # 测试集（ID 与 feature）
     test_rows = [
@@ -66,7 +68,7 @@ def main():
     ]
     write_csv(JUDGE_DIR / "ground_truth.csv", ["id", "target"], truth_rows)
 
-    print("data/train.csv, data/test.csv, judge/ground_truth.csv 已生成")
+    print("data/ 和 judge/ 目录下的所有文件已生成")
 
 
 if __name__ == "__main__":
