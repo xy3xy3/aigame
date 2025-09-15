@@ -103,14 +103,24 @@ def _execute_judge_code(
     警告：此函数将在一个单独的、无权限的进程中运行。
     """
     try:
-        # 1. 应用我们内置的Seccomp安全策略！
+        # 1. 设置虚拟环境路径
+        venv_path = "/proj/aigame/evaluateapp/.venv"
+        site_packages = f"{venv_path}/lib/python3.12/site-packages"
+
+        # 2. 将虚拟环境的site-packages添加到sys.path的开头
+        sys.path.insert(0, site_packages)
+
+        # 3. 设置虚拟环境的bin目录到PATH环境变量开头
+        os.environ["PATH"] = f"{venv_path}/bin:" + os.environ.get("PATH", "")
+
+        # 4. 应用我们内置的Seccomp安全策略！
         seccomp_filter = _create_ml_seccomp_filter()
         seccomp_filter.load()
 
-        # 2. 更改工作目录，限制文件访问范围
+        # 5. 更改工作目录，限制文件访问范围
         os.chdir(judge_dir)
 
-        # 3. 动态加载评测模块
+        # 6. 动态加载评测模块
         judge_script_path = Path(judge_dir) / "judge.py"
         if not judge_script_path.exists():
             raise FileNotFoundError("评测包中必须包含 'judge.py' 文件")
