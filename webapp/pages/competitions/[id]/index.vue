@@ -257,18 +257,6 @@
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center">
                 <h3 class="text-lg font-semibold text-gray-900">{{ problem.title }}</h3>
-                <span
-                  v-if="problem.score !== null && problem.score !== undefined"
-                  class="ml-3 px-2 py-1 bg-primary-bg-light text-primary rounded-full text-xs font-medium"
-                >
-                  {{ problem.score }} 分
-                </span>
-                <span
-                  v-else
-                  class="ml-3 px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium"
-                >
-                  暂无分数
-                </span>
               </div>
               <span
                 :class="{
@@ -279,6 +267,33 @@
                 class="px-2 py-1 rounded-full text-xs font-medium"
               >
                 {{ getStatusText(problem.status) }}
+              </span>
+            </div>
+
+            <!-- 进度条置于题目名称下一行 -->
+            <div class="mb-3">
+              <div
+                v-if="problem.score !== null && problem.score !== undefined"
+                class="flex items-center space-x-2"
+                :title="`我的得分：${Math.round(problem.userBestScore || 0)} / 总分：${problem.score}`"
+              >
+                <div class="w-full sm:w-64 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    class="h-full bg-primary transition-all duration-300"
+                    :style="{
+                      width: Math.max(0, Math.min(100, Math.round(((problem.userBestScore || 0) / (problem.score || 1)) * 100))) + '%'
+                    }"
+                  ></div>
+                </div>
+                <span class="text-xs font-medium text-gray-700">
+                  {{ Math.round(problem.userBestScore || 0) }} / {{ problem.score }}
+                </span>
+              </div>
+              <span
+                v-else
+                class="text-xs text-gray-600"
+              >
+                暂无分数
               </span>
             </div>
 

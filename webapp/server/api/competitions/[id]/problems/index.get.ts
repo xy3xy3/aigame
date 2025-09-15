@@ -53,6 +53,40 @@ export default defineEventHandler(async (event) => {
         }
     })
 
+    // 计算当前登录用户所在参赛队伍在每个题目的最高得分
+    const user = event.context.user
+    let userBestScoresMap: Record<string, number> = {}
+    if (user) {
+        // 找到用户在该比赛中参赛的队伍（按约定应至多一个）
+        const team = await prisma.team.findFirst({
+            where: {
+                members: { some: { userId: user.id } },
+                participatingIn: { has: competitionId }
+            },
+            select: { id: true }
+        })
+
+        if (team && problems.length > 0) {
+            const problemIds = problems.map(p => p.id)
+            // 拉取该队伍在这些题目的所有已完成提交分数，聚合为每题最高分
+            const submissions = await prisma.submission.findMany({
+                where: {
+                    teamId: team.id,
+                    competitionId,
+                    problemId: { in: problemIds },
+                    status: 'COMPLETED'
+                },
+                select: { problemId: true, score: true }
+            })
+
+            for (const s of submissions) {
+                if (typeof s.score !== 'number') continue
+                const prev = userBestScoresMap[s.problemId]
+                userBestScoresMap[s.problemId] = Math.max(prev ?? -Infinity, s.score)
+            }
+        }
+    }
+
     // 添加状态信息
     const now = new Date()
     const problemsWithStatus = problems.map(problem => {
@@ -65,7 +99,9 @@ export default defineEventHandler(async (event) => {
 
         return {
             ...problem,
-            status
+            status,
+            // 前端用于进度条的用户队伍最高得分（若无则为0）
+            userBestScore: userBestScoresMap[problem.id] ?? 0
         }
     })
 
