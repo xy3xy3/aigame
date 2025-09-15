@@ -1,12 +1,12 @@
 import asyncio
 import logging
-import random
-from fastapi import APIRouter, UploadFile, File, Depends, Request, HTTPException, Form, BackgroundTasks
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, UploadFile, File, Request, HTTPException, Form, BackgroundTasks
+from concurrent.futures import ProcessPoolExecutor
 
-# 调整相对导入路径以适应新的结构
+# 调整相对导入路径
 from services import sandbox
 from schemas.evaluation import EvaluationResponse
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -23,9 +23,10 @@ async def run_evaluation(
     接收提交文件和评测脚本文件，执行评测，并通过回调返回结果。
     """
     semaphore: asyncio.Semaphore = request.app.state.semaphore
+    executor: ProcessPoolExecutor = request.app.state.executor # <-- 从app.state获取executor
 
     logger.info(f"Received evaluation request for submission: {submission_id}")
-    
+
     try:
         submission_data = await submission_zip.read()
         judge_data = await judge_zip.read()
@@ -36,9 +37,10 @@ async def run_evaluation(
             submission_id,
             submission_data,
             judge_data,
-            semaphore
+            semaphore,
+            executor  # <-- 将executor传递给后台任务
         )
-        
+
         logger.info(f"Background evaluation task started for submission: {submission_id}")
         return {"status": "Evaluation started", "submission_id": submission_id}
 

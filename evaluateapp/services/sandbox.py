@@ -20,8 +20,7 @@ from core.config import settings
 
 from schemas.evaluation import EvaluationResponse
 
-# 创建一个进程池，用于在隔离的进程中运行评测代码
-executor = ProcessPoolExecutor(max_workers=4)
+# [说明] 这个 executor 的生命周期已由 main.py 中的 lifespan 管理，此处无需定义
 
 
 def _create_ml_seccomp_filter() -> SyscallFilter:
@@ -103,56 +102,104 @@ def _execute_judge_code(
     警告：此函数将在一个单独的、无权限的进程中运行。
     """
     try:
-        # 1. 设置虚拟环境路径
-        venv_path = "/proj/aigame/evaluateapp/.venv"
-        site_packages = f"{venv_path}/lib/python3.12/site-packages"
+        # 1. [MODIFIED] 动态确定虚拟环境中的Python解释器路径
+        #    这使得代码在主机和Docker中都具有可移植性
+        project_root = Path(__file__).resolve().parent.parent.parent
+        expected_executable = project_root / ".venv" / "bin" / "python"
 
-        # 2. 将虚拟环境的site-packages添加到sys.path的开头
-        sys.path.insert(0, site_packages)
+        if expected_executable.is_file():
+            python_executable = str(expected_executable)
+        else:
+            # 备选方案：使用启动当前进程的Python解释器。
+            # 这在Docker或已激活venv的环境中非常可靠。
+            python_executable = sys.executable
+            print(
+                f"WARNING: Preferred venv python not found at '{expected_executable}'. "
+                f"Falling back to current process python: '{python_executable}'"
+            )
 
-        # 3. 设置虚拟环境的bin目录到PATH环境变量开头
-        os.environ["PATH"] = f"{venv_path}/bin:" + os.environ.get("PATH", "")
+        # 2. 创建一个临时的Python脚本来执行评测
+        eval_script = f"""
+import sys
+import os
+import json
+import traceback
 
-        # 4. 应用我们内置的Seccomp安全策略！
-        seccomp_filter = _create_ml_seccomp_filter()
-        seccomp_filter.load()
+# 设置工作目录
+os.chdir('{judge_dir}')
 
-        # 5. 更改工作目录，限制文件访问范围
-        os.chdir(judge_dir)
+# 添加评测目录到sys.path
+sys.path.insert(0, '{judge_dir}')
 
-        # 6. 动态加载评测模块
-        judge_script_path = Path(judge_dir) / "judge.py"
-        if not judge_script_path.exists():
-            raise FileNotFoundError("评测包中必须包含 'judge.py' 文件")
+try:
+    # 动态加载评测模块
+    import importlib.util
+    from pathlib import Path
 
-        sys.path.insert(0, judge_dir)
+    judge_script_path = Path('{judge_dir}') / "judge.py"
+    if not judge_script_path.exists():
+        raise FileNotFoundError("评测包中必须包含 'judge.py' 文件")
 
-        spec = importlib.util.spec_from_file_location("judge", judge_script_path)
-        judge_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(judge_module)
+    spec = importlib.util.spec_from_file_location("judge", judge_script_path)
+    judge_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(judge_module)
 
-        # 4. 检查并调用约定的评测函数
-        if not hasattr(judge_module, "evaluate"):
-            raise AttributeError("评测脚本 'judge.py' 必须包含一个 'evaluate' 函数")
+    # 检查并调用约定的评测函数
+    if not hasattr(judge_module, "evaluate"):
+        raise AttributeError("评测脚本 'judge.py' 必须包含一个 'evaluate' 函数")
 
-        result_dict = judge_module.evaluate(
-            submission_path=submission_dir,
-            judge_data_path=judge_dir
+    result_dict = judge_module.evaluate(
+        submission_path='{submission_dir}',
+        judge_data_path='{judge_dir}'
+    )
+
+    if not isinstance(result_dict, dict):
+        raise TypeError("evaluate 函数必须返回一个字典")
+
+    print(json.dumps({{"status": "COMPLETED", "score": result_dict.get("score", 0.0), "logs": result_dict.get("logs", "")}}))
+except Exception as e:
+    error_info = f"评测子进程异常: {{type(e).__name__}}: {{e}}\\n{{traceback.format_exc()}}"
+    print(json.dumps({{"status": "ERROR", "score": 0.0, "logs": error_info}}))
+"""
+
+        # 3. 使用subprocess在虚拟环境中运行评测脚本
+        import subprocess
+        result = subprocess.run(
+            [python_executable, "-c", eval_script],
+            capture_output=True,
+            text=True,
+            timeout=300  # 5分钟超时
         )
 
-        if not isinstance(result_dict, dict):
-            raise TypeError("evaluate 函数必须返回一个字典")
+        # 4. 解析输出结果
+        if result.stdout:
+            try:
+                return json.loads(result.stdout.strip())
+            except json.JSONDecodeError:
+                # 如果JSON解析失败，返回错误信息
+                return {
+                    "status": "ERROR",
+                    "score": 0.0,
+                    "logs": f"无法解析评测结果: {result.stdout}\\n错误输出: {result.stderr}"
+                }
+        else:
+            # 如果没有标准输出，返回错误信息
+            return {
+                "status": "ERROR",
+                "score": 0.0,
+                "logs": f"评测脚本没有输出\\n错误输出: {result.stderr}\\n返回码: {result.returncode}"
+            }
 
-        return {"status": "COMPLETED", "score": result_dict.get("score", 0.0), "logs": result_dict.get("logs", "")}
-
+    except subprocess.TimeoutExpired:
+        return {
+            "status": "ERROR",
+            "score": 0.0,
+            "logs": "评测超时（超过5分钟）"
+        }
     except Exception as e:
         import traceback
-        error_info = f"评测子进程异常: {type(e).__name__}: {e}\n{traceback.format_exc()}"
+        error_info = f"执行评测时发生异常: {type(e).__name__}: {e}\\n{traceback.format_exc()}"
         return {"status": "ERROR", "score": 0.0, "logs": error_info}
-    finally:
-        # 清理sys.path，以防万一
-        if judge_dir in sys.path:
-            sys.path.remove(judge_dir)
 
 
 async def post_results_to_webapp(submission_id: str, result: dict):
@@ -177,15 +224,19 @@ async def post_results_to_webapp(submission_id: str, result: dict):
             # 获取响应体，如果为空则显示"(empty body)"或"(no body)"
             response_body = e.response.text if e.response.text else "(empty body)"
             print(f"[Callback] Error sending callback for {submission_id}: Status {e.response.status_code}, Body: {response_body}")
-            # 可选：打印响应头以提供更多调试信息
-            # print(f"[Callback] Response headers: {e.response.headers}")
         except httpx.TimeoutException as e:
             print(f"[Callback] Timeout sending callback for {submission_id}: {e}")
         except Exception as e:
             print(f"[Callback] An unexpected error occurred during callback for {submission_id}: {e}")
 
 
-async def run_in_sandbox_and_callback(submission_id: str, submission_data: bytes, judge_data: bytes, semaphore: asyncio.Semaphore):
+async def run_in_sandbox_and_callback(
+    submission_id: str,
+    submission_data: bytes,
+    judge_data: bytes,
+    semaphore: asyncio.Semaphore,
+    executor: ProcessPoolExecutor
+):
     """
     准备环境，执行评测，然后调用回调函数发送结果。
     """
@@ -222,7 +273,11 @@ async def run_in_sandbox_and_callback(submission_id: str, submission_data: bytes
 
 
 # 保留原有函数用于兼容性
-async def run_in_sandbox(submission_data: bytes, judge_data: bytes) -> EvaluationResponse:
+async def run_in_sandbox(
+    submission_data: bytes,
+    judge_data: bytes,
+    executor: ProcessPoolExecutor
+) -> EvaluationResponse:
     """
     准备环境并调用进程池来安全地执行评测。
     """
@@ -242,7 +297,6 @@ async def run_in_sandbox(submission_data: bytes, judge_data: bytes) -> Evaluatio
             zf.extractall(judge_dir)
 
         # 将阻塞的、CPU密集型的子进程任务交给进程池处理
-        # 注意：不再需要传递 seccomp_profile_path
         result_dict = await loop.run_in_executor(
             executor,
             _execute_judge_code,
