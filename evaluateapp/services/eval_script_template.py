@@ -9,6 +9,8 @@ import contextlib
 # Injected constants from parent via string.Template
 JUDGE_DIR = ${judge_dir_json}
 SUBMISSION_DIR = ${submission_dir_json}
+# Provide the resolved python executable path from sandbox
+PYTHON_EXECUTABLE = ${python_executable_json}
 
 # ==================== Apply Seccomp on Linux (best effort) ====================
 if sys.platform == 'linux':
@@ -88,6 +90,7 @@ try:
         result_dict = judge_module.evaluate(
             submission_path=SUBMISSION_DIR,
             judge_data_path=JUDGE_DIR,
+            python_executable_path=PYTHON_EXECUTABLE,
         )
 
     if not isinstance(result_dict, dict):
@@ -111,4 +114,3 @@ try:
 except Exception as e:
     error_info = "评测子进程异常: {}: {}\n{}".format(type(e).__name__, e, traceback.format_exc())
     print(json.dumps({"status": "ERROR", "score": 0.0, "logs": error_info}))
-

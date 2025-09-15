@@ -40,7 +40,7 @@ def _load_results(path: Path) -> Tuple[List[int], List[int]]:
     return ids, labels
 
 
-def evaluate(submission_path: str, judge_data_path: str) -> dict:
+def evaluate(submission_path: str, judge_data_path: str, python_executable_path: str | None = None) -> dict:
     """
     评测说明：
     - 评测包(judge_data_path)需包含："test_set_submission.json"（作为参考标签）
@@ -100,4 +100,3 @@ def evaluate(submission_path: str, judge_data_path: str) -> dict:
     except Exception as e:
         logs.append(f"评测失败: {e}")
         return {"score": 0.0, "logs": "\n".join(logs)}
-

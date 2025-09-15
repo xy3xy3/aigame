@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-def evaluate(submission_path: str, judge_data_path: str) -> dict:
+def evaluate(submission_path: str, judge_data_path: str, python_executable_path: str | None = None) -> dict:
     """
     计算用户提交的 data.json 文件中所有 "value" 字段的总和。
     """

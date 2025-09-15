@@ -52,6 +52,7 @@ def _execute_judge_code(
         eval_script = Template(tmpl_text).substitute(
             judge_dir_json=json.dumps(str(judge_dir)),
             submission_dir_json=json.dumps(str(submission_dir)),
+            python_executable_json=json.dumps(str(python_executable)),
         )
 
         # 3. 使用subprocess在虚拟环境中运行评测脚本

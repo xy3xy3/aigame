@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-def evaluate(submission_path: str, judge_data_path: str) -> dict:
+def evaluate(submission_path: str, judge_data_path: str, python_executable_path: str | None = None) -> dict:
     """
     对比用户提交的 data.json 和评测包中的 correct_labels.json。
     """
