@@ -34,11 +34,21 @@ def _execute_judge_code(
 
             # 将评测脚本和数据文件复制到工作区顶层
             for item in os.listdir(judge_dir):
-                shutil.copy(os.path.join(judge_dir, item), workspace_path)
+                src = os.path.join(judge_dir, item)
+                dst = workspace_path / item
+                if os.path.isdir(src):
+                    shutil.copytree(src, dst, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(src, dst)
 
             # 将用户提交的文件也复制到工作区顶层
             for item in os.listdir(submission_dir):
-                shutil.copy(os.path.join(submission_dir, item), workspace_path)
+                src = os.path.join(submission_dir, item)
+                dst = workspace_path / item
+                if os.path.isdir(src):
+                    shutil.copytree(src, dst, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(src, dst)
 
             # --- 2. 准备评测入口脚本 ---
             python_executable = sys.executable
