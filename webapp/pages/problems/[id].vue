@@ -114,10 +114,9 @@
                 <select
                   v-model="selectedTeamId"
                   class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                  :disabled="teamsPending || teamsError || !userTeamsData?.length"
+                  :disabled="teamsPending || teamsError || !registeredTeams.length"
                 >
-                  <option value="">请选择队伍</option>
-                  <option v-for="team in userTeamsData" :key="team.id" :value="team.id">
+                  <option v-for="team in registeredTeams" :key="team.id" :value="team.id">
                     {{ team.name }}
                   </option>
                 </select>
@@ -377,6 +376,14 @@ const isTeamRegistered = computed(() => {
   );
 });
 
+// 仅展示已报名当前比赛的队伍，用于下拉选项
+const registeredTeams = computed(() => {
+  const all = userTeamsData.value || []
+  const pid = data.value?.problem?.competitionId
+  if (!pid) return []
+  return all.filter(t => Array.isArray(t.participatingIn) && t.participatingIn.includes(pid))
+})
+
 // 获取提交记录
 const {
   data: submissionsData,
@@ -436,25 +443,16 @@ const submitError = ref("");
 const submitSuccess = ref(false);
 
 // 当团队列表加载完成后，如果列表不为空且未选择团队，则默认选择第一个
-watch(userTeamsData, (newTeams) => {
-  // 只有当用户有团队报名了当前比赛时，才自动选择第一个团队
-  if (
-    isTeamRegistered.value &&
-    newTeams &&
-    newTeams.length > 0 &&
-    !selectedTeamId.value
-  ) {
-    // 选择用户团队中第一个报名了当前比赛的团队
-    const registeredTeam = newTeams.find(
-      (team) =>
-        team.participatingIn &&
-        team.participatingIn.includes(data.value.problem.competitionId)
-    );
-    if (registeredTeam) {
-      selectedTeamId.value = registeredTeam.id;
+// 默认选择用户参赛队伍（首个）。不覆盖用户已选择的值。
+watch(
+  [registeredTeams, selectedTeamId],
+  ([teams, current]) => {
+    if (!current && teams && teams.length > 0) {
+      selectedTeamId.value = teams[0].id
     }
-  }
-});
+  },
+  { immediate: true }
+)
 
 const handleFileSelect = (event) => {
   const file = event.target.files[0];
