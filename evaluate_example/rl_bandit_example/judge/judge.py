@@ -49,6 +49,10 @@ def evaluate(submission_path: str, judge_data_path: str, python_executable_path:
             if params:
                 msg["params"] = params
             agent_process.stdin.write(json.dumps(msg) + "\n")
+            try:
+                agent_process.stdin.flush()
+            except Exception:
+                pass
 
         def receive_json() -> dict:
             assert agent_process is not None and agent_process.stdout is not None
@@ -109,11 +113,19 @@ def evaluate(submission_path: str, judge_data_path: str, python_executable_path:
         logs.append(f"错误类型: {type(e).__name__}")
         logs.append(f"错误信息: {e}")
         logs.append(traceback.format_exc())
-        # 若子进程仍活着，尽量抓取其 stderr 帮助定位
-        if agent_process and agent_process.poll() is None and agent_process.stderr is not None:
+        # 无论子进程状态如何，尽量抓取 stderr 帮助定位
+        if agent_process and agent_process.stderr is not None:
             try:
-                logs.append("\n--- Agent Stderr ---")
-                logs.append(agent_process.stderr.read())
+                if agent_process.poll() is not None:
+                    logs.append("\n--- Agent Stderr ---")
+                    logs.append(agent_process.stderr.read() or "<empty>")
+                else:
+                    try:
+                        _out, _err = agent_process.communicate(timeout=0.8)
+                        logs.append("\n--- Agent Stderr ---")
+                        logs.append(_err or "<empty>")
+                    except subprocess.TimeoutExpired:
+                        pass
             except Exception:
                 pass
         score = 0.0

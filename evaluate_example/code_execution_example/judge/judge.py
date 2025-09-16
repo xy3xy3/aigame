@@ -33,14 +33,16 @@ def evaluate(submission_path: str, judge_data_path: str, **kwargs) -> dict:
         truth_df = pd.read_csv(truth_csv)
         logs.append("已加载测试集与标准答案。")
 
-        # 为 Agent 创建最小沙箱，仅复制 train.csv（不包含 ground_truth.csv）
+        # 为 Agent 创建最小沙箱，仅复制 train.csv 与用户 main.py（不包含 ground_truth.csv）
         sandbox_dir = tempfile.mkdtemp(prefix="agent_sbx_")
         shutil.copy2(train_csv, os.path.join(sandbox_dir, "train.csv"))
+        # 将用户脚本复制到沙箱目录，确保以相对路径执行可找到
+        shutil.copy2(user_script_path, os.path.join(sandbox_dir, "main.py"))
         logs.append("已创建沙箱工作目录并复制 train.csv。")
 
         # 启动用户进程（工作目录指向沙箱）
         agent = subprocess.Popen(
-            [sys.executable, user_script_path],
+            [sys.executable, "main.py"],
             cwd=sandbox_dir,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
@@ -57,6 +59,10 @@ def evaluate(submission_path: str, judge_data_path: str, **kwargs) -> dict:
             if params:
                 msg["params"] = params
             agent.stdin.write(json.dumps(msg) + "\n")
+            try:
+                agent.stdin.flush()
+            except Exception:
+                pass
 
         def receive_json() -> dict:
             assert agent is not None and agent.stdout is not None
@@ -104,10 +110,19 @@ def evaluate(submission_path: str, judge_data_path: str, **kwargs) -> dict:
         logs.append(f"错误类型: {type(e).__name__}")
         logs.append(f"错误信息: {e}")
         logs.append(traceback.format_exc())
-        if agent and agent.poll() is None and agent.stderr is not None:
+        # 尽量抓取子进程的 stderr，无论是否仍在运行
+        if agent and agent.stderr is not None:
             try:
-                logs.append("\n--- Agent Stderr ---")
-                logs.append(agent.stderr.read())
+                if agent.poll() is not None:
+                    logs.append("\n--- Agent Stderr ---")
+                    logs.append(agent.stderr.read() or "<empty>")
+                else:
+                    try:
+                        _out, _err = agent.communicate(timeout=0.8)
+                        logs.append("\n--- Agent Stderr ---")
+                        logs.append(_err or "<empty>")
+                    except subprocess.TimeoutExpired:
+                        pass
             except Exception:
                 pass
         score = 0.0
