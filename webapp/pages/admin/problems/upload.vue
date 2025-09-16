@@ -51,6 +51,8 @@
             @dragover.prevent="handleDragOver"
             @dragleave="handleDragLeave"
             @click="openFileDialog"
+            @keydown.enter.prevent="openFileDialog"
+            @keydown.space.prevent="openFileDialog"
             :class="{
               'border-blue-500 bg-blue-50': isDragOver,
               'border-gray-300': !isDragOver,
@@ -75,22 +77,23 @@
                 />
               </svg>
               <div class="flex text-sm text-gray-600">
-                <label
-                  for="file-upload"
-                  class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                <button
+                  type="button"
+                  @click.stop="openFileDialog"
+                  class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <span>选择文件</span>
-                  <input
-                    id="file-upload"
-                    name="file-upload"
-                    type="file"
-                    class="sr-only"
-                    accept=".zip"
-                    multiple
-                    ref="fileInputRef"
-                    @change="handleFileSelect"
-                  />
-                </label>
+                </button>
+                <input
+                  id="file-upload"
+                  name="file-upload"
+                  type="file"
+                  class="sr-only"
+                  accept=".zip"
+                  multiple
+                  ref="fileInputRef"
+                  @change="handleFileSelect"
+                />
                 <p class="pl-1">或将文件拖拽到此处</p>
               </div>
               <p class="text-xs text-gray-500">支持 ZIP 格式，可多选</p>
