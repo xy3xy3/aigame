@@ -1,10 +1,12 @@
-# 题目开发与打包指南
+# 题目开发与打包指南（基于最新示例）
 
-本文档说明如何在 `evaluate_example/` 下开发一套可上线的题目，并用打包脚本一键生成上传包。
+本文档面向“出题人”，说明如何在 `evaluate_example/` 下开发、打包并本地联调评测服务。内容已同步本仓库的最新示例：`judge_sum`、`label_compare`、`ns_2025_00`、`ns_2025_02`、`code_execution_example`、`rl_bandit_example`。
+
+— 如果你想直接跑通本地端到端评测，推荐用 uv 部署 `evaluateapp`，并用 Gradio 或 `evaluate_example/test_evaluate.py` 做联调，自查细节见文末“本地评测服务（uv）”与“端到端测试”。
 
 ## 目录规范（必须）
 
-在 `evaluate_example/` 内创建你的题目文件夹（英文名），并使用统一结构：
+在 `evaluate_example/` 内为你的题目新建文件夹（英文名），使用统一结构：
 
 ```
 evaluate_example/
@@ -17,14 +19,14 @@ evaluate_example/
 ```
 
 约定：
-- 评测所需的一切“隐藏”数据（参考标签等）放在 `judge/`，保证评测包自洽。
-- 仅供选手下载的数据，放在 `data/`（可选）。
-- `test_submit/` 提供一个可直接上传的参考提交（结果文件或最小代码）。
+- 评测依赖的“隐藏数据”（参考标签、配表等）放 `judge/`，保证评测包自洽；
+- 仅供选手下载的数据放 `data/`（可选）；
+- `test_submit/` 提供可直接压缩上传的提交样例（结果文件或最小代码）；
 - `problem.yml` 与 `desc.md` 必须位于题目根目录。
 
 ## problem.yml 规范
 
-最小字段集合如下（ISO8601 时间）：
+最小字段集合（ISO8601 时间）：
 
 ```yaml
 title: "示例题目：A+B Problem"
@@ -34,12 +36,11 @@ endTime: "2024-01-31T23:59:59Z"
 score: 100
 ```
 
-注意：详细描述从 `problem.yml` 中分离为 `desc.md`，后台上传时将优先读取压缩包中的 `desc.md` 作为 `detailedDescription`。
-如需参考模板，可拷贝本目录下的 `problem_template.yml`，把其中的 `detailedDescription` 内容移到 `desc.md` 并从 YAML 中删除该字段。
+注意：详细描述已从 `problem.yml` 分离为独立 `desc.md`。后台上传时将优先读取压缩包中的 `desc.md` 作为 `detailedDescription`。可拷贝本目录下 `problem_template.yml` 作为起点，把其中的 `detailedDescription` 内容移到 `desc.md` 并从 YAML 中删除该字段。
 
 ## desc.md 规范
 
-建议包含以下小节，使用 Markdown 编写：
+建议包含：
 - 任务描述 / 背景
 - 数据说明（目录结构、下载方式、字段含义）
 - 提交格式（文件名、字段/列、示例）
@@ -53,68 +54,54 @@ score: 100
 ```python
 def evaluate(submission_path: str, judge_data_path: str, python_executable_path: str | None = None) -> dict:
     # 读取 submission_path 下的选手提交，使用 judge_data_path 下的参考数据
-    # 计算得分与日志，返回如下结构
-    return {
-        "score": float(score),      # 0.0 ~ 任意正数；平台按题目满分做显示
-        "logs": "\n".join(logs),   # 字符串，简洁说明评测过程与结论
-    }
+    # 返回：{"score": float, "logs": str}
+    return {"score": float(score), "logs": "\n".join(logs)}
 ```
 
 建议与约束：
-- 评测总时长默认限制约 300 秒（沙箱超时），请避免长时间训练/下载。
-- 不要访问网络，不要依赖外部服务；仅使用 `submission_path` 与 `judge_data_path` 内的文件。
-- 日志量适中（建议 < 200KB），方便选手排查问题。
-- 若为“代码执行类”题目，可用 `python_executable_path` 辅助调用用户代码，或使用安全的动态导入。
+- 默认资源限制：CPU 约 300 秒、内存约 2GB、进程/线程数上限、文件大小上限等（见 `evaluateapp/services/sandbox.py`）。请避免长时间训练/外网下载；
+- 禁止网络访问；仅依赖 `submission_path` 和 `judge_data_path`；
+- 日志量适中（建议 < 200KB），有助问题定位；
+- 代码执行类题目可用 `python_executable_path` 调用用户代码，或使用受控子进程/动态导入；
+- 平台基础依赖与版本以 `evaluateapp/pyproject.toml` 为准（如 numpy/pandas/sklearn/opencv/fastapi/gradio 等）。不保证安装额外库，超出需求建议做“结果上传类”。
 
-平台默认可用依赖（节选）：
+## 常见题型范式（含最新示例）
 
-```
-numpy, pandas, scikit-learn, scikit-image, opencv-python,
-fastapi, tqdm, python-multipart, pydantic-settings, uvicorn
-```
+- 标签/结果上传类（离线训练，线上只传预测结果）
+  - 示例：`judge_sum`、`label_compare`、`ns_2025_00`、`ns_2025_02`
+  - 做法：`judge/` 内放参考标签；`test_submit/` 给出 `results.csv`/`results.json` 样例；`judge.py` 按 id/file_name 对齐计算 Accuracy/F1/加权得分等；
+  - 结果文件示例：
+    - CSV：`file_name,label` 或 `id,prediction`
+    - JSON：`{"results": [{"id": 1, "label": 0}, ...]}`
 
-如需其它第三方库，建议在题面或 desc.md 中明确说明选手本地环境需求，并设计题目为“结果上传类”。
+- 代码执行类（上传最小可运行代码，线上快速评测）
+  - 示例：`code_execution_example`
+  - 做法：`test_submit/` 提供 `main.py` 骨架；`judge/` 放 `test.csv` 与 `ground_truth.csv`（仅在评测侧读取）；评测通过子进程与选手程序以 JSON Lines 协议交互，校验输出并打分（如 MSE→分数）。
 
-## 两种常见题型范式
+- 交互/强化学习类（多轮通信）
+  - 示例：`rl_bandit_example`
+  - 做法：评测端多回合与选手程序交互（stdin/stdout 的 JSON），如多臂老虎机；记录奖励、计算平均回报率并折算分数；确保协议健壮（超时/异常处理、动作合法性校验）。
 
-1) 标签上传类（离线训练，线上只传推理结果）：
-- `judge/` 内放置参考标签（如 `reference_labels.csv`、`test_set_submission.json`）。
-- `test_submit/` 提供一个可直接压缩上传的结果样例（如 `results.csv` / `results.json`）。
-- `judge.py` 读取结果文件，与参考标签对齐计算指标（Accuracy/F1 等）。
+## 本地自测（评测脚本冒烟）
 
-结果文件示例：
-- CSV：`file_name,label` 或 `id,prediction`
-- JSON：`{"results": [{"id": 1, "label": 0}, ...]}`
-
-2) 文件上传/代码执行类（上传最小可运行代码，线上快速执行）：
-- `test_submit/` 提供最小代码骨架（如 `main.py`），写明函数签名与返回格式。
-- `judge/` 携带足够的评测数据（如 `test.csv` 与 `ground_truth.csv`），保证评测自洽。
-- `judge.py` 动态导入或子进程调用用户代码，验证输出格式，计算指标并给分。
-
-参考：`code_execution_example` 题目演示了导入 `predict(test_df)` 的做法。
-
-## 本地自测（推荐）
-
-在题目目录下，使用 Python 直接调用评测函数进行冒烟测试：
+在题目目录下直接加载 `judge.py` 调用 `evaluate()`：
 
 ```bash
 cd evaluate_example/task_name
 python - <<'PY'
-import importlib.util, os
+import importlib.util
 from pathlib import Path
-judge_dir = Path('judge')
-spec = importlib.util.spec_from_file_location('judge', judge_dir/'judge.py')
+spec = importlib.util.spec_from_file_location('judge', Path('judge')/'judge.py')
 m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-ret = m.evaluate(submission_path='test_submit', judge_data_path='judge')
-print(ret)
+print(m.evaluate(submission_path='test_submit', judge_data_path='judge'))
 PY
 ```
 
-确保返回的 `score` 合理且 `logs` 明确，`test_submit/` 中的示例能被正确评测。
+确保返回 `{"score": float, "logs": str}`；示例提交能被正确评测。
 
-## 一键打包与上传
+## 一键打包与后台上传
 
-使用打包脚本 `pack.py`（避免手工打包出错）：
+使用打包脚本 `pack.py`（避免手工遗漏/嵌套目录）：
 
 ```bash
 cd evaluate_example
@@ -125,12 +112,85 @@ python3 pack.py --all --root .
 ```
 
 脚本会在题目目录生成：
-- `judge.zip`：打包自 `judge/`（不包含最外层文件夹，自动忽略内部 .zip 文件）
-- `test_submit.zip`：打包自 `test_submit/`
-- `data.zip`（可选）：打包自 `data/`
-- 最终 `task_name.zip`：包含以上三个 zip 与 `problem.yml`、`desc.md`
+- `judge.zip`：来自 `judge/`（跳过内部 .zip）；
+- `test_submit.zip`：来自 `test_submit/`；
+- `data.zip`（可选）：来自 `data/`；
+- 最终 `task_name.zip`：包含以上 zip + `problem.yml` + `desc.md`。
 
-随后在后台“题目管理 → 批量上传”中上传 `task_name.zip`。覆盖已有题目时选择“覆盖”模式即可。
+后台“题目管理 → 批量上传”选择 `task_name.zip`，需要更新时可选择“覆盖”。
+
+## 本地评测服务（uv，推荐）
+
+评测服务在 `evaluateapp/`。为了便于出题人自测，推荐使用 uv 快速部署：
+
+1) 安装 uv（未安装时）
+   - macOS/Linux：`curl -fsSL https://astral.sh/uv/install.sh | sh`
+   - Windows（PowerShell）：`iwr https://astral.sh/uv/install.ps1 -UseB -OutFile install.ps1; ./install.ps1`
+
+2) 准备依赖与虚拟环境
+   - `cd evaluateapp`
+   - `uv sync`（据 `pyproject.toml`/`uv.lock` 安装依赖）
+   - 复制配置：`cp .env.example .env` 并按需修改：
+     - `WEBAPP_CALLBACK_URL`：回调地址（本地可设 `http://127.0.0.1:39001/api/submissions/callback`）
+     - `WEBAPP_CALLBACK_SECRET`：回调鉴权密钥
+     - `EVALUATE_INBOUND_SECRET`：/api/evaluate 上传鉴权密钥
+     - `ENABLE_GRADIO=true` 可挂载调试页面（默认路径 `/gradio`，由 `GRADIO_PATH` 控制）
+
+3) 准备沙箱（首次）
+   - 创建无特权账号和目录（root）：
+     ```bash
+     sudo groupadd sandboxgroup || true
+     sudo useradd --system --no-create-home --shell /bin/false -g sandboxgroup sandboxuser || true
+     sudo mkdir -p /opt/sandbox_jail && sudo chown root:root /opt/sandbox_jail
+     sudo mkdir -p /opt/sandboxes && sudo chmod 1777 /opt/sandboxes
+     ```
+   - 构建 chroot 基础环境（root）：
+     ```bash
+     cd evaluateapp
+     sudo bash setup_chroot.sh
+     ```
+
+4) 启动服务
+   - 使用 uv 运行：
+     ```bash
+     cd evaluateapp
+     # 方式一：直接跑 main.py（包含 uvicorn 启动）
+     uv run python main.py
+     # 方式二：显式 uvicorn（热重载可加 --reload）
+     uv run uvicorn main:app --host 127.0.0.1 --port 8000
+     ```
+   - 访问 `http://127.0.0.1:8000/` 健康检查；若启用 Gradio，访问 `http://127.0.0.1:8000/gradio`
+
+说明：评测时会校验 `EVALUATE_INBOUND_SECRET`，并在完成后向 `WEBAPP_CALLBACK_URL` 发送带 `WEBAPP_CALLBACK_SECRET` 的回调。
+
+## 端到端测试（两种方式）
+
+- Gradio 调试页（更直观）
+  - 在 `evaluateapp/.env` 里设置 `ENABLE_GRADIO=true`，启动服务后打开 `/gradio`；
+  - 上传 `submission.zip` 与 `judge.zip`，实时查看日志和最终 JSON 结果。
+
+- 脚本：`evaluate_example/test_evaluate.py`（覆盖多个示例题）
+  - 确保 `evaluateapp` 已启动，且 `.env` 中 `WEBAPP_CALLBACK_URL` 与本地空闲端口一致；
+  - 运行示例：
+    ```bash
+    python3 evaluate_example/test_evaluate.py \
+      --tasks judge_sum,label_compare,ns_2025_00,ns_2025_02,code_execution_example,rl_bandit_example \
+      --base-url http://127.0.0.1:8000 \
+      --inbound-secret <与你服务一致的EVALUATE_INBOUND_SECRET> \
+      --callback-url http://127.0.0.1:39001/api/submissions/callback \
+      --callback-secret <与你服务一致的WEBAPP_CALLBACK_SECRET>
+    ```
+  - 脚本会：打包各题目的 `test_submit/` 与 `judge/` 为 zip，调用 `/api/evaluate`，并开启本地回调 HTTP 服务打印评测结果。
+
+## 规范检查清单
+
+- problem.yml：包含 title/shortDescription/startTime/endTime/score；时间为 ISO8601 且 start < end；
+- desc.md：包含任务、数据、提交格式、计分与注意事项；UTF-8；
+- judge.py：实现 `evaluate(...) -> dict`；严禁网络访问；300 秒内可完成；异常时返回可读日志；
+- test_submit/：示例提交可通过评测；结果/协议与题面一致；
+- judge/：包含所有评测必需数据；使用相对路径；不依赖运行时下载；
+- 打包：用 `pack.py` 生成 `task_name.zip`；压缩包内部不再嵌套顶层目录；
+- 交互题：定义清晰稳健的通信协议（字段校验、超时/异常处理、回合终止信号等）。
 
 ## 目录示例
 
@@ -147,15 +207,6 @@ ns_2025_02/
   desc.md          # 详细题面（Markdown）
 ```
 
-`label_compare`/`ns_2025_00`/`code_execution_example` 也分别给出了“标签上传类”和“代码执行类”的参考实现。
+更多可参考：`judge_sum`、`label_compare`（标签对比）、`ns_2025_00`（CSV 对齐）、`code_execution_example`（子进程+JSON 协议）、`rl_bandit_example`（交互式强化学习）。
 
-## 规范检查清单
-
-- problem.yml：包含 title/shortDescription/startTime/endTime/score；时间为 ISO8601 且 start < end。
-- desc.md：包含任务、数据、提交格式、计分与注意事项；编码为 UTF-8。
-- judge.py：实现 `evaluate(...) -> dict`；无网络访问；300 秒内可完成；异常时返回可读日志。
-- test_submit/：示例提交可通过评测；结果格式与题面一致。
-- judge/：包含所有评测必需数据；路径使用相对路径；不要依赖运行时临时下载。
-- 打包：使用 `pack.py` 生成 `task_name.zip`；压缩包内部不要再嵌套顶层目录。
-
-如需进一步示例或检查，请参考本目录下各示例题目。
+—— 若有疑问或需要校验你的题目结构，优先对照本目录下的最新示例与上述联调流程。
