@@ -24,27 +24,32 @@ def _execute_judge_code(
     judge_dir: str,
 ) -> dict:
     """
-    在一个隔离的、扁平化的工作目录中执行评测，以防止路径遍历攻击。
+    在一个隔离的、分层的工作目录中执行评测，以防止路径遍历和模块劫持攻击。
     """
-    # 使用一个临时目录作为安全的、隔离的评测工作区
     with tempfile.TemporaryDirectory() as workspace:
         try:
-            # --- 1. 准备扁平化的沙箱环境 ---
+            # --- 1. 准备分层的沙箱环境 ---
             workspace_path = Path(workspace)
 
-            # 将评测脚本和数据文件复制到工作区顶层
+            # CHANGED: 创建独立的目录用于存放评测代码和用户代码
+            judge_workspace = workspace_path / "judge_env"
+            submission_workspace = workspace_path / "submission_env"
+            judge_workspace.mkdir()
+            submission_workspace.mkdir()
+
+            # 将评测脚本和数据文件复制到其专属目录
             for item in os.listdir(judge_dir):
                 src = os.path.join(judge_dir, item)
-                dst = workspace_path / item
+                dst = judge_workspace / item
                 if os.path.isdir(src):
                     shutil.copytree(src, dst, dirs_exist_ok=True)
                 else:
                     shutil.copy2(src, dst)
 
-            # 将用户提交的文件也复制到工作区顶层
+            # 将用户提交的文件复制到其专属目录
             for item in os.listdir(submission_dir):
                 src = os.path.join(submission_dir, item)
-                dst = workspace_path / item
+                dst = submission_workspace / item
                 if os.path.isdir(src):
                     shutil.copytree(src, dst, dirs_exist_ok=True)
                 else:
@@ -56,20 +61,19 @@ def _execute_judge_code(
             with open(template_path, "r", encoding="utf-8") as f:
                 template_content = f.read()
 
-            # 在扁平目录中，所有路径都是相对于当前目录的
+            # CHANGED: 传递相对路径给模板，不再是 "."
+            # 模板脚本将从 workspace_path 运行，并使用这些相对路径
             filled_script = Template(template_content).substitute(
-                judge_dir_json=json.dumps("."), # 当前目录
-                submission_dir_json=json.dumps("."), # 当前目录
+                judge_dir_json=json.dumps(str(judge_workspace.name)),
+                submission_dir_json=json.dumps(str(submission_workspace.name)),
                 python_executable_json=json.dumps(python_executable),
             )
 
-            # 将评测入口脚本直接写入工作区
             script_path = workspace_path / "eval_runner.py"
             with open(script_path, "w", encoding="utf-8") as f:
                 f.write(filled_script)
 
             # --- 3. 在沙箱工作目录中执行子进程 ---
-            # 恢复使用 bash 引导脚本，以解决原始的 ImportError 问题
             venv_dir = str(Path(python_executable).parent.parent)
             bootstrap_command = f"""
             unset PYTHONPATH
@@ -78,16 +82,18 @@ def _execute_judge_code(
             "{python_executable}" "{script_path.name}"
             """
 
-            # 关键：使用 cwd 参数将子进程的当前工作目录设置为我们的沙箱
+            # 关键：子进程的当前工作目录(cwd)是 workspace_path。
+            # eval_runner.py 会将 judge_env 添加到 sys.path，
+            # 这样它就能找到 judge.py，但它绝不会把 submission_env 添加到 sys.path。
             result = subprocess.run(
                 ['/bin/bash', '-c', bootstrap_command],
                 capture_output=True,
                 text=True,
                 timeout=300,
-                cwd=workspace_path  # <-- 将子进程锁定在我们的安全目录中
+                cwd=workspace_path
             )
 
-            # --- 4. 解析结果 ---
+            # --- 4. 解析结果 (no changes needed here) ---
             if result.stdout:
                 try:
                     return json.loads(result.stdout.strip())
