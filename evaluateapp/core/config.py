@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     ENABLE_GRADIO: bool = False
     # Gradio 页面挂载路径
     GRADIO_PATH: str = "/gradio"
+    # 是否启用 Seccomp 过滤（默认关闭，避免阻断 exec 等系统调用）
+    ENABLE_SECCOMP: bool = False
 
     class Config:
         env_file = ".env"

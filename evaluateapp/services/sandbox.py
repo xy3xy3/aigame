@@ -1,5 +1,3 @@
-# evaluateapp/services/sandbox.py
-
 import asyncio
 import io
 import json
@@ -10,90 +8,225 @@ import os
 import shutil
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
+import stat
 import subprocess
 from string import Template
+import resource # 引入 resource 模块
 
-# 添加 httpx 用于回调
+# 引入 httpx 用于回调
 import httpx
 from core.config import settings
 
 from schemas.evaluation import EvaluationResponse
+
+# --- 新增：安全配置 ---
+# 警告：在生产环境中，这个路径应该是只读的，并且经过严格配置
+CHROOT_JAIL_PATH = "/opt/sandbox_jail"
+# 运行时每次评测的临时 chroot 根目录父路径
+RUNTIME_JAIL_ROOT = "/opt/sandboxes"
+SANDBOX_UID = os.getuid() # 默认为 root，因为需要权限设置沙箱
+SANDBOX_GID = os.getgid()
+
+try:
+    import pwd
+    import grp
+    # 获取无特权用户的 UID 和 GID
+    SANDBOX_USER_INFO = pwd.getpwnam("sandboxuser")
+    SANDBOX_GROUP_INFO = grp.getgrnam("sandboxgroup")
+    UNPRIVILEGED_UID = SANDBOX_USER_INFO.pw_uid
+    UNPRIVILEGED_GID = SANDBOX_GROUP_INFO.gr_gid
+except KeyError:
+    print("警告：未找到 'sandboxuser' 或 'sandboxgroup'。将以降权至 nobody 用户运行。")
+    UNPRIVILEGED_UID = pwd.getpwnam("nobody").pw_uid
+    UNPRIVILEGED_GID = grp.getgrnam("nogroup").gr_gid
+
+from typing import Any, Optional
+try:
+    import seccomp as sc  # 优先使用 python-seccomp
+    _SECCOMP_PROVIDER = "seccomp"
+except Exception:
+    try:
+        import pyseccomp as sc  # 备用：有些环境提供 pyseccomp
+        _SECCOMP_PROVIDER = "pyseccomp"
+    except Exception:
+        sc = None  # type: ignore[assignment]
+        _SECCOMP_PROVIDER = None  # type: ignore[assignment]
+        print("警告：未找到可用的 seccomp 绑定（'seccomp' 或 'pyseccomp'）。系统调用过滤将不会启用。")
+
+
+def _setup_sandbox_and_demote_privileges(jail_path: str):
+    """
+    此函数将作为 subprocess.run 的 preexec_fn。
+    它在子进程中、执行目标命令前运行。
+    """
+    # 1. 资源限制
+    # 限制 CPU 时间为 300 秒 (软限制和硬限制)
+    resource.setrlimit(resource.RLIMIT_CPU, (300, 300))
+    # 限制虚拟内存为 2GB
+    resource.setrlimit(resource.RLIMIT_AS, (2 * 1024**3, 2 * 1024**3))
+    # 限制可创建的“任务”（线程/进程）数量。部分科学计算库需要线程，给到一个小上限。
+    resource.setrlimit(resource.RLIMIT_NPROC, (64, 64))
+    # 限制文件大小为 512MB
+    resource.setrlimit(resource.RLIMIT_FSIZE, (512 * 1024**2, 512 * 1024**2))
+
+    # 2. 在进入 chroot 与降权前，约束并行线程数，避免科学计算库大量并发
+    os.environ.setdefault("OMP_NUM_THREADS", "1")
+    os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
+    os.environ.setdefault("MKL_NUM_THREADS", "1")
+    os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
+    os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
+
+    # 3. Chroot 到监狱目录
+    os.chroot(jail_path)
+    os.chdir("/") # chroot后，新的根目录是'/'
+
+    # 4. Seccomp 系统调用过滤 (如果可用且启用)
+    if sc is not None and getattr(settings, "ENABLE_SECCOMP", False):
+        # 默认策略：杀死任何不符合规则的进程
+        f = sc.SyscallFilter(defaction=sc.KILL)
+
+        # 白名单：允许基础的、安全的系统调用
+        # 允许执行新程序（python 可执行文件）
+        f.add_rule(sc.ALLOW, 'execve')
+        f.add_rule(sc.ALLOW, 'execveat')
+        # 文件操作
+        f.add_rule(sc.ALLOW, 'read')
+        f.add_rule(sc.ALLOW, 'write')
+        f.add_rule(sc.ALLOW, 'openat')
+        f.add_rule(sc.ALLOW, 'close')
+        f.add_rule(sc.ALLOW, 'fstat')
+        f.add_rule(sc.ALLOW, 'lseek')
+        f.add_rule(sc.ALLOW, 'access')
+        f.add_rule(sc.ALLOW, 'stat')
+
+        # 内存管理
+        f.add_rule(sc.ALLOW, 'mmap')
+        f.add_rule(sc.ALLOW, 'munmap')
+        f.add_rule(sc.ALLOW, 'brk')
+        f.add_rule(sc.ALLOW, 'mprotect')
+
+        # 进程生命周期
+        f.add_rule(sc.ALLOW, 'exit_group')
+        f.add_rule(sc.ALLOW, 'rt_sigaction')
+        f.add_rule(sc.ALLOW, 'rt_sigprocmask')
+
+        # 其他必要调用
+        f.add_rule(sc.ALLOW, 'getuid')
+        f.add_rule(sc.ALLOW, 'getgid')
+        f.add_rule(sc.ALLOW, 'geteuid')
+        f.add_rule(sc.ALLOW, 'getegid')
+        f.add_rule(sc.ALLOW, 'arch_prctl')
+        f.add_rule(sc.ALLOW, 'futex')
+        f.add_rule(sc.ALLOW, 'sched_getaffinity')
+
+        # 加载过滤器
+        f.load()
+
+    # 5. 降权 (最关键的一步，最后执行)
+    # 必须先设置组ID，再设置用户ID
+    os.setgid(UNPRIVILEGED_GID)
+    os.setuid(UNPRIVILEGED_UID)
+    os.umask(0o077) # 设置掩码，使得创建的文件/目录只有所有者有权访问
+
 
 def _execute_judge_code(
     submission_dir: str,
     judge_dir: str,
 ) -> dict:
     """
-    在一个隔离的、分层的工作目录中执行评测，以防止路径遍历和模块劫持攻击。
+    在一个使用 chroot, seccomp 和无特权用户隔离的沙箱中执行评测。
     """
-    with tempfile.TemporaryDirectory() as workspace:
+    # 确保运行时根路径存在且可遍历
+    os.makedirs(RUNTIME_JAIL_ROOT, exist_ok=True)
+    os.chmod(RUNTIME_JAIL_ROOT, 0o755)
+
+    # 使用一个临时目录作为本次评测的 chroot "监狱"
+    with tempfile.TemporaryDirectory(prefix="eval_jail_", dir=RUNTIME_JAIL_ROOT) as jail_path_str:
         try:
-            # --- 1. 准备分层的沙箱环境 ---
-            workspace_path = Path(workspace)
+            jail_path = Path(jail_path_str)
+            # 关键：临时目录默认 0700，需要放宽为 0755，否则降权后无法遍历 '/'
+            jail_path.chmod(0o755)
+            os.chmod(jail_path, 0o755)
 
-            # CHANGED: 创建独立的目录用于存放评测代码和用户代码
-            judge_workspace = workspace_path / "judge_env"
-            submission_workspace = workspace_path / "submission_env"
-            judge_workspace.mkdir()
-            submission_workspace.mkdir()
+            # --- 1. 准备 Chroot 环境 ---
+            # 复制基础 chroot 环境 (python解释器, 库等)
+            # 这一步假设 /opt/sandbox_jail 已经准备好
+            if not os.path.exists(CHROOT_JAIL_PATH) or not os.listdir(CHROOT_JAIL_PATH):
+                 raise EnvironmentError(f"Chroot 基础环境 '{CHROOT_JAIL_PATH}' 未准备好或为空。")
 
-            # 将评测脚本和数据文件复制到其专属目录
-            for item in os.listdir(judge_dir):
-                src = os.path.join(judge_dir, item)
-                dst = judge_workspace / item
+            # 复制基础环境，但跳过 /dev，避免复制字符设备导致阻塞（如 /dev/random）
+            for item in os.listdir(CHROOT_JAIL_PATH):
+                src = os.path.join(CHROOT_JAIL_PATH, item)
+                dst = jail_path / item
+                if os.path.basename(src) == "dev":
+                    continue
                 if os.path.isdir(src):
-                    shutil.copytree(src, dst, dirs_exist_ok=True)
+                    shutil.copytree(src, dst, symlinks=True, dirs_exist_ok=True)
                 else:
                     shutil.copy2(src, dst)
 
-            # 将用户提交的文件复制到其专属目录
-            for item in os.listdir(submission_dir):
-                src = os.path.join(submission_dir, item)
-                dst = submission_workspace / item
-                if os.path.isdir(src):
-                    shutil.copytree(src, dst, dirs_exist_ok=True)
-                else:
-                    shutil.copy2(src, dst)
+            # 在监狱内重建必要的 /dev 设备节点
+            dev_dir = jail_path / "dev"
+            dev_dir.mkdir(exist_ok=True)
+            def _mknod_char(path: Path, major: int, minor: int, mode: int = 0o666):
+                try:
+                    if path.exists() and not stat.S_ISCHR(os.stat(path).st_mode):
+                        path.unlink()
+                    if not path.exists():
+                        os.mknod(str(path), stat.S_IFCHR | mode, os.makedev(major, minor))
+                    os.chmod(path, mode)
+                except PermissionError:
+                    # 在某些受限环境可能没有 CAP_MKNOD；忽略，让 Python 回退其他熵源
+                    pass
 
-            # --- 2. 准备评测入口脚本 ---
-            python_executable = sys.executable
+            _mknod_char(dev_dir / "null", 1, 3)
+            _mknod_char(dev_dir / "zero", 1, 5)
+            _mknod_char(dev_dir / "random", 1, 8)
+            _mknod_char(dev_dir / "urandom", 1, 9)
+            _mknod_char(dev_dir / "tty", 5, 0)
+
+            # --- 2. 在监狱中创建工作目录并复制文件 ---
+            judge_workspace = jail_path / "judge_env"
+            submission_workspace = jail_path / "submission_env"
+            judge_workspace.mkdir(0o755)
+            submission_workspace.mkdir(0o755)
+
+            # 复制评测脚本和数据
+            shutil.copytree(judge_dir, judge_workspace, dirs_exist_ok=True)
+            # 复制用户提交
+            shutil.copytree(submission_dir, submission_workspace, dirs_exist_ok=True)
+
+            # --- 3. 准备评测入口脚本 ---
+            # 注意：这里的路径都是相对于监狱内部的
+            python_executable = "/usr/bin/python3" # 假设解释器在监狱中的这个位置
             template_path = Path(__file__).parent / "eval_script_template.py"
             with open(template_path, "r", encoding="utf-8") as f:
                 template_content = f.read()
 
-            # CHANGED: 传递相对路径给模板，不再是 "."
-            # 模板脚本将从 workspace_path 运行，并使用这些相对路径
             filled_script = Template(template_content).substitute(
-                judge_dir_json=json.dumps(str(judge_workspace.name)),
-                submission_dir_json=json.dumps(str(submission_workspace.name)),
+                judge_dir_json=json.dumps("judge_env"), # 相对路径
+                submission_dir_json=json.dumps("submission_env"), # 相对路径
                 python_executable_json=json.dumps(python_executable),
             )
 
-            script_path = workspace_path / "eval_runner.py"
-            with open(script_path, "w", encoding="utf-8") as f:
+            script_path_in_jail = jail_path / "eval_runner.py"
+            with open(script_path_in_jail, "w", encoding="utf-8") as f:
                 f.write(filled_script)
+            os.chmod(script_path_in_jail, 0o644)
 
-            # --- 3. 在沙箱工作目录中执行子进程 ---
-            venv_dir = str(Path(python_executable).parent.parent)
-            bootstrap_command = f"""
-            unset PYTHONPATH
-            unset PYTHONHOME
-            source "{venv_dir}/bin/activate"
-            "{python_executable}" "{script_path.name}"
-            """
+            # --- 4. 在沙箱中执行子进程 ---
+            # 命令中的路径是 chroot 后的相对路径
+            command = [python_executable, "eval_runner.py"]
 
-            # 关键：子进程的当前工作目录(cwd)是 workspace_path。
-            # eval_runner.py 会将 judge_env 添加到 sys.path，
-            # 这样它就能找到 judge.py，但它绝不会把 submission_env 添加到 sys.path。
             result = subprocess.run(
-                ['/bin/bash', '-c', bootstrap_command],
+                command,
                 capture_output=True,
                 text=True,
-                timeout=300,
-                cwd=workspace_path
+                timeout=310, # 比内部CPU限制稍长
+                preexec_fn=lambda: _setup_sandbox_and_demote_privileges(jail_path_str),
             )
 
-            # --- 4. 解析结果 (no changes needed here) ---
+            # --- 5. 解析结果 ---
             if result.stdout:
                 try:
                     return json.loads(result.stdout.strip())

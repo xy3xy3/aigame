@@ -27,6 +27,18 @@ docker compose up -d
 uv sync
 ```
 
+创建沙盒
+```shell
+# 创建一个不允许登录的系统用户和组
+sudo groupadd sandboxgroup
+sudo useradd --system --no-create-home --shell /bin/false -g sandboxgroup sandboxuser
+# 创建监狱目录
+sudo mkdir -p /opt/sandbox_jail
+sudo chown root:root /opt/sandbox_jail
+sudo mkdir -p /opt/sandboxes
+sudo chmod 1777 /opt/sandboxes
+```
+
 
 ## Nuxt Web APP
 
