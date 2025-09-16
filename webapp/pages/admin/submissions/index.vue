@@ -173,12 +173,14 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-if="submissionsPending" v-for="n in 5" :key="n">
+            <!-- 首屏加载使用骨架屏；之后刷新不再闪动 -->
+            <tr v-if="submissionsPending && !hasLoadedOnce" v-for="n in itemsPerPage" :key="`skeleton-${n}`">
               <td class="px-6 py-4" colspan="9">
                 <div class="h-4 bg-gray-200 rounded animate-pulse"></div>
               </td>
             </tr>
-            <template v-else v-for="submission in submissions" :key="submission.id">
+            <!-- 常规展示：即使刷新也保持表格，不显示骨架屏，以避免抖动 -->
+            <template v-for="submission in submissions" :key="submission.id">
               <tr
                 class="hover:bg-gray-50 cursor-pointer"
                 @click="toggleExpand(submission.id)"
@@ -337,6 +339,43 @@ const { data, pending, refresh } = useFetch("/api/admin/submissions", {
 const submissionsPending = pending;
 const refreshSubmissions = refresh;
 
+// 首屏加载标记：仅在首次加载完毕后置为 true
+const hasLoadedOnce = ref(false);
+watch(
+  [submissionsPending, data],
+  ([p, d]) => {
+    if (!p && d?.submissions) hasLoadedOnce.value = true;
+  },
+  { immediate: true }
+);
+
+// 稳定数据层：当返回数据与现有展示一致时，不替换，避免无意义的 DOM 变动
+type SubmissionLite = { id: string; status: string; score: number | null; createdAt: string; judgedAt: string | null };
+const stableSubmissions = ref<any[]>([]);
+let lastSignature = "";
+
+function buildSignature(list: any[]): string {
+  try {
+    return list
+      .map((s: any) => [s.id, s.status, s.score ?? "", s.judgedAt ?? "", s.createdAt ?? ""].join("|"))
+      .join(";");
+  } catch (e) {
+    return Math.random().toString();
+  }
+}
+
+watch(
+  () => data.value?.submissions,
+  (newList) => {
+    if (!Array.isArray(newList)) return;
+    const sig = buildSignature(newList);
+    if (sig === lastSignature) return; // 数据未变化，不更新视图
+    lastSignature = sig;
+    stableSubmissions.value = newList;
+  },
+  { immediate: true }
+);
+
 // 自动刷新：每3秒刷新一次，使用当前查询参数
 onMounted(() => {
   const interval = setInterval(async () => {
@@ -432,5 +471,5 @@ const changeItemsPerPage = (newItemsPerPage: number) => {
 };
 
 // 计算属性，用于获取提交数据
-const submissions = computed(() => data.value?.submissions || []);
+const submissions = computed(() => stableSubmissions.value);
 </script>
