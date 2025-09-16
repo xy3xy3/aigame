@@ -81,7 +81,7 @@
             </div>
             <div class="text-right">
               <div v-if="submission.score !== null" class="text-lg font-bold text-blue-600">
-                {{ submission.score }} 分
+                {{ formatScore(submission.score) }} 分
               </div>
               <div class="text-sm text-gray-500">{{ formatDate(submission.createdAt) }}</div>
             </div>
@@ -202,6 +202,12 @@ const getStatusText = (status) => {
 
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString('zh-CN')
+}
+
+const formatScore = (val) => {
+  const num = Number(val)
+  if (Number.isNaN(num)) return val
+  return num.toFixed(2)
 }
 
 // 首屏加载状态控制：加载完成后，后续自动刷新不再显示大范围 loading

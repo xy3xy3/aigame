@@ -144,7 +144,7 @@
                 class="text-center p-4 bg-gray-50 rounded-lg"
               >
                 <div class="text-3xl font-bold text-blue-600">
-                  {{ data.submission.score }}
+                  {{ formatScore(data.submission.score) }}
                 </div>
                 <div class="text-sm text-gray-600">得分</div>
               </div>
@@ -219,19 +219,7 @@
         </div>
       </div>
 
-      <!-- 题目描述 -->
-      <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">题目描述</h2>
-        <div class="prose max-w-none">
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">
-            {{ data.submission.problem.title }}
-          </h3>
-          <p class="text-gray-600 mb-4">{{ data.submission.problem.shortDescription }}</p>
-          <div class="text-gray-700 whitespace-pre-wrap">
-            {{ data.submission.problem.detailedDescription }}
-          </div>
-        </div>
-      </div>
+      
 
       <!-- 执行日志 -->
       <div v-if="data.submission.executionLogs" class="bg-white rounded-lg shadow-md p-6">
@@ -315,6 +303,12 @@ const getStatusText = (status) => {
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString("zh-CN");
 };
+
+const formatScore = (val) => {
+  const num = Number(val)
+  if (Number.isNaN(num)) return val
+  return num.toFixed(2)
+}
 
 // 自动刷新正在评测的提交
 onMounted(() => {
