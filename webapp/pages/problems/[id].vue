@@ -286,13 +286,37 @@
               <span class="text-sm text-gray-600"
                 >提交者: {{ submission.user.username }}</span
               >
-              <NuxtLink
-                :to="`/submissions/${submission.id}`"
-                class="text-blue-600 hover:text-blue-800 text-sm font-medium"
-              >
-                查看详情
-              </NuxtLink>
+              <div class="flex items-center gap-4">
+                <button
+                  type="button"
+                  class="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  @click="toggleLogs(submission)"
+                >
+                  {{ showLogs[submission.id] ? '收起日志' : '查看日志' }}
+                </button>
+                <NuxtLink
+                  :to="`/submissions/${submission.id}`"
+                  class="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
+                  查看详情
+                </NuxtLink>
+              </div>
             </div>
+
+            <!-- 折叠日志面板 -->
+            <transition name="fade">
+              <div v-if="showLogs[submission.id]" class="mt-3">
+                <div v-if="logStates[submission.id]?.loading" class="text-sm text-gray-500 py-2">
+                  正在加载日志...
+                </div>
+                <div v-else-if="logStates[submission.id]?.error" class="bg-red-50 border border-red-200 rounded-md p-3 text-sm">
+                  加载日志失败：{{ logStates[submission.id]?.error }}
+                </div>
+                <div v-else class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto whitespace-pre-wrap">
+                  <pre class="leading-5">{{ logStates[submission.id]?.text || '暂无日志' }}</pre>
+                </div>
+              </div>
+            </transition>
           </div>
         </div>
       </div>
@@ -362,6 +386,36 @@ const {
 } = await useFetch("/api/submissions", {
   query: { problemId },
 });
+
+// 折叠日志状态与数据
+const showLogs = reactive({}); // { [submissionId]: boolean }
+const logStates = reactive({}); // { [submissionId]: { loading: boolean, error: string, text: string } }
+
+const fetchSubmissionLogs = async (submissionId) => {
+  logStates[submissionId] = { loading: true, error: '', text: logStates[submissionId]?.text || '' };
+  try {
+    const resp = await $fetch(`/api/submissions/${submissionId}`);
+    const text = resp?.submission?.executionLogs || '';
+    logStates[submissionId] = { loading: false, error: '', text };
+  } catch (err) {
+    logStates[submissionId] = {
+      loading: false,
+      error: err?.data?.message || err?.message || '未知错误',
+      text: logStates[submissionId]?.text || ''
+    };
+  }
+};
+
+const toggleLogs = async (submission) => {
+  const id = submission.id;
+  showLogs[id] = !showLogs[id];
+  if (showLogs[id]) {
+    // 首次展开或尚无日志数据时拉取
+    if (!logStates[id] || (!logStates[id].text && !logStates[id].loading)) {
+      await fetchSubmissionLogs(id);
+    }
+  }
+};
 
 // 提交相关状态
 const selectedTeamId = ref("");
@@ -464,4 +518,18 @@ const getSubmissionStatusText = (status) => {
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString("zh-CN");
 };
+
+// 提交记录自动刷新（每3秒）
+onMounted(() => {
+  const interval = setInterval(async () => {
+    try {
+      await refreshSubmissions();
+      // 对已展开且仍在评测中的记录，可选择刷新日志（可选）
+      // 这里保守仅刷新列表，避免对接口造成压力
+    } catch (e) {
+      // 静默失败
+    }
+  }, 3000);
+  onUnmounted(() => clearInterval(interval));
+});
 </script>
