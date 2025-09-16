@@ -5,6 +5,10 @@ class Settings(BaseSettings):
     WEBAPP_CALLBACK_SECRET: str = "a-very-long-and-random-secret-string-for-callback"
     # 新增：webapp -> evaluateapp 上传鉴权密钥（与回调密钥不同）
     EVALUATE_INBOUND_SECRET: str = "a-different-very-long-secret-for-evaluate-inbound"
+    # 是否启用调试用的 Gradio 页面
+    ENABLE_GRADIO: bool = False
+    # Gradio 页面挂载路径
+    GRADIO_PATH: str = "/gradio"
 
     class Config:
         env_file = ".env"
