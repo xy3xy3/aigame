@@ -4,6 +4,8 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error
 import importlib.util
 import traceback
+import contextlib # 1. 导入所需模块
+import io          # 1. 导入所需模块
 
 def evaluate(submission_path: str, judge_data_path: str, **kwargs) -> dict:
     """
@@ -14,6 +16,8 @@ def evaluate(submission_path: str, judge_data_path: str, **kwargs) -> dict:
     4. 调用用户的 'predict' 函数并获取预测结果。
     5. 验证预测结果的格式。
     6. 计算均方误差 (MSE) 并转换为最终分数。
+
+    安全增强：在执行用户代码时，将其标准输出(stdout)重定向，以防止通过 print 进行环境侦察。
     """
     logs = []
     score = 0.0
@@ -21,6 +25,7 @@ def evaluate(submission_path: str, judge_data_path: str, **kwargs) -> dict:
 
     try:
         # 定义文件路径
+        # 在新的沙箱环境中，所有文件都在同一目录
         user_script_path = os.path.join(submission_path, 'main.py')
         test_data_path = os.path.join(judge_data_path, 'test.csv')
         ground_truth_path = os.path.join(judge_data_path, 'ground_truth.csv')
@@ -28,30 +33,40 @@ def evaluate(submission_path: str, judge_data_path: str, **kwargs) -> dict:
         if not os.path.exists(user_script_path):
             raise FileNotFoundError("提交的压缩包中未找到 'main.py'。")
 
-        # 1. 动态导入用户模块
-        logs.append(f"正在动态导入用户模块: {user_script_path}")
-        spec = importlib.util.spec_from_file_location("user_main", user_script_path)
-        if spec is None:
-            raise ImportError("无法为 user_main 创建模块规范。")
-        user_module = importlib.util.module_from_spec(spec)
-        sys.modules["user_main"] = user_module
-        spec.loader.exec_module(user_module)
-        logs.append("用户模块导入成功。")
+        # --- 用户代码执行区域 ---
+        # 准备一个临时的输出缓冲区来捕获并丢弃用户的 print 内容
+        f = io.StringIO()
 
-        # 2. 检查 'predict' 函数是否存在
-        if not hasattr(user_module, 'predict') or not callable(user_module.predict):
-            raise AttributeError("提交的 'main.py' 中未找到可调用的 'predict' 函数。")
-        logs.append("'predict' 函数找到。")
+        # 2. 使用 with 语句块包裹所有可能执行用户代码的操作
+        with contextlib.redirect_stdout(f):
+            # 1. 动态导入用户模块
+            # 这一步会执行用户 main.py 中的所有顶层代码
+            logs.append(f"正在动态导入用户模块: {user_script_path} (用户 print 已静默)")
+            spec = importlib.util.spec_from_file_location("user_main", user_script_path)
+            if spec is None:
+                raise ImportError("无法为 user_main 创建模块规范。")
+            user_module = importlib.util.module_from_spec(spec)
+            sys.modules["user_main"] = user_module
+            spec.loader.exec_module(user_module)
+            logs.append("用户模块导入成功。")
 
-        # 3. 加载数据
-        test_df = pd.read_csv(test_data_path)
-        truth_df = pd.read_csv(ground_truth_path)
-        logs.append("测试数据和标准答案加载成功。")
+            # 2. 检查 'predict' 函数是否存在
+            if not hasattr(user_module, 'predict') or not callable(user_module.predict):
+                raise AttributeError("提交的 'main.py' 中未找到可调用的 'predict' 函数。")
+            logs.append("'predict' 函数找到。")
 
-        # 4. 调用用户的 predict 函数
-        logs.append("正在调用用户的 'predict' 函数...")
-        pred_df = user_module.predict(test_df.copy()) # 传入副本以防用户修改原始数据
-        logs.append("'predict' 函数执行完毕。")
+            # 3. 加载数据 (这部分不涉及用户代码，可以在外面，但为了逻辑清晰放在一起)
+            test_df = pd.read_csv(test_data_path)
+            truth_df = pd.read_csv(ground_truth_path)
+            logs.append("测试数据和标准答案加载成功。")
+
+            # 4. 调用用户的 predict 函数
+            # 这一步会执行 predict 函数内部的代码
+            logs.append("正在调用用户的 'predict' 函数... (用户 print 已静默)")
+            pred_df = user_module.predict(test_df.copy())
+            logs.append("'predict' 函数执行完毕。")
+
+        # --- 用户代码执行结束，stdout 恢复正常 ---
 
         # 5. 验证返回结果
         if not isinstance(pred_df, pd.DataFrame):
@@ -76,6 +91,7 @@ def evaluate(submission_path: str, judge_data_path: str, **kwargs) -> dict:
         logs.append(f"最终得分: Score = max(0, 100 - MSE) = {score:.2f}")
 
     except Exception as e:
+        # 异常信息通过 stderr 抛出，所以不受影响
         logs.append("\n--- 评测过程中发生严重错误 ---")
         logs.append(f"错误类型: {type(e).__name__}")
         logs.append(f"错误信息: {e}")
