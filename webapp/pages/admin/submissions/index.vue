@@ -337,6 +337,18 @@ const { data, pending, refresh } = useFetch("/api/admin/submissions", {
 const submissionsPending = pending;
 const refreshSubmissions = refresh;
 
+// 自动刷新：每3秒刷新一次，使用当前查询参数
+onMounted(() => {
+  const interval = setInterval(async () => {
+    try {
+      await refreshSubmissions();
+    } catch (e) {
+      // 静默失败，避免打断当前视图
+    }
+  }, 3000);
+  onUnmounted(() => clearInterval(interval));
+});
+
 // 切换展开/折叠状态
 function toggleExpand(submissionId: string) {
   const index = expandedRows.value.indexOf(submissionId);
