@@ -139,6 +139,7 @@ export default async () => {
   // 获取环境变量
   const config = useRuntimeConfig()
   const evaluateAppUrl = config.evaluateAppUrl
+  const evaluateAppUploadSecret = (config as any).evaluateAppUploadSecret as string | undefined
 
   // 创建 Redis 连接
   const redisConnection = getRedisClient()
@@ -209,9 +210,17 @@ export default async () => {
       // 5. 发送到 evaluateapp API 端点（Fire-and-forget 模式）
       console.log(`[Worker] Dispatching submission ${job.data.submissionId} to evaluateapp`)
       
+      // 安全：必须携带 evaluateapp 入站密钥，否则拒绝调度
+      if (!evaluateAppUploadSecret) {
+        throw new Error('EVALUATE_APP_UPLOAD_SECRET is not configured in runtime config')
+      }
+
       const response = await ofetch(`${evaluateAppUrl}/api/evaluate`, {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${evaluateAppUploadSecret}`
+        }
       })
 
       console.log(`[Worker] Successfully dispatched submission ${job.data.submissionId} to evaluateapp:`, response)

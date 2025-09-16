@@ -3,6 +3,8 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     WEBAPP_CALLBACK_URL: str = "http://127.0.0.1:3000/api/submissions/callback"
     WEBAPP_CALLBACK_SECRET: str = "a-very-long-and-random-secret-string-for-callback"
+    # 新增：webapp -> evaluateapp 上传鉴权密钥（与回调密钥不同）
+    EVALUATE_INBOUND_SECRET: str = "a-different-very-long-secret-for-evaluate-inbound"
 
     class Config:
         env_file = ".env"

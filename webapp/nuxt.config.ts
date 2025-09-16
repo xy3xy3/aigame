@@ -43,6 +43,8 @@ export default defineNuxtConfig({
     jwtSecret: process.env.JWT_SECRET || 'your-super-secret-jwt-key',
     evaluateAppUrl: process.env.EVALUATE_APP_URL || 'http://localhost:8000',
     evaluateAppSecret: process.env.EVALUATE_APP_SECRET,
+    // 新增：webapp -> evaluateapp 上传鉴权密钥（与回调密钥不同）
+    evaluateAppUploadSecret: process.env.EVALUATE_APP_UPLOAD_SECRET,
 
     // 公共配置（客户端也可用）
     public: {

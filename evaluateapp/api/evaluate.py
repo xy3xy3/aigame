@@ -5,6 +5,7 @@ from concurrent.futures import ProcessPoolExecutor
 
 # 调整相对导入路径
 from services import sandbox
+from core.config import settings
 from schemas.evaluation import EvaluationResponse
 
 router = APIRouter()
@@ -22,6 +23,14 @@ async def run_evaluation(
     """
     接收提交文件和评测脚本文件，执行评测，并通过回调返回结果。
     """
+    # 简单的Bearer鉴权（要求 webapp 提供与 EVALUATE_INBOUND_SECRET 匹配的密钥）
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Unauthorized: Missing or invalid authorization header")
+    token = auth_header.split(" ", 1)[1]
+    if token != settings.EVALUATE_INBOUND_SECRET:
+        raise HTTPException(status_code=401, detail="Unauthorized: Invalid inbound secret")
+
     semaphore: asyncio.Semaphore = request.app.state.semaphore
     executor: ProcessPoolExecutor = request.app.state.executor # <-- 从app.state获取executor
 
