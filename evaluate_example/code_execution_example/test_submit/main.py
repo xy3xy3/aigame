@@ -2,7 +2,7 @@ import sys
 import json
 import csv
 from typing import Tuple, List, Dict
-import traceback # 导入 traceback 模块
+import traceback
 
 def _fit_simple_linear_regression(x_vals: List[float], y_vals: List[float]) -> Tuple[float, float]:
     """使用最小二乘拟合 y = a + b*x，返回 (a, b)。"""
@@ -85,17 +85,15 @@ def main() -> None:
         params = msg.get("params", {})
 
         if cmd == "predict":
-            # --- 关键修改：添加 try...except 块 ---
             try:
-                resp = handle_predict(params)
-                # 成功时，将结果作为 'data' 发送
-                final_resp = {"status": "success", "data": resp}
+                resp = handle_predict(params)  # 形如 {"predictions": [...]}
+                # 协议要求：直接输出包含 predictions 的对象
+                print(json.dumps(resp), flush=True)
             except Exception as e:
-                # 失败时，将错误信息作为 'error' 发送
-                error_info = f"{type(e).__name__}: {e}\n{traceback.format_exc()}"
-                final_resp = {"status": "error", "error": error_info}
-
-            print(json.dumps(final_resp), flush=True)
+                # 将错误写入 stderr，stdout 仍返回协议合法的空结果，避免评测中断
+                sys.stderr.write(f"Agent error: {type(e).__name__}: {e}\n{traceback.format_exc()}\n")
+                sys.stderr.flush()
+                print(json.dumps({"predictions": []}), flush=True)
 
         elif cmd == "terminate":
             break

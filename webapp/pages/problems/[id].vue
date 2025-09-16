@@ -230,28 +230,27 @@
       <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-4">我的提交记录</h2>
 
-        <div v-if="submissionsPending" class="text-center py-4">
+        <div v-if="!hasLoadedSubmissions && submissionsPending" class="text-center py-4">
           <div
             class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"
           ></div>
           <p class="mt-2 text-gray-600">加载提交记录中...</p>
         </div>
 
-        <div
-          v-else-if="submissionsError"
-          class="bg-red-50 border border-red-200 rounded-md p-4"
-        >
-          <p class="text-red-800">加载提交记录失败: {{ submissionsError.message }}</p>
-        </div>
+        <div v-else>
+          <!-- 已加载后若刷新失败，仅提示，不覆盖列表，避免闪动 -->
+          <div v-if="hasLoadedSubmissions && submissionsError" class="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-3">
+            <p class="text-yellow-800 text-sm">刷新提交记录失败：{{ submissionsError.message }}</p>
+          </div>
 
-        <div
-          v-else-if="submissionsData?.submissions?.length === 0"
-          class="text-center py-8"
-        >
-          <p class="text-gray-600">暂无提交记录</p>
-        </div>
+          <div
+            v-if="submissionsData?.submissions?.length === 0"
+            class="text-center py-8"
+          >
+            <p class="text-gray-600">暂无提交记录</p>
+          </div>
 
-        <div v-else class="space-y-3">
+          <div v-else class="space-y-3">
           <div
             v-for="submission in submissionsData?.submissions"
             :key="submission.id"
@@ -317,6 +316,7 @@
                 </div>
               </div>
             </transition>
+          </div>
           </div>
         </div>
       </div>
@@ -386,6 +386,16 @@ const {
 } = await useFetch("/api/submissions", {
   query: { problemId },
 });
+
+// 避免刷新时闪动：首屏加载前才显示 loading；之后保持列表展示
+const hasLoadedSubmissions = ref(false);
+watch(
+  [submissionsPending, submissionsData],
+  ([p, d]) => {
+    if (!p && d) hasLoadedSubmissions.value = true;
+  },
+  { immediate: true }
+);
 
 // 折叠日志状态与数据
 const showLogs = reactive({}); // { [submissionId]: boolean }
