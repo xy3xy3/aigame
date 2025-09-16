@@ -47,7 +47,17 @@
             选择题目压缩包 *
           </label>
           <div
-            class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed border-gray-300 rounded-md"
+            @drop.prevent="handleDrop"
+            @dragover.prevent="handleDragOver"
+            @dragleave="handleDragLeave"
+            @click="openFileDialog"
+            :class="{
+              'border-blue-500 bg-blue-50': isDragOver,
+              'border-gray-300': !isDragOver,
+            }"
+            class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md transition-colors cursor-pointer"
+            role="button"
+            tabindex="0"
           >
             <div class="space-y-1 text-center">
               <svg
@@ -334,6 +344,7 @@ definePageMeta({
 const fileInputRef: Ref<HTMLInputElement | null> = ref(null);
 const fileInput = ref("");
 const selectedFiles = ref<File[]>([]);
+const isDragOver = ref(false);
 
 // 表单数据
 const formData = ref({
@@ -390,13 +401,65 @@ const handleFileSelect = (event: Event) => {
   if (files) {
     // 将 FileList 转换为数组并添加到已选择的文件列表中
     const newFiles = Array.from(files);
-    selectedFiles.value = [...selectedFiles.value, ...newFiles];
+    // 去重：按文件名和大小简单判断，避免重复添加
+    const existingKey = new Set(
+      selectedFiles.value.map((f) => `${f.name}__${f.size}`)
+    );
+    const filtered = newFiles.filter(
+      (f) => f.name.toLowerCase().endsWith('.zip') && !existingKey.has(`${f.name}__${f.size}`)
+    );
+    const invalid = newFiles.filter((f) => !f.name.toLowerCase().endsWith('.zip'));
+    if (invalid.length > 0) {
+      // @ts-ignore push 由全局插件注入
+      push?.warning?.('已忽略非 ZIP 文件');
+    }
+    selectedFiles.value = [...selectedFiles.value, ...filtered];
 
     // 清空 input 值以便可以再次选择相同的文件
     if (fileInputRef.value) {
       fileInputRef.value.value = "";
     }
   }
+};
+
+// 打开文件选择对话框（点击整个拖拽区域）
+const openFileDialog = () => {
+  fileInputRef.value?.click();
+};
+
+// 拖拽上传处理
+const handleDrop = (event: DragEvent) => {
+  event.preventDefault();
+  isDragOver.value = false;
+
+  const dt = event.dataTransfer;
+  if (!dt || !dt.files || dt.files.length === 0) return;
+
+  const dropped = Array.from(dt.files);
+  const existingKey = new Set(
+    selectedFiles.value.map((f) => `${f.name}__${f.size}`)
+  );
+  const toAdd = dropped.filter(
+    (f) => f.name.toLowerCase().endsWith('.zip') && !existingKey.has(`${f.name}__${f.size}`)
+  );
+  const invalid = dropped.filter((f) => !f.name.toLowerCase().endsWith('.zip'));
+  if (invalid.length > 0) {
+    // @ts-ignore push 由全局插件注入
+    push?.error?.('只支持 ZIP 格式的文件');
+  }
+  if (toAdd.length > 0) {
+    selectedFiles.value = [...selectedFiles.value, ...toAdd];
+  }
+};
+
+const handleDragOver = (event: DragEvent) => {
+  event.preventDefault();
+  isDragOver.value = true;
+};
+
+const handleDragLeave = (event: DragEvent) => {
+  event.preventDefault();
+  isDragOver.value = false;
 };
 
 // 移除已选择的文件
