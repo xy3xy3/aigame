@@ -94,6 +94,27 @@
                 <span class="font-medium">题目分数:</span>
                 {{ data.problem.score !== null ? data.problem.score + "分" : "暂无分数" }}
               </p>
+              <!-- 单题得分进度条（参考比赛详情中的样式） -->
+              <div class="mt-2">
+                <div
+                  v-if="data.problem.score !== null && data.problem.score !== undefined"
+                  class="flex items-center space-x-2"
+                  :title="`我的得分：${Math.round(userBestScore || 0)} / 总分：${data.problem.score}`"
+                >
+                  <div class="w-full sm:w-64 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      class="h-full bg-primary transition-all duration-300"
+                      :style="{
+                        width: Math.max(0, Math.min(100, Math.round(((userBestScore || 0) / (data.problem.score || 1)) * 100))) + '%'
+                      }"
+                    ></div>
+                  </div>
+                  <span class="text-xs font-medium text-gray-700">
+                    {{ Math.round(userBestScore || 0) }} / {{ data.problem.score }}
+                  </span>
+                </div>
+                <span v-else class="text-xs text-gray-600">暂无分数</span>
+              </div>
             </div>
           </div>
 
@@ -275,9 +296,32 @@
               }}</span>
             </div>
 
-            <div v-if="submission.score !== null" class="mb-2">
-              <span class="text-sm text-gray-600">得分: </span>
-              <span class="font-medium text-lg">{{ submission.score }}</span>
+            <div class="mb-2">
+              <div
+                v-if="
+                  data.problem.score !== null &&
+                  data.problem.score !== undefined &&
+                  submission.score !== null
+                "
+                class="flex items-center space-x-2"
+                :title="`该次得分：${Math.round(submission.score || 0)} / 总分：${data.problem.score}`"
+              >
+                <div class="w-full sm:w-64 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    class="h-full bg-primary transition-all duration-300"
+                    :style="{
+                      width: Math.max(0, Math.min(100, Math.round(((submission.score || 0) / (data.problem.score || 1)) * 100))) + '%'
+                    }"
+                  ></div>
+                </div>
+                <span class="text-xs font-medium text-gray-700">
+                  {{ Math.round(submission.score || 0) }} / {{ data.problem.score }}
+                </span>
+              </div>
+              <div v-else-if="submission.score !== null">
+                <span class="text-sm text-gray-600">得分: </span>
+                <span class="font-medium text-lg">{{ submission.score }}</span>
+              </div>
             </div>
 
             <div class="flex items-center justify-between">
@@ -393,6 +437,18 @@ const {
 } = await useFetch("/api/submissions", {
   query: { problemId },
 });
+
+// 当前用户在该题目的最高得分（基于已完成的提交）
+const userBestScore = computed(() => {
+  const list = submissionsData.value?.submissions || []
+  let maxScore = 0
+  for (const s of list) {
+    if (s && s.status === 'COMPLETED' && typeof s.score === 'number') {
+      if (s.score > maxScore) maxScore = s.score
+    }
+  }
+  return maxScore
+})
 
 // 避免刷新时闪动：首屏加载前才显示 loading；之后保持列表展示
 const hasLoadedSubmissions = ref(false);
