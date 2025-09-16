@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 layout-wrapper">
     <!-- 自研导航栏 -->
-    <div class="bg-white shadow w-full">
+    <div class="bg-white shadow w-full sticky top-0 z-40">
       <div class="flex items-center h-16 px-4 max-w-none">
         <!-- Logo/品牌名 -->
         <NuxtLink
