@@ -1,6 +1,7 @@
 import asyncio
 import io
 import json
+import contextlib
 import tempfile
 import zipfile
 import sys
@@ -75,6 +76,7 @@ def _setup_sandbox_and_demote_privileges(jail_path: str):
     os.environ.setdefault("MKL_NUM_THREADS", "1")
     os.environ.setdefault("NUMEXPR_NUM_THREADS", "1")
     os.environ.setdefault("VECLIB_MAXIMUM_THREADS", "1")
+    os.environ.setdefault("MALLOC_ARENA_MAX", "2")
 
     # 3. Chroot 到监狱目录
     os.chroot(jail_path)
@@ -154,19 +156,33 @@ def _execute_judge_code(
             if not os.path.exists(CHROOT_JAIL_PATH) or not os.listdir(CHROOT_JAIL_PATH):
                  raise EnvironmentError(f"Chroot 基础环境 '{CHROOT_JAIL_PATH}' 未准备好或为空。")
 
-            # 复制基础环境，但跳过 /dev，避免复制字符设备导致阻塞（如 /dev/random）
-            for item in os.listdir(CHROOT_JAIL_PATH):
-                src = os.path.join(CHROOT_JAIL_PATH, item)
-                dst = jail_path / item
-                if os.path.basename(src) == "dev":
-                    continue
-                if os.path.isdir(src):
-                    shutil.copytree(src, dst, symlinks=True, dirs_exist_ok=True)
-                else:
-                    shutil.copy2(src, dst)
+            # 优先用硬链接快速复制（节省磁盘与页缓存）；失败则逐项复制且跳过 /dev
+            try:
+                subprocess.run(["cp", "-al", os.path.join(CHROOT_JAIL_PATH, "."), str(jail_path)], check=True)
+            except Exception:
+                for item in os.listdir(CHROOT_JAIL_PATH):
+                    src = os.path.join(CHROOT_JAIL_PATH, item)
+                    dst = jail_path / item
+                    if os.path.basename(src) == "dev":
+                        continue
+                    if os.path.isdir(src):
+                        shutil.copytree(src, dst, symlinks=True, dirs_exist_ok=True)
+                    else:
+                        shutil.copy2(src, dst)
 
             # 在监狱内重建必要的 /dev 设备节点
             dev_dir = jail_path / "dev"
+            if dev_dir.exists():
+                # 尝试移除 cp -al 带入的 /dev 内容
+                for root, dirs, files in os.walk(dev_dir, topdown=False):
+                    for name in files:
+                        with contextlib.suppress(Exception):
+                            os.unlink(os.path.join(root, name))
+                    for name in dirs:
+                        with contextlib.suppress(Exception):
+                            os.rmdir(os.path.join(root, name))
+                with contextlib.suppress(Exception):
+                    os.rmdir(dev_dir)
             dev_dir.mkdir(exist_ok=True)
             def _mknod_char(path: Path, major: int, minor: int, mode: int = 0o666):
                 try:
@@ -184,6 +200,11 @@ def _execute_judge_code(
             _mknod_char(dev_dir / "random", 1, 8)
             _mknod_char(dev_dir / "urandom", 1, 9)
             _mknod_char(dev_dir / "tty", 5, 0)
+
+            # 确保常见临时目录存在并可写
+            for tmpd in [jail_path / "tmp", jail_path / "var" / "tmp", jail_path / "usr" / "tmp"]:
+                tmpd.mkdir(parents=True, exist_ok=True)
+                os.chmod(tmpd, 0o1777)
 
             # --- 2. 在监狱中创建工作目录并复制文件 ---
             judge_workspace = jail_path / "judge_env"

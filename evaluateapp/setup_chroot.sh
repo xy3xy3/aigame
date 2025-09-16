@@ -22,6 +22,7 @@ fi
 
 echo "--- 正在为 chroot 环境创建基础目录结构 ---"
 mkdir -p $JAIL/{bin,usr/bin,lib,lib64,etc}
+mkdir -p $JAIL/tmp $JAIL/var/tmp $JAIL/usr/tmp
 mkdir -p $JAIL/usr/lib/x86_64-linux-gnu
 mkdir -p $JAIL/dev
 echo "nameserver 8.8.8.8" > $JAIL/etc/resolv.conf
@@ -141,5 +142,8 @@ create_chr "$JAIL/dev/zero" 1 5 666
 create_chr "$JAIL/dev/random" 1 8 666
 create_chr "$JAIL/dev/urandom" 1 9 666
 create_chr "$JAIL/dev/tty" 5 0 666
+
+# 设置临时目录权限为 1777
+chmod 1777 "$JAIL/tmp" "$JAIL/var/tmp" "$JAIL/usr/tmp"
 
 echo "--- Chroot 环境准备完成于: $JAIL ---"
