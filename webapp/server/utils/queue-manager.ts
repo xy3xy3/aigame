@@ -37,6 +37,28 @@ export async function addEvaluationJob(submissionId: string): Promise<Job> {
   })
 }
 
+// 添加评测超时检查任务（使用固定 jobId，便于取消）
+export async function addEvaluationTimeoutJob(submissionId: string, delayMs: number): Promise<Job> {
+  const queue = getEvaluationQueue()
+  return await queue.add('evaluate-timeout', { submissionId }, {
+    jobId: `timeout:${submissionId}`,
+    delay: Math.max(0, delayMs || 0),
+    removeOnComplete: 100,
+    removeOnFail: 50,
+  })
+}
+
+// 取消评测超时检查任务
+export async function cancelEvaluationTimeoutJob(submissionId: string): Promise<boolean> {
+  const queue = getEvaluationQueue()
+  const job = await queue.getJob(`timeout:${submissionId}`)
+  if (job) {
+    await job.remove()
+    return true
+  }
+  return false
+}
+
 // 获取队列状态
 export async function getQueueStats() {
   const queue = getEvaluationQueue()

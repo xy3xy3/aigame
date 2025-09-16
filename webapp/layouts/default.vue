@@ -260,6 +260,7 @@ const adminNavItems = computed(() => [
   { text: "管理仪表板", to: "/admin/dashboard", icon: "fa-solid fa-gauge" },
   { text: "比赛管理", to: "/admin/competitions", icon: "fa-solid fa-flag-checkered" },
   { text: "评测队列", to: "/admin/queue", icon: "fa-solid fa-tasks" },
+  { text: "评测节点", to: "/admin/evaluate-nodes", icon: "fa-solid fa-server" },
   { text: "题目管理", to: "/admin/problems", icon: "fa-solid fa-book" },
   { text: "用户管理", to: "/admin/users", icon: "fa-solid fa-users" },
   { text: "队伍管理", to: "/admin/teams", icon: "fa-solid fa-people-group" },

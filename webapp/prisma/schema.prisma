@@ -153,6 +153,10 @@ model Submission {
   judgedAt      DateTime? // 评测时间
   updatedAt     DateTime  @updatedAt // 更新时间
 
+  // 评测节点（可为空：历史数据或未分配）
+  evaluateNodeId String?        @db.ObjectId
+  evaluateNode   EvaluateNode?  @relation(fields: [evaluateNodeId], references: [id])
+
   // 关系
   problem      Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade) // 提交的题目
   competition  Competition    @relation(fields: [competitionId], references: [id], onDelete: Cascade) // 所属比赛
@@ -161,6 +165,23 @@ model Submission {
   ProblemScore ProblemScore[]
 
   @@map("submissions")
+}
+
+model EvaluateNode {
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  name           String     @unique // 节点名称
+  baseUrl        String     // 评测服务基础URL，例如 http://node1:8000
+  uploadSecret   String     // webapp -> evaluateapp 上传鉴权密钥
+  callbackSecret String     // evaluateapp -> webapp 回调鉴权密钥
+  callbackUrl    String?    // 评测节点调用webapp回调的URL（可选，未设置时使用全局）
+  active         Boolean    @default(true) // 是否启用
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  // 反向关联
+  submissions    Submission[]
+
+  @@map("evaluate_nodes")
 }
 
 model Leaderboard {

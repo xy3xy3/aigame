@@ -117,6 +117,10 @@
                 <span class="text-gray-600">提交者:</span>
                 <span class="font-medium">{{ data.submission.user.username }}</span>
               </div>
+              <div class="flex justify-between" v-if="data.submission.evaluateNode">
+                <span class="text-gray-600">评测节点:</span>
+                <span class="font-medium">{{ data.submission.evaluateNode.name }}</span>
+              </div>
               <div class="flex justify-between">
                 <span class="text-gray-600">提交时间:</span>
                 <span class="font-medium">{{

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import prisma from '../../utils/prisma'
+import { cancelEvaluationTimeoutJob } from '../../utils/queue-manager'
 import { SubmissionStatus } from '@prisma/client'
 
 // Zod v3 中，为原始类型（string, number）提供自定义错误消息的正确方式
@@ -94,7 +95,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Missing or invalid authorization header' })
   }
   const authToken = authHeader.split(' ')[1]
-  if (authToken !== config.evaluateAppSecret) {
+  // 支持多评测节点：优先在数据库中查找匹配的回调密钥，其次回退到单一密钥
+  const matchedNode = await prisma.evaluateNode.findFirst({
+    where: { callbackSecret: authToken }
+  })
+  const fallbackSecret = config.evaluateAppSecret
+  if (!matchedNode && authToken !== fallbackSecret) {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Invalid callback secret' })
   }
 
@@ -117,10 +123,18 @@ export default defineEventHandler(async (event) => {
 
   // 3. 更新数据库
   try {
+    // 如果回调来自已知节点且该提交尚未记录节点，则补齐节点记录
+    if (matchedNode) {
+      await prisma.submission.updateMany({
+        where: { id: submissionId, evaluateNodeId: null },
+        data: { evaluateNodeId: matchedNode.id }
+      })
+    }
+
     const updateResult = await prisma.submission.updateMany({
       where: { id: submissionId },
       data: { status, score, executionLogs: logs, judgedAt: new Date() },
-    });
+    })
 
     if (updateResult.count === 0) {
       console.warn(`[Callback] 更新警告：未找到 Submission ID 为 ${submissionId} 的记录，可能已被删除。`);
@@ -138,6 +152,9 @@ export default defineEventHandler(async (event) => {
     }
 
     console.log(`[Callback] Successfully updated submission ${submissionId} with status: ${status}, score: ${score}`)
+
+    // 取消超时检查任务（若存在）
+    try { await cancelEvaluationTimeoutJob(submissionId) } catch {}
 
     // 4. 更新排行榜
     if (status === 'COMPLETED' && score !== null) {

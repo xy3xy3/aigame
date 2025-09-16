@@ -23,6 +23,9 @@ export default defineEventHandler(async (event) => {
   const submission = await prisma.submission.findUnique({
     where: { id: submissionId },
     include: {
+      evaluateNode: {
+        select: { id: true, name: true, baseUrl: true }
+      },
       problem: {
         select: {
           id: true,

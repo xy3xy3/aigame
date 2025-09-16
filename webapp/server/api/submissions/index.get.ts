@@ -94,6 +94,9 @@ export default defineEventHandler(async (event) => {
     prisma.submission.findMany({
       where,
       include: {
+        evaluateNode: {
+          select: { id: true, name: true, baseUrl: true }
+        },
         problem: {
           select: {
             id: true,

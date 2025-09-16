@@ -45,6 +45,10 @@ export default defineNuxtConfig({
     evaluateAppSecret: process.env.EVALUATE_APP_SECRET,
     // 新增：webapp -> evaluateapp 上传鉴权密钥（与回调密钥不同）
     evaluateAppUploadSecret: process.env.EVALUATE_APP_UPLOAD_SECRET,
+    // 新增：webapp的对外访问基础URL，用于构造默认回调URL（当节点未设置callbackUrl时使用）
+    webappBaseUrl: process.env.WEBAPP_BASE_URL,
+    // 评测超时时间（毫秒），用于在长时间无回调时自动置为错误
+    evaluationTimeoutMs: process.env.EVALUATION_TIMEOUT_MS || '900000',
 
     // 公共配置（客户端也可用）
     public: {

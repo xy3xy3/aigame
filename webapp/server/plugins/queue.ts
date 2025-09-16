@@ -5,6 +5,7 @@ import { useRuntimeConfig } from '#imports'
 import { downloadFile } from '../utils/minio'
 import { ofetch } from 'ofetch'
 import { addLeaderboardSyncJob } from './leaderboard-sync'
+import { addEvaluationTimeoutJob } from '../utils/queue-manager'
 
 // 解析完整的 MinIO URL，提取存储桶名称和对象路径
 function parseMinioUrl(url: string): { bucketName: string, objectName: string } {
@@ -138,8 +139,9 @@ async function recalculateRanks(leaderboardId: string): Promise<void> {
 export default async () => {
   // 获取环境变量
   const config = useRuntimeConfig()
-  const evaluateAppUrl = config.evaluateAppUrl
-  const evaluateAppUploadSecret = (config as any).evaluateAppUploadSecret as string | undefined
+  // 兼容：如果没有在数据库配置评测节点，则回退到环境变量
+  const fallbackEvaluateAppUrl = config.evaluateAppUrl
+  const fallbackEvaluateAppUploadSecret = (config as any).evaluateAppUploadSecret as string | undefined
 
   // 创建 Redis 连接
   const redisConnection = getRedisClient()
@@ -152,13 +154,47 @@ export default async () => {
       return
     }
 
+    // 超时检查任务
+    if (job.name === 'evaluate-timeout') {
+      const submissionId = job.data.submissionId
+      try {
+        const submission = await prisma.submission.findUnique({ where: { id: submissionId }, include: { evaluateNode: true } })
+        if (!submission) {
+          console.warn(`[Timeout] Submission ${submissionId} not found; skip`)
+          return
+        }
+        if (submission.status === 'JUDGING' || submission.status === 'PENDING' || submission.status === 'RUNNING') {
+          const nodeName = submission.evaluateNode?.name || 'unknown'
+          await prisma.submission.update({
+            where: { id: submissionId },
+            data: {
+              status: 'ERROR',
+              executionLogs: (submission.executionLogs ? submission.executionLogs + '\n' : '') + '[Timeout] Evaluation timed out without callback. Node=' + nodeName,
+              judgedAt: new Date()
+            }
+          })
+          console.log(`[Timeout] Marked submission ${submissionId} as ERROR due to timeout`)
+        }
+      } catch (e) {
+        console.error(`[Timeout] Failed to process timeout for ${submissionId}:`, e)
+        throw e
+      }
+      return
+    }
+
+    // 仅处理 evaluate 分发任务
+    if (job.name !== 'evaluate') {
+      console.log(`Ignoring job ${job.id} name=${job.name}`)
+      return
+    }
+
     try {
       console.log(`[Worker] Processing submission: ${job.data.submissionId}`)
-      
-      // 1. 更新提交状态为 RUNNING
+
+      // 1. 更新提交状态为 JUDGING（与前端状态一致）
       await prisma.submission.update({
         where: { id: job.data.submissionId },
-        data: { status: 'RUNNING' },
+        data: { status: 'JUDGING' },
       })
 
       // 2. 从数据库中获取 submission 和关联的 problem 的详细信息
@@ -207,23 +243,72 @@ export default async () => {
       formData.append('submission_zip', new Blob([submissionFileBuffer]), submissionObject)
       formData.append('judge_zip', new Blob([judgeFileBuffer]), judgeObject)
 
-      // 5. 发送到 evaluateapp API 端点（Fire-and-forget 模式）
-      console.log(`[Worker] Dispatching submission ${job.data.submissionId} to evaluateapp`)
-      
-      // 安全：必须携带 evaluateapp 入站密钥，否则拒绝调度
-      if (!evaluateAppUploadSecret) {
-        throw new Error('EVALUATE_APP_UPLOAD_SECRET is not configured in runtime config')
+      // 5. 选择评测节点：优先从数据库中选择激活的节点，若无则回退到环境变量
+      let targetUrl: string | undefined
+      let uploadSecret: string | undefined
+      let pickedNode: { id: string, name: string } | null = null
+
+      const availableNodes = await prisma.evaluateNode.findMany({
+        where: { active: true },
+        select: { id: true, name: true, baseUrl: true, uploadSecret: true, callbackUrl: true, callbackSecret: true }
+      })
+
+      if (availableNodes.length > 0) {
+        const randomIndex = Math.floor(Math.random() * availableNodes.length)
+        const node = availableNodes[randomIndex]
+        pickedNode = { id: node.id, name: node.name }
+        targetUrl = node.baseUrl
+        uploadSecret = node.uploadSecret
+        // 组装回调信息：优先节点配置，其次全局配置
+        const callbackBase = node.callbackUrl || (config as any).webappBaseUrl as string | undefined
+        if (callbackBase) {
+          formData.append('callback_url', `${callbackBase.replace(/\/$/, '')}/api/submissions/callback`)
+        }
+        if (node.callbackSecret) {
+          formData.append('callback_token', node.callbackSecret)
+        } else if ((config as any).evaluateAppSecret) {
+          formData.append('callback_token', (config as any).evaluateAppSecret)
+        }
+      } else {
+        targetUrl = fallbackEvaluateAppUrl
+        uploadSecret = fallbackEvaluateAppUploadSecret
+        const callbackBase = (config as any).webappBaseUrl as string | undefined
+        if (callbackBase) {
+          formData.append('callback_url', `${callbackBase.replace(/\/$/, '')}/api/submissions/callback`)
+        }
+        if ((config as any).evaluateAppSecret) {
+          formData.append('callback_token', (config as any).evaluateAppSecret)
+        }
       }
 
-      const response = await ofetch(`${evaluateAppUrl}/api/evaluate`, {
+      if (!targetUrl || !uploadSecret) {
+        throw new Error('No evaluation node configured: please add EvaluateNode in DB or set EVALUATE_APP_URL/EVALUATE_APP_UPLOAD_SECRET')
+      }
+
+      // 如果选中了节点，记录到提交上
+      if (pickedNode) {
+        await prisma.submission.update({
+          where: { id: job.data.submissionId },
+          data: { evaluateNodeId: pickedNode.id }
+        })
+      }
+
+      // 发送到 evaluateapp API 端点（Fire-and-forget 模式）
+      console.log(`[Worker] Dispatching submission ${job.data.submissionId} to evaluateapp node: ${pickedNode ? pickedNode.name : 'fallback-env'}`)
+
+      const response = await ofetch(`${targetUrl}/api/evaluate`, {
         method: 'POST',
         body: formData,
         headers: {
-          Authorization: `Bearer ${evaluateAppUploadSecret}`
+          Authorization: `Bearer ${uploadSecret}`
         }
       })
 
-      console.log(`[Worker] Successfully dispatched submission ${job.data.submissionId} to evaluateapp:`, response)
+      console.log(`[Worker] Successfully dispatched submission ${job.data.submissionId} to evaluateapp node: ${pickedNode ? pickedNode.name : 'fallback-env'}`, response)
+
+      // 6. 调度超时检查任务，避免长时间无回调导致一直显示评测中
+      const timeoutMs = parseInt((config as any).evaluationTimeoutMs as any) || 15 * 60 * 1000
+      await addEvaluationTimeoutJob(job.data.submissionId, timeoutMs)
 
       // 注意：我们不再等待最终评测结果，evaluateapp 会通过回调API发送结果
 
@@ -235,7 +320,7 @@ export default async () => {
         where: { id: job.data.submissionId },
         data: {
           status: 'ERROR',
-          logs: `Failed to dispatch to evaluation service: ${error.message}`,
+          executionLogs: `Failed to dispatch to evaluation service: ${error.message}`,
           judgedAt: new Date()
         }
       })
@@ -247,6 +332,8 @@ export default async () => {
     connection: redisConnection,
     concurrency: 5 // 同时处理5个任务
   })
+
+  // 事件日志
 
   worker.on('completed', (job) => {
     console.log(`Job ${job.id} completed`)
