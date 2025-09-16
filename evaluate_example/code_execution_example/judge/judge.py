@@ -38,7 +38,7 @@ def evaluate(submission_path: str, judge_data_path: str, **kwargs) -> dict:
         shutil.copy2(train_csv, os.path.join(sandbox_dir, "train.csv"))
         # 将用户脚本复制到沙箱目录，确保以相对路径执行可找到
         shutil.copy2(user_script_path, os.path.join(sandbox_dir, "main.py"))
-        logs.append("已创建沙箱工作目录并复制 train.csv。")
+        logs.append("已创建沙箱工作目录并复制 train.csv 和 main.py。")
 
         # 启动用户进程（工作目录指向沙箱）
         agent = subprocess.Popen(
