@@ -1,46 +1,6 @@
 
 title: "示例题目：代码执行-线性回归 (函数内训练模式)"
 shortDescription: "一个简单的线性回归任务，演示如何在一个函数内完成训练和预测。"
-detailedDescription: |
-  ### 任务描述
-  欢迎来到代码执行评测示例！本次任务是构建一个简单的线性回归模型。
-  你需要在一个函数内完成模型训练和对测试数据的预测。
-
-  ### 数据说明
-  评测环境会将 `train.csv` 文件与你的 `main.py` 放在同一个目录下。你可以在 "数据集" 标签页下载 `data.zip` 以查看数据格式。
-  - `train.csv`: 训练数据，包含 `feature` 和 `target` 两列。
-  - `test.csv`: 测试数据，其内容将通过函数参数 `test_df` 传入。
-
-  ### 提交要求 (重要！)
-  你需要提交一个包含 `main.py` 脚本的 `zip` 压缩包。评测系统希望你的 `main.py` 中包含一个名为 `predict` 的函数。
-
-  **你的所有逻辑，包括读取训练数据、训练模型和进行预测，都应该在这个函数内部完成。**
-
-  函数定义如下：
-  ```python
-  import pandas as pd
-
-  def predict(test_df: pd.DataFrame) -> pd.DataFrame:
-      """
-      读取训练数据、训练模型，并对传入的测试数据进行预测。
-
-      参数:
-      test_df (pd.DataFrame): 测试数据，包含 'id' 和 'feature' 列。
-
-      返回:
-      pd.DataFrame: 预测结果，必须包含 'id' 和 'prediction' 两列。
-      """
-      # 1. 在这里读取 'train.csv' 文件
-      # 2. 在这里训练你的模型
-      # 3. 在这里使用训练好的模型进行预测
-      # 4. 返回包含 'id' 和 'prediction' 的 DataFrame
-      pass
-  ```
-
-  ### 评测指标
-  评测系统将使用 均方误差 (Mean Squared Error, MSE) 来评估你的预测结果。MSE 越小，表示模型性能越好。
-  最终得分计算公式为：`Score = max(0, 100 - MSE)`。
-
 startTime: "2024-01-01T00:00:00Z"
 endTime: "2026-12-31T23:59:59Z"
 score: 100

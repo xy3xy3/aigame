@@ -332,11 +332,23 @@ async function processProblemFile(file: any, competitionId: string, mode: string
         datasetUrl = getPublicFileUrl('aigame', objectName)
     }
 
+    // Prefer desc.md in the package for detailedDescription; fallback to YAML field
+    let detailedDescriptionFromMd: string | null = null
+    // root key usually 'desc.md'; ensure we also handle potential prefixed paths just in case
+    const descMdEntry = Object.keys(extractedFiles).find((k) => k === 'desc.md' || k.endsWith('/desc.md'))
+    if (descMdEntry && extractedFiles[descMdEntry] instanceof Buffer) {
+        try {
+            detailedDescriptionFromMd = extractedFiles[descMdEntry].toString('utf-8')
+        } catch {
+            detailedDescriptionFromMd = null
+        }
+    }
+
     // Prepare problem data for database
     const problemDbData: any = {
         title: problemData.title,
         shortDescription: problemData.shortDescription || '',
-        detailedDescription: problemData.detailedDescription || '',
+        detailedDescription: detailedDescriptionFromMd ?? (problemData.detailedDescription || ''),
         competitionId: competitionId,
         datasetUrl: datasetUrl,
         judgingScriptUrl: judgingScriptUrl,

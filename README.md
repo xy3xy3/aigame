@@ -62,6 +62,49 @@ cd webapp
 pnpm dev
 ```
 
+## 题目开发与打包
+
+题目目录使用统一结构，便于快速打包和在后台上传：
+
+```
+evaluate_example/
+  task_name/
+    judge/           # 评测脚本 judge.py 及参考标签/文件
+    data/            # 可选，提供给选手下载的数据集
+    test_submit/     # 提交示例（示例结果或代码骨架）
+    problem.yml      # 元信息（标题/简介/起止时间/分值等）
+    desc.md          # 题目详细描述（Markdown）
+```
+
+注意：detailedDescription 已从 problem.yml 分离为独立的 desc.md 文件。后台批量上传会优先读取压缩包中的 desc.md。
+
+### 创建与打包
+
+- 在 `evaluate_example/` 中新增你的题目文件夹（英文名）。
+- 将 `judge.py` 和参考标签等放入 `judge/`，示例提交放入 `test_submit/`，可选数据集放入 `data/`。
+- 在根目录填写 `problem.yml`（无 detailedDescription 字段）以及 `desc.md`（Markdown）。
+- 使用打包脚本生成上传包：
+
+```bash
+cd evaluate_example
+python3 pack.py path/to/task_name
+# 或者批量打包当前目录下所有题目
+python3 pack.py --all --root .
+```
+
+脚本会在题目目录内生成三类子包：`judge.zip`、`test_submit.zip`、`data.zip`（可选），并最终生成 `task_name.zip`（包含上述子包 + problem.yml + desc.md）。
+
+### 后台上传与模式选择（建议）
+
+- 训练耗时较长（“训练久”）的题目：建议采用“标签上传”思路——选手线下训练，线上仅上传预测结果（例如 `results.csv`/`results.json`）。
+  - 在 `judge/` 内放置参考标签文件，`judge.py` 做结果对齐与评分。
+  - `test_submit/` 提供一个可直接压缩上传的结果示例。
+- 训练较快（“训练快”）的题目：建议采用“文件上传”思路——选手上传可执行代码，线上快速运行并评分。
+  - 在 `test_submit/` 提供最小可运行示例代码骨架（如 `main.py`）。
+  - `judge.py` 负责拉起/校验代码产出的结果并打分。
+
+最后在“管理后台 → 题目管理 → 批量上传”页面上传 `task_name.zip` 即可；若同名题目需更新，可选择“覆盖”。
+
 ## 脚本
 
 项目包含一些用于数据库初始化和数据生成的辅助脚本，位于 `webapp/scripts` 目录下。
