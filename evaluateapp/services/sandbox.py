@@ -101,7 +101,6 @@ def _execute_judge_code(
             error_info = f"执行评测的工作进程发生异常: {type(e).__name__}: {e}\n{traceback.format_exc()}"
             return {"status": "ERROR", "score": 0.0, "logs": error_info}
 
-# ... (文件的其余部分: post_results_to_webapp, run_in_sandbox_and_callback 等保持不变)
 async def post_results_to_webapp(submission_id: str, result: dict):
     """向 webapp 发送回调请求"""
     headers = {

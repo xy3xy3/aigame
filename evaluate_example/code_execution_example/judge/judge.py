@@ -1,105 +1,123 @@
 import os
 import sys
+import json
+import shutil
+import tempfile
+import subprocess
 import pandas as pd
 from sklearn.metrics import mean_squared_error
-import importlib.util
 import traceback
-import contextlib # 1. 导入所需模块
-import io          # 1. 导入所需模块
+
 
 def evaluate(submission_path: str, judge_data_path: str, **kwargs) -> dict:
     """
-    评测逻辑 (函数导入模式):
-    1. 动态导入用户提交的 main.py 模块。
-    2. 检查模块中是否存在 'predict' 函数。
-    3. 加载测试数据和标准答案。
-    4. 调用用户的 'predict' 函数并获取预测结果。
-    5. 验证预测结果的格式。
-    6. 计算均方误差 (MSE) 并转换为最终分数。
-
-    安全增强：在执行用户代码时，将其标准输出(stdout)重定向，以防止通过 print 进行环境侦察。
+    代码执行-线性回归（进程隔离 + JSON Lines 协议）
+    - Judge 通过 stdin/stdout 给 Agent 一次性下发测试样本，请求预测。
+    - 为避免数据泄露，仅将 train.csv 拷贝至 Agent 的工作目录，不提供 ground_truth.csv。
     """
-    logs = []
+    logs: list[str] = []
     score = 0.0
-    user_module = None
+    agent: subprocess.Popen[str] | None = None
+    sandbox_dir: str | None = None
 
     try:
-        # 定义文件路径
-        # 在新的沙箱环境中，所有文件都在同一目录
-        user_script_path = os.path.join(submission_path, 'main.py')
-        test_data_path = os.path.join(judge_data_path, 'test.csv')
-        ground_truth_path = os.path.join(judge_data_path, 'ground_truth.csv')
-
+        user_script_path = os.path.join(submission_path, "main.py")
+        test_csv = os.path.join(judge_data_path, "test.csv")
+        truth_csv = os.path.join(judge_data_path, "ground_truth.csv")
+        train_csv = os.path.join(judge_data_path, "train.csv")
         if not os.path.exists(user_script_path):
             raise FileNotFoundError("提交的压缩包中未找到 'main.py'。")
 
-        # --- 用户代码执行区域 ---
-        # 准备一个临时的输出缓冲区来捕获并丢弃用户的 print 内容
-        f = io.StringIO()
+        # 读取评测侧数据
+        test_df = pd.read_csv(test_csv)
+        truth_df = pd.read_csv(truth_csv)
+        logs.append("已加载测试集与标准答案。")
 
-        # 2. 使用 with 语句块包裹所有可能执行用户代码的操作
-        with contextlib.redirect_stdout(f):
-            # 1. 动态导入用户模块
-            # 这一步会执行用户 main.py 中的所有顶层代码
-            logs.append(f"正在动态导入用户模块: {user_script_path} (用户 print 已静默)")
-            spec = importlib.util.spec_from_file_location("user_main", user_script_path)
-            if spec is None:
-                raise ImportError("无法为 user_main 创建模块规范。")
-            user_module = importlib.util.module_from_spec(spec)
-            sys.modules["user_main"] = user_module
-            spec.loader.exec_module(user_module)
-            logs.append("用户模块导入成功。")
+        # 为 Agent 创建最小沙箱，仅复制 train.csv（不包含 ground_truth.csv）
+        sandbox_dir = tempfile.mkdtemp(prefix="agent_sbx_")
+        shutil.copy2(train_csv, os.path.join(sandbox_dir, "train.csv"))
+        logs.append("已创建沙箱工作目录并复制 train.csv。")
 
-            # 2. 检查 'predict' 函数是否存在
-            if not hasattr(user_module, 'predict') or not callable(user_module.predict):
-                raise AttributeError("提交的 'main.py' 中未找到可调用的 'predict' 函数。")
-            logs.append("'predict' 函数找到。")
+        # 启动用户进程（工作目录指向沙箱）
+        agent = subprocess.Popen(
+            [sys.executable, user_script_path],
+            cwd=sandbox_dir,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
+            bufsize=1,
+        )
 
-            # 3. 加载数据 (这部分不涉及用户代码，可以在外面，但为了逻辑清晰放在一起)
-            test_df = pd.read_csv(test_data_path)
-            truth_df = pd.read_csv(ground_truth_path)
-            logs.append("测试数据和标准答案加载成功。")
+        # 工具函数
+        def send_command(command: str, params: dict | None = None) -> None:
+            assert agent is not None and agent.stdin is not None
+            msg = {"command": command}
+            if params:
+                msg["params"] = params
+            agent.stdin.write(json.dumps(msg) + "\n")
 
-            # 4. 调用用户的 predict 函数
-            # 这一步会执行 predict 函数内部的代码
-            logs.append("正在调用用户的 'predict' 函数... (用户 print 已静默)")
-            pred_df = user_module.predict(test_df.copy())
-            logs.append("'predict' 函数执行完毕。")
+        def receive_json() -> dict:
+            assert agent is not None and agent.stdout is not None
+            line = agent.stdout.readline()
+            if not line:
+                raise EOFError("Agent 进程未返回数据（可能已退出/崩溃）。")
+            return json.loads(line)
 
-        # --- 用户代码执行结束，stdout 恢复正常 ---
+        # 发送预测请求（一次性下发测试样本）
+        test_records = test_df[["id", "feature"]].to_dict(orient="records")
+        send_command("predict", {"test": test_records})
+        logs.append("已向 Agent 发送预测请求（JSON Lines）。")
 
-        # 5. 验证返回结果
-        if not isinstance(pred_df, pd.DataFrame):
-            raise TypeError(f"'predict' 函数必须返回一个 pandas DataFrame，但返回了 {type(pred_df)}。")
-        if 'id' not in pred_df.columns or 'prediction' not in pred_df.columns:
-            raise ValueError("返回的 DataFrame 必须包含 'id' 和 'prediction' 列。")
-        logs.append("预测结果格式验证通过。")
+        resp = receive_json()
+        if "predictions" not in resp or not isinstance(resp["predictions"], list):
+            raise ValueError("Agent 返回的数据缺少 'predictions' 列表。")
 
-        # 6. 合并与计算
-        merged_df = pd.merge(truth_df, pred_df, on='id', suffixes=('_true', '_pred'))
+        pred_df = pd.DataFrame(resp["predictions"])  # 需要包含 id, prediction
+        if "id" not in pred_df.columns or "prediction" not in pred_df.columns:
+            raise ValueError("Agent 返回的 predictions 必须包含 'id' 与 'prediction' 字段。")
+        logs.append("已收到 Agent 预测结果。")
 
+        # 结束 Agent
+        send_command("terminate")
+        if agent.stdin:
+            agent.stdin.close()
+        agent.wait(timeout=5)
+
+        # 评测
+        merged_df = pd.merge(truth_df, pred_df, on="id", suffixes=("_true", "_pred"))
         if len(merged_df) != len(truth_df):
-            logs.append(f"警告：提交结果的 ID 与标准答案不完全匹配。仅评测匹配上的 {len(merged_df)} 条数据。")
-
+            logs.append(
+                f"警告：ID 对齐不完整，仅评测匹配到的 {len(merged_df)}/{len(truth_df)} 行。"
+            )
         if len(merged_df) == 0:
-            raise ValueError("提交结果的 ID 与标准答案完全不匹配，无法评测。")
+            raise ValueError("提交结果与标准答案无任何匹配行，无法评测。")
 
-        mse = mean_squared_error(merged_df['target'], merged_df['prediction'])
-        logs.append(f"\n评测指标: 均方误差 (MSE) = {mse:.4f}")
-
-        score = max(0, 100 - mse)
-        logs.append(f"最终得分: Score = max(0, 100 - MSE) = {score:.2f}")
+        mse = mean_squared_error(merged_df["target"], merged_df["prediction"])
+        logs.append(f"评测指标: MSE = {mse:.4f}")
+        score = max(0.0, 100.0 - float(mse))
+        logs.append(f"最终得分: max(0, 100 - MSE) = {score:.2f}")
 
     except Exception as e:
-        # 异常信息通过 stderr 抛出，所以不受影响
         logs.append("\n--- 评测过程中发生严重错误 ---")
         logs.append(f"错误类型: {type(e).__name__}")
         logs.append(f"错误信息: {e}")
-        logs.append("详细追溯信息:")
         logs.append(traceback.format_exc())
+        if agent and agent.poll() is None and agent.stderr is not None:
+            try:
+                logs.append("\n--- Agent Stderr ---")
+                logs.append(agent.stderr.read())
+            except Exception:
+                pass
         score = 0.0
+    finally:
+        if agent and agent.poll() is None:
+            agent.kill()
+        if sandbox_dir and os.path.isdir(sandbox_dir):
+            try:
+                shutil.rmtree(sandbox_dir)
+            except Exception:
+                pass
 
-    return {
-        "score": float(score),
-        "logs": "\n".join(logs)
-    }
+    return {"score": float(score), "logs": "\n".join(logs)}

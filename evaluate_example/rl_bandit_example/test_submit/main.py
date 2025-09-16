@@ -1,13 +1,17 @@
 """
-示例提交：Epsilon-Greedy 多臂老虎机 Agent
+交互式提交：Epsilon-Greedy 多臂老虎机 Agent（JSON Lines 协议）
 
-接口要求：
-- reset(self, n_arms: int, seed: int | None = None) -> None
-- select_action(self) -> int
-- update(self, action: int, reward: float) -> None
+协议：
+- Judge -> Agent: {"command": "reset", "params": {"n_arms": int, "seed": int}}
+- Judge -> Agent: {"command": "select_action"}
+- Agent -> Judge: {"action": int}
+- Judge -> Agent: {"command": "update", "params": {"action": int, "reward": float}}
+- Judge -> Agent: {"command": "terminate"}
 """
 
 from __future__ import annotations
+import sys
+import json
 import random
 from typing import List, Optional
 
@@ -51,17 +55,31 @@ class Agent:
         self.values[action] += (reward - self.values[action]) / n
 
 
-if __name__ == "__main__":
-    # 本地小测试：随机奖励
-    agent = Agent(5, epsilon=0.1)
-    import random as _r
-    probs = [0.1, 0.2, 0.8, 0.3, 0.5]
-    rng = _r.Random(0)
-    total = 0
-    for _ in range(200):
-        a = agent.select_action()
-        r = 1.0 if rng.random() < probs[a] else 0.0
-        agent.update(a, r)
-        total += r
-    print("avg_reward=", total / 200)
+def run_agent() -> None:
+    agent = Agent()
+    while True:
+        line = sys.stdin.readline()
+        if not line:
+            break
+        try:
+            msg = json.loads(line)
+        except Exception:
+            # 忽略无法解析的行
+            continue
 
+        cmd = msg.get("command")
+        params = msg.get("params", {})
+
+        if cmd == "reset":
+            agent.reset(**params)
+        elif cmd == "select_action":
+            action = agent.select_action()
+            print(json.dumps({"action": action}), flush=True)
+        elif cmd == "update":
+            agent.update(**params)
+        elif cmd == "terminate":
+            break
+
+
+if __name__ == "__main__":
+    run_agent()
