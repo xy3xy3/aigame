@@ -134,4 +134,5 @@ def read_root():
 if __name__ == "__main__":
     import uvicorn
     # 启动FastAPI应用
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level="info")
+    # 重要：直接传入 app 对象，避免 uvicorn 再次导入模块导致重复挂载
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
