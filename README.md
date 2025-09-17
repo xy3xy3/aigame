@@ -74,6 +74,12 @@ cd webapp
 pnpm dev
 ```
 
+### prisma重新生成
+```shell
+pnpm prisma generate
+pnpm prisma db push
+```
+
 ## 题目开发与打包
 
 题目目录使用统一结构，便于快速打包和在后台上传：

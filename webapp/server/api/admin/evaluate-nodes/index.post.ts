@@ -9,10 +9,10 @@ export default defineEventHandler(async (event) => {
   requireAdminRole(user)
 
   const body = await readBody(event)
-  const { name, baseUrl, uploadSecret, callbackSecret, callbackUrl, active } = body || {}
+  const { name, baseUrl, sharedSecret, callbackUrl, active } = body || {}
 
-  if (!name || !baseUrl || !uploadSecret || !callbackSecret) {
-    throw createError({ statusCode: 400, statusMessage: 'Missing required fields: name, baseUrl, uploadSecret, callbackSecret' })
+  if (!name || !baseUrl || !sharedSecret) {
+    throw createError({ statusCode: 400, statusMessage: 'Missing required fields: name, baseUrl, sharedSecret' })
   }
 
   try {
@@ -20,8 +20,7 @@ export default defineEventHandler(async (event) => {
       data: {
         name,
         baseUrl,
-        uploadSecret,
-        callbackSecret,
+        sharedSecret,
         callbackUrl,
         active: active !== undefined ? Boolean(active) : true,
       }
@@ -35,4 +34,3 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'Failed to create evaluate node' })
   }
 })
-

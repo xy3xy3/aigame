@@ -94,15 +94,10 @@
                 <input v-model="form.callbackUrl" type="text" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="http://webapp-host:3000" />
                 <p class="text-xs text-gray-500 mt-1">将会在节点侧拼接 /api/submissions/callback</p>
               </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">上传密钥 (uploadSecret) *</label>
-                  <input v-model="form.uploadSecret" type="text" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
-                </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">回调密钥 (callbackSecret) *</label>
-                  <input v-model="form.callbackSecret" type="text" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
-                </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">统一密钥 (sharedSecret) *</label>
+                <input v-model="form.sharedSecret" type="text" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                <p class="text-xs text-gray-500 mt-1">用于请求/回调的签名校验，不会明文传输</p>
               </div>
               <div class="flex items-center">
                 <input id="node-active" v-model="form.active" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
@@ -155,22 +150,21 @@ const form = ref({
   id: '',
   name: '',
   baseUrl: '',
-  uploadSecret: '',
-  callbackSecret: '',
+  sharedSecret: '',
   callbackUrl: '',
   active: true,
 })
 
 function openCreate() {
   editing.value = false
-  form.value = { id: '', name: '', baseUrl: '', uploadSecret: '', callbackSecret: '', callbackUrl: '', active: true }
+  form.value = { id: '', name: '', baseUrl: '', sharedSecret: '', callbackUrl: '', active: true }
   showModal.value = true
 }
 
 function openEdit(node) {
   editing.value = true
   selected.value = node
-  form.value = { id: node.id, name: node.name, baseUrl: node.baseUrl, uploadSecret: node.uploadSecret, callbackSecret: node.callbackSecret, callbackUrl: node.callbackUrl || '', active: node.active }
+  form.value = { id: node.id, name: node.name, baseUrl: node.baseUrl, sharedSecret: node.sharedSecret, callbackUrl: node.callbackUrl || '', active: node.active }
   showModal.value = true
 }
 
@@ -225,4 +219,3 @@ function formatDate(input) {
   return new Date(input).toLocaleString('zh-CN')
 }
 </script>
-

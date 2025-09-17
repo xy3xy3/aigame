@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event)
-  const { name, baseUrl, uploadSecret, callbackSecret, callbackUrl, active } = body || {}
+  const { name, baseUrl, sharedSecret, callbackUrl, active } = body || {}
 
   try {
     const node = await prisma.evaluateNode.update({
@@ -22,8 +22,7 @@ export default defineEventHandler(async (event) => {
       data: {
         ...(name !== undefined ? { name } : {}),
         ...(baseUrl !== undefined ? { baseUrl } : {}),
-        ...(uploadSecret !== undefined ? { uploadSecret } : {}),
-        ...(callbackSecret !== undefined ? { callbackSecret } : {}),
+        ...(sharedSecret !== undefined ? { sharedSecret } : {}),
         ...(callbackUrl !== undefined ? { callbackUrl } : {}),
         ...(active !== undefined ? { active: Boolean(active) } : {}),
       }
@@ -34,4 +33,3 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, statusMessage: 'Failed to update evaluate node' })
   }
 })
-

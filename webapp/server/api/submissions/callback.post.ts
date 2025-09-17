@@ -2,6 +2,7 @@ import { z } from 'zod'
 import prisma from '../../utils/prisma'
 import { cancelEvaluationTimeoutJob } from '../../utils/queue-manager'
 import { SubmissionStatus } from '@prisma/client'
+import crypto from 'crypto'
 
 // Zod v3 中，为原始类型（string, number）提供自定义错误消息的正确方式
 // 并且解决 nativeEnum 的弃用警告 (虽然它仍然是与 Prisma 枚举配合使用的最直接方式)
@@ -89,19 +90,16 @@ async function recalculateRanks(leaderboardId: string): Promise<void> {
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
 
-  // 1. 安全检查
-  const authHeader = getHeader(event, 'Authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Missing or invalid authorization header' })
+  // 1. 验证签名头
+  const tsHeader = getHeader(event, 'x-timestamp')
+  const signHeader = getHeader(event, 'x-sign')
+  const providedContentHash = getHeader(event, 'x-content-hash')
+  if (!tsHeader || !signHeader) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Missing signature headers' })
   }
-  const authToken = authHeader.split(' ')[1]
-  // 支持多评测节点：优先在数据库中查找匹配的回调密钥，其次回退到单一密钥
-  const matchedNode = await prisma.evaluateNode.findFirst({
-    where: { callbackSecret: authToken }
-  })
-  const fallbackSecret = config.evaluateAppSecret
-  if (!matchedNode && authToken !== fallbackSecret) {
-    throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Invalid callback secret' })
+  const tsNum = parseInt(tsHeader)
+  if (!tsNum || Math.abs(Date.now() / 1000 - tsNum) > 600) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Signature expired' })
   }
 
   // 2. 解析和验证请求体
@@ -121,15 +119,42 @@ export default defineEventHandler(async (event) => {
 
   const { submissionId, status, score, logs } = validation.data
 
+  // 2.1 获取内容哈希：优先使用客户端提供的 X-Content-Hash，兼容不同语言的浮点格式差异
+  let contentHash = providedContentHash || ''
+  if (!contentHash) {
+    function canonicalize(obj: any): string {
+      if (obj === null || typeof obj !== 'object') return JSON.stringify(obj)
+      if (Array.isArray(obj)) return '[' + obj.map(canonicalize).join(',') + ']'
+      const keys = Object.keys(obj).sort()
+      return '{' + keys.map(k => JSON.stringify(k) + ':' + canonicalize(obj[k])).join(',') + '}'
+    }
+    const payloadStr = canonicalize({ submissionId, status, score, logs })
+    contentHash = crypto.createHash('sha256').update(payloadStr).digest('hex')
+  }
+
+  // 2.2 获取候选密钥：优先提交关联节点，其次所有激活节点，最后环境变量回退
+  const candidateSecrets: string[] = []
+  const submissionRecord = await prisma.submission.findUnique({ where: { id: submissionId }, select: { evaluateNodeId: true } })
+  if (submissionRecord?.evaluateNodeId) {
+    const node = await prisma.evaluateNode.findUnique({ where: { id: submissionRecord.evaluateNodeId }, select: { sharedSecret: true } })
+    if (node?.sharedSecret) candidateSecrets.push(node.sharedSecret)
+  } else {
+    const nodes = await prisma.evaluateNode.findMany({ where: { active: true }, select: { sharedSecret: true } })
+    for (const n of nodes) if (n.sharedSecret) candidateSecrets.push(n.sharedSecret)
+  }
+  if ((config as any).evaluateAppSecret) candidateSecrets.push((config as any).evaluateAppSecret as string)
+
+  const valid = candidateSecrets.some(secret => {
+    const expected = crypto.createHmac('sha256', secret).update(`${tsHeader}\n${contentHash}`).digest('hex')
+    return expected === signHeader
+  })
+  if (!valid) {
+    throw createError({ statusCode: 401, statusMessage: 'Unauthorized: Invalid signature' })
+  }
+
   // 3. 更新数据库
   try {
-    // 如果回调来自已知节点且该提交尚未记录节点，则补齐节点记录
-    if (matchedNode) {
-      await prisma.submission.updateMany({
-        where: { id: submissionId, evaluateNodeId: null },
-        data: { evaluateNodeId: matchedNode.id }
-      })
-    }
+    // 签名通过，无需回填节点（如需，也可通过 submission.evaluateNodeId 已有记录）
 
     const updateResult = await prisma.submission.updateMany({
       where: { id: submissionId },

@@ -261,20 +261,34 @@ def _execute_judge_code(
             error_info = f"执行评测的工作进程发生异常: {type(e).__name__}: {e}\n{traceback.format_exc()}"
             return {"status": "ERROR", "score": 0.0, "logs": error_info}
 
-async def post_results_to_webapp(submission_id: str, result: dict):
-    """向 webapp 发送回调请求"""
+import hashlib, hmac, json
+
+async def post_results_to_webapp(submission_id: str, result: dict, callback_url: str):
+    """向 webapp 发送回调请求（签名）"""
+    payload = {"submissionId": submission_id, **result}
+    # canonical json
+    def canonical(obj):
+        if obj is None or not isinstance(obj, (dict, list)):
+            return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+        if isinstance(obj, list):
+            return "[" + ",".join(canonical(x) for x in obj) + "]"
+        keys = sorted(obj.keys())
+        return "{" + ",".join(json.dumps(k, ensure_ascii=False) + ":" + canonical(obj[k]) for k in keys) + "}"
+    payload_str = canonical(payload)
+    content_hash = hashlib.sha256(payload_str.encode("utf-8")).hexdigest()
+    import time
+    ts = str(int(time.time()))
+    sign = hmac.new(settings.SHARED_SECRET.encode("utf-8"), f"{ts}\n{content_hash}".encode("utf-8"), hashlib.sha256).hexdigest()
     headers = {
-        "Authorization": f"Bearer {settings.WEBAPP_CALLBACK_SECRET}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "submissionId": submission_id,
-        **result
+        "Content-Type": "application/json",
+        "X-Timestamp": ts,
+        "X-Sign": sign,
+        "X-Content-Hash": content_hash,
     }
     print(f"[Callback] Sending results for submission {submission_id}: {json.dumps(payload)}")
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(settings.WEBAPP_CALLBACK_URL, json=payload, headers=headers, timeout=30.0)
+            response = await client.post(callback_url, json=payload, headers=headers, timeout=30.0)
             response.raise_for_status()
             print(f"[Callback] Successfully sent callback for submission {submission_id}")
         except httpx.HTTPStatusError as e:
@@ -290,7 +304,8 @@ async def run_in_sandbox_and_callback(
     submission_data: bytes,
     judge_data: bytes,
     semaphore: asyncio.Semaphore,
-    executor: ProcessPoolExecutor
+    executor: ProcessPoolExecutor,
+    callback_url: str,
 ):
     """
     准备环境，在工作进程中执行评测，然后调用回调函数发送结果。
@@ -316,4 +331,4 @@ async def run_in_sandbox_and_callback(
                 str(judge_dir),
             )
             print(f"[Sandbox] Evaluation completed for submission {submission_id}: {result_dict.get('status', 'UNKNOWN')}")
-        await post_results_to_webapp(submission_id, result_dict)
+        await post_results_to_webapp(submission_id, result_dict, callback_url)

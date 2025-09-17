@@ -4,6 +4,7 @@ import prisma from '../utils/prisma'
 import { useRuntimeConfig } from '#imports'
 import { downloadFile } from '../utils/minio'
 import { ofetch } from 'ofetch'
+import crypto from 'crypto'
 import { addLeaderboardSyncJob } from './leaderboard-sync'
 import { addEvaluationTimeoutJob } from '../utils/queue-manager'
 
@@ -245,44 +246,37 @@ export default async () => {
 
       // 5. 选择评测节点：优先从数据库中选择激活的节点，若无则回退到环境变量
       let targetUrl: string | undefined
-      let uploadSecret: string | undefined
+      let sharedSecret: string | undefined
       let pickedNode: { id: string, name: string } | null = null
 
-      const availableNodes = await prisma.evaluateNode.findMany({
+      const availableNodesRaw = await prisma.evaluateNode.findMany({
         where: { active: true },
-        select: { id: true, name: true, baseUrl: true, uploadSecret: true, callbackUrl: true, callbackSecret: true }
+        select: { id: true, name: true, baseUrl: true, sharedSecret: true, callbackUrl: true }
       })
+      const availableNodes = availableNodesRaw.filter(n => !!n.sharedSecret && n.sharedSecret.trim() !== '')
 
       if (availableNodes.length > 0) {
         const randomIndex = Math.floor(Math.random() * availableNodes.length)
         const node = availableNodes[randomIndex]
         pickedNode = { id: node.id, name: node.name }
         targetUrl = node.baseUrl
-        uploadSecret = node.uploadSecret
+        sharedSecret = node.sharedSecret!.trim()
         // 组装回调信息：优先节点配置，其次全局配置
         const callbackBase = node.callbackUrl || (config as any).webappBaseUrl as string | undefined
         if (callbackBase) {
           formData.append('callback_url', `${callbackBase.replace(/\/$/, '')}/api/submissions/callback`)
         }
-        if (node.callbackSecret) {
-          formData.append('callback_token', node.callbackSecret)
-        } else if ((config as any).evaluateAppSecret) {
-          formData.append('callback_token', (config as any).evaluateAppSecret)
-        }
       } else {
         targetUrl = fallbackEvaluateAppUrl
-        uploadSecret = fallbackEvaluateAppUploadSecret
+        sharedSecret = ((config as any).evaluateAppSecret || (config as any).evaluateAppUploadSecret || '').toString().trim()
         const callbackBase = (config as any).webappBaseUrl as string | undefined
         if (callbackBase) {
           formData.append('callback_url', `${callbackBase.replace(/\/$/, '')}/api/submissions/callback`)
         }
-        if ((config as any).evaluateAppSecret) {
-          formData.append('callback_token', (config as any).evaluateAppSecret)
-        }
       }
 
-      if (!targetUrl || !uploadSecret) {
-        throw new Error('No evaluation node configured: please add EvaluateNode in DB or set EVALUATE_APP_URL/EVALUATE_APP_UPLOAD_SECRET')
+      if (!targetUrl || !sharedSecret) {
+        throw new Error('No evaluation node configured: please add EvaluateNode.sharedSecret or set unified secret in env')
       }
 
       // 如果选中了节点，记录到提交上
@@ -294,17 +288,31 @@ export default async () => {
       }
 
       // 发送到 evaluateapp API 端点（Fire-and-forget 模式）
-      console.log(`[Worker] Dispatching submission ${job.data.submissionId} to evaluateapp node: ${pickedNode ? pickedNode.name : 'fallback-env'}`)
+      const secretSource = pickedNode ? 'node' : 'env'
+      console.log(`[Worker] Dispatching submission ${job.data.submissionId} to evaluateapp node: ${pickedNode ? pickedNode.name : 'fallback-env'} (secretSource=${secretSource})`)
+
+      // 生成签名：content_hash = sha256(submission_id + sha256(sub_zip) + sha256(judge_zip))
+      const sha256hex = (buf: Buffer | string) => crypto.createHash('sha256').update(buf).digest('hex')
+      const subHash = sha256hex(Buffer.from(submissionFileBuffer))
+      const judgeHash = sha256hex(Buffer.from(judgeFileBuffer))
+      const contentHash = sha256hex(`${job.data.submissionId}\n${subHash}\n${judgeHash}`)
+      const ts = Math.floor(Date.now() / 1000).toString()
+      const sign = crypto.createHmac('sha256', sharedSecret!).update(`${ts}\n${contentHash}`).digest('hex')
+
+      // 调试：在请求前打印签名材料
+      console.log(`[WorkerAuthDebug] submission_id=${job.data.submissionId} ts=${ts} sub_hash=${subHash} judge_hash=${judgeHash} content_hash=${contentHash} sign=${sign} secretSource=${secretSource}`)
 
       const response = await ofetch(`${targetUrl}/api/evaluate`, {
         method: 'POST',
         body: formData,
         headers: {
-          Authorization: `Bearer ${uploadSecret}`
+          'X-Timestamp': ts,
+          'X-Sign': sign
         }
       })
 
       console.log(`[Worker] Successfully dispatched submission ${job.data.submissionId} to evaluateapp node: ${pickedNode ? pickedNode.name : 'fallback-env'}`, response)
+      console.log(`[WorkerAuthDebug] submission_id=${job.data.submissionId} ts=${ts} sub_hash=${subHash} judge_hash=${judgeHash} content_hash=${contentHash} sign=${sign}`)
 
       // 6. 调度超时检查任务，避免长时间无回调导致一直显示评测中
       const timeoutMs = parseInt((config as any).evaluationTimeoutMs as any) || 15 * 60 * 1000
@@ -314,6 +322,9 @@ export default async () => {
 
     } catch (error: any) {
       console.error(`[Worker] Failed to dispatch submission ${job.data.submissionId}:`, error)
+      try {
+        console.error(`[WorkerAuthDebug] (onError) submission_id=${job.data.submissionId} ts=${Math.floor(Date.now()/1000)} sub_hash=${(crypto.createHash('sha256').update(Buffer.from(submissionFileBuffer)).digest('hex'))} judge_hash=${(crypto.createHash('sha256').update(Buffer.from(judgeFileBuffer)).digest('hex'))}`)
+      } catch {}
 
       // 如果调度失败，立即将状态更新为 ERROR
       await prisma.submission.update({
