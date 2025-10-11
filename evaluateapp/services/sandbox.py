@@ -8,7 +8,7 @@ import sys
 import os
 import shutil
 from concurrent.futures import ProcessPoolExecutor
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import stat
 import subprocess
 from string import Template
@@ -42,6 +42,44 @@ except KeyError:
     UNPRIVILEGED_GID = grp.getgrnam("nogroup").gr_gid
 
 from typing import Any, Optional
+
+
+MAX_ARCHIVE_MEMBER_SIZE = 512 * 1024 * 1024  # 512MB，与沙箱文件限制保持一致
+
+
+def _safe_extractall(zf: zipfile.ZipFile, target_dir: Path) -> None:
+    """Safely extract zip contents into target_dir, preventing Zip Slip."""
+    resolved_target = target_dir.resolve()
+    for member in zf.infolist():
+        member_path = PurePosixPath(member.filename)
+
+        if member_path.is_absolute() or any(part == ".." for part in member_path.parts):
+            raise ValueError(f"非法的压缩包路径: {member.filename}")
+
+        target_path = (resolved_target / Path(*member_path.parts)).resolve()
+        if resolved_target != target_path and not str(target_path).startswith(str(resolved_target) + os.sep):
+            raise ValueError(f"压缩包路径逃逸: {member.filename}")
+
+        if member.create_system == 3:
+            mode = member.external_attr >> 16
+            if stat.S_ISLNK(mode):
+                raise ValueError(f"不允许的符号链接: {member.filename}")
+
+        if member.file_size > MAX_ARCHIVE_MEMBER_SIZE:
+            raise ValueError(f"压缩包内文件过大: {member.filename} ({member.file_size} bytes)")
+
+        if member.is_dir() or member.filename.endswith("/"):
+            target_path.mkdir(parents=True, exist_ok=True)
+            continue
+
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        with zf.open(member) as source, open(target_path, "wb") as dest:
+            shutil.copyfileobj(source, dest)
+
+        if member.create_system == 3:
+            mode = member.external_attr >> 16
+            if mode:
+                os.chmod(target_path, mode & 0o777)
 try:
     import seccomp as sc  # 优先使用 python-seccomp
     _SECCOMP_PROVIDER = "seccomp"
@@ -321,9 +359,9 @@ async def run_in_sandbox_and_callback(
             submission_dir.mkdir()
             judge_dir.mkdir()
             with zipfile.ZipFile(io.BytesIO(submission_data)) as zf:
-                zf.extractall(submission_dir)
+                _safe_extractall(zf, submission_dir)
             with zipfile.ZipFile(io.BytesIO(judge_data)) as zf:
-                zf.extractall(judge_dir)
+                _safe_extractall(zf, judge_dir)
             result_dict = await loop.run_in_executor(
                 executor,
                 _execute_judge_code,
