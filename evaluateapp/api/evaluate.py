@@ -6,8 +6,13 @@ import hmac
 from concurrent.futures import ProcessPoolExecutor
 
 # 调整相对导入路径
-from services import sandbox
 from core.config import settings
+
+# 根据配置选择评测后端（CHROOT 或 DOCKER）
+if (settings.SANDBOX_BACKEND or "").strip().upper() == "DOCKER":
+    from services import docker_sandbox as sandbox
+else:
+    from services import sandbox
 from schemas.evaluation import EvaluationResponse
 
 router = APIRouter()

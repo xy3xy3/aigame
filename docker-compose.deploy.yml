@@ -1,5 +1,4 @@
 services:
-  # DB
   mongo:
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/mongodb/mongodb-community-server:8.0.13-ubuntu2204
     container_name: mongo
@@ -13,7 +12,7 @@ services:
       - MONGODB_INITDB_ROOT_USERNAME=root
       - MONGODB_INITDB_ROOT_PASSWORD=password
     volumes:
-      - ./data/mongo:/data/db  # 持久化数据目录
+      - ./data/mongo:/data/db
       - /etc/localtime:/etc/localtime:ro
       - ./data/mongodb.key:/etc/mongo/mongodb.key:ro
     command:
@@ -32,20 +31,20 @@ services:
     ports:
       - '6379:6379'
     environment:
-      - REDIS_PASSWORD=password  # Redis密码（根据镜像是否支持该环境变量调整，部分镜像需通过配置文件设置）
+      - REDIS_PASSWORD=password
       - TZ=Asia/Shanghai
     volumes:
-      - ./data/redis:/data  # 持久化数据目录
+      - ./data/redis:/data
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/timezone:ro
-    command: redis-server --requirepass password  # 启动时设置密码（若环境变量不生效时使用）
+    command: redis-server --requirepass password
   minio:
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/quay.io/minio/minio:latest
     container_name: minio
     restart: always
     networks:
       - aigame
-    ports: # comment out if you do not need to expose the port (in production environment, you should not expose the port)
+    ports:
       - '9000:9000'
       - '9001:9001'
     environment:
@@ -70,6 +69,10 @@ services:
     restart: always
     networks:
       - aigame
+    depends_on:
+      - mongo
+      - redis
+      - minio
     ports:
       - '8000:8000'
     environment:
@@ -77,10 +80,11 @@ services:
     env_file:
       - evaluateapp/.env
     volumes:
-      # allow EvaluateApp to control host Docker for running evaluation containers
+      # 允许容器内的 EvaluateApp 控制宿主机 Docker（用于启动评测容器）
       - /var/run/docker.sock:/var/run/docker.sock
-      # optional: system timezone
+      # 可选：时区
       - /etc/localtime:/etc/localtime:ro
       - /usr/share/zoneinfo/Asia/Shanghai:/etc/timezone:ro
 networks:
   aigame:
+

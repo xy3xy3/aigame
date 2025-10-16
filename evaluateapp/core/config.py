@@ -13,6 +13,17 @@ class Settings(BaseSettings):
     GRADIO_PATH: str = "/gradio"
     # 是否启用 Seccomp 过滤（默认关闭，避免阻断 exec 等系统调用）
     ENABLE_SECCOMP: bool = False
+    # 评测后端：CHROOT 或 DOCKER
+    SANDBOX_BACKEND: str = "CHROOT"
+
+    # Docker 评测相关配置（当 SANDBOX_BACKEND=DOCKER 时生效）
+    DOCKER_IMAGE: str = "swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/python:3.12-slim"
+    DOCKER_PULL: bool = False
+    DOCKER_SOCKET: str = "/var/run/docker.sock"  # 仅用于部署文档提示
+    DOCKER_MEMORY: str = "2g"
+    DOCKER_CPUS: float = 1.0  # 逻辑 CPU 数量限制
+    DOCKER_NETWORK_MODE: str = "none"  # 默认禁网
+    DOCKER_USER: str | None = None  # 例如 "65534:65534" 以 nobody 运行，None 表示镜像默认用户
 
     class Config:
         # 使用绝对路径加载 .env，避免工作目录变化导致无法读取

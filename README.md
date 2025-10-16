@@ -1,5 +1,25 @@
 # aigame
 
+## 两种 Docker Compose 方案（开发/部署）
+
+- 开发态（EvaluateApp 在宿主机运行）：`docker-compose.dev.yml`
+  - 仅启动依赖：MongoDB、Redis、MinIO；EvaluateApp 用 uv 在宿主机运行。
+  - 启动依赖：`docker compose -f docker-compose.dev.yml up -d`
+  - 启动 EvaluateApp：
+    - `cd evaluateapp && cp .env.example .env`（按需编辑 `.env`）
+    - 安装依赖：`uv sync`
+    - 运行服务：`uv run uvicorn main:app --host 0.0.0.0 --port 8000`
+    - 若评测走 Docker 后端，设置 `.env` 中 `SANDBOX_BACKEND=DOCKER` 且指定 `DOCKER_IMAGE=<你的评测镜像>`（宿主运行不支持 `self`）。
+
+- 部署态（EvaluateApp 在容器运行）：`docker-compose.deploy.yml`
+  - 启动：`docker compose -f docker-compose.deploy.yml up -d --build`
+  - 该方案会构建 `evaluateapp/docker/evaluateapp.Dockerfile`，镜像基于：
+    - `swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/python:3.12-slim`
+  - 容器默认 `SANDBOX_BACKEND=DOCKER` 且 `DOCKER_IMAGE=self`，评测容器会复用服务容器的 Python 环境与依赖。
+  - 依赖服务与 EvaluateApp 同网段 `aigame`，`evaluateapp` 暴露 `8000` 端口。
+
+> 说明：根目录原有 `docker-compose.yml` 保留兼容，推荐使用新文件分别在开发/部署环境中运行。
+
 ## 当前的docker服务
 
 Redis,Mongodb,minio
@@ -13,17 +33,25 @@ chmod 755 ./init.sh
 sh ./init.sh
 ```
 
-### 后续正常启动docker compose
+### 后续正常启动docker compose（推荐使用 dev/deploy 文件）
 
+开发态依赖：
 ```shell
-docker compose up -d
+docker compose -f docker-compose.dev.yml up -d
+```
+
+部署态服务：
+```shell
+docker compose -f docker-compose.deploy.yml up -d --build
 ```
 
 
-## python evaluate
+## python evaluate（宿主机运行 EvaluateApp）
 
-需要先安装uv，之后
+需要先安装 uv，之后
 ```shell
+cd evaluateapp
+cp .env.example .env
 uv sync
 ```
 
@@ -38,6 +66,13 @@ sudo chown root:root /opt/sandbox_jail
 sudo mkdir -p /opt/sandboxes
 sudo chmod 1777 /opt/sandboxes
 ```
+
+若要在宿主机上使用 Docker 作为评测后端：
+- 在 `evaluateapp/.env` 设置：`SANDBOX_BACKEND=DOCKER` 与 `DOCKER_IMAGE=<包含评测依赖的镜像>`。
+- 注意：`DOCKER_IMAGE=self` 仅在“EvaluateApp 以容器运行”时可用于复用服务容器镜像；
+  宿主机运行时如需与服务容器相同环境，可构建服务镜像并指定其 tag：
+  - `docker build -t aigame-eval:py312 -f evaluateapp/docker/evaluateapp.Dockerfile .`
+  - `.env` 中设置：`DOCKER_IMAGE=aigame-eval:py312`
 
 
 ## Nuxt Web APP
