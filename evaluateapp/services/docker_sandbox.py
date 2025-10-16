@@ -64,12 +64,48 @@ def _resolve_self_image(client) -> str | None:
                 rm=True,
                 pull=False,
                 forcerm=True,
+                decode=True,
             )
-            # optional: print brief build log summary
+            # print docker build progress logs
             try:
-                # consume generator if returned as such
-                for _ in build_logs or []:
-                    pass
+                for chunk in (build_logs or []):
+                    try:
+                        if isinstance(chunk, (bytes, bytearray)):
+                            text = chunk.decode("utf-8", errors="replace")
+                            if text.strip():
+                                print(f"[DockerBuild] {text}", end="", flush=True)
+                            continue
+                        if isinstance(chunk, dict):
+                            if "stream" in chunk and chunk["stream"]:
+                                msg = str(chunk["stream"])
+                                print(f"[DockerBuild] {msg}", end="", flush=True)
+                                continue
+                            # status / progress lines
+                            status = chunk.get("status")
+                            prog = chunk.get("progress") or chunk.get("progressDetail")
+                            cid = chunk.get("id")
+                            if status or prog or cid:
+                                line = f"[DockerBuild] {cid + ' ' if cid else ''}{status or ''}"
+                                if isinstance(prog, dict) and prog:
+                                    cur = prog.get("current")
+                                    total = prog.get("total")
+                                    if total:
+                                        line += f" {cur or 0}/{total}"
+                                elif isinstance(prog, str):
+                                    line += f" {prog}"
+                                print(line, flush=True)
+                                continue
+                            if "errorDetail" in chunk or "error" in chunk:
+                                err = (chunk.get("errorDetail") or {}).get("message") or chunk.get("error")
+                                print(f"[DockerBuild][ERROR] {err}", flush=True)
+                                continue
+                        # Fallback
+                        text = str(chunk)
+                        if text.strip():
+                            print(f"[DockerBuild] {text}", flush=True)
+                    except Exception:
+                        # never break the build because of logging
+                        pass
             except Exception:
                 pass
             # Prefer resulting tag

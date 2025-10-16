@@ -8,13 +8,26 @@ ENV UV_LINK_MODE=copy \
     PYTHONUNBUFFERED=1 \
     OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 MALLOC_ARENA_MAX=2
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN set -eux; \
+    sed -i -e 's@deb.debian.org@mirrors.tuna.tsinghua.edu.cn@g' -e 's@security.debian.org@mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender1 \
+        libgl1 \
+        libgomp1 \
+    ; \
+    rm -rf /var/lib/apt/lists/*
 
-# Install uv (https://astral.sh/uv)
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
-    && ln -s /root/.local/bin/uv /usr/local/bin/uv
+# Use Tsinghua PyPI mirror and install uv via pip
+ENV PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
+    PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn \
+    PIP_NO_CACHE_DIR=1
+RUN python -m pip install --upgrade pip setuptools wheel \
+    && python -m pip install uv
 
 WORKDIR /app/evaluateapp
 
@@ -22,8 +35,8 @@ WORKDIR /app/evaluateapp
 COPY evaluateapp/pyproject.toml evaluateapp/uv.lock ./
 
 # Use uv to export locked requirements and install them into the system interpreter
-RUN uv export --no-dev --format requirements-txt -o /tmp/requirements.txt \
-    && uv pip install --system -r /tmp/requirements.txt \
+RUN uv export --no-dev --format requirements-txt --index https://pypi.tuna.tsinghua.edu.cn/simple -o /tmp/requirements.txt \
+    && uv pip install --system -r /tmp/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple \
     && rm -f /tmp/requirements.txt
 
 # Now copy the application source
