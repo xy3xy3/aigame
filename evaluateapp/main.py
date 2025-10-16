@@ -49,8 +49,12 @@ if settings.ENABLE_GRADIO:
         import tempfile
         from pathlib import Path
         import gradio as gr
-        # 复用沙箱执行核心逻辑，保持与正式评测一致
-        from services.sandbox import _execute_judge_code
+        # 根据后端选择同步评测函数（用于调试界面）
+        if (settings.SANDBOX_BACKEND or "").strip().upper() == "DOCKER":
+            from services.docker_sandbox import _run_in_docker_sync as _run_eval_sync
+        else:
+            # 复用沙箱执行核心逻辑，保持与正式评测一致
+            from services.sandbox import _execute_judge_code as _run_eval_sync
 
         def build_gradio_ui():
             def run_debug(submission_id: str, submission_zip_path: str, judge_zip_path: str):
@@ -96,7 +100,10 @@ if settings.ENABLE_GRADIO:
 
                         # 运行评测
                         yield emit("开始执行评测...")
-                        result = _execute_judge_code(str(submission_dir), str(judge_dir))
+                        # 根据后端选择执行评测：
+                        # - DOCKER: 在容器中运行
+                        # - CHROOT: 在本机沙箱中运行
+                        result = _run_eval_sync(submission_dir, judge_dir)
                         # 最终态：输出最终结果
                         logs_text = "\n".join(logs + [f"完成。状态: {result.get('status')} 分数: {result.get('score')}"])
                         yield logs_text, result
