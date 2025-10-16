@@ -56,31 +56,36 @@ def _resolve_self_image(client) -> str | None:
             dockerfile_rel = settings.DOCKER_SELF_DOCKERFILE or "evaluateapp/docker/evaluateapp.Dockerfile"
             dockerfile_path = dockerfile_rel
             tag = settings.DOCKER_SELF_TAG or "aigame-eval:self"
+            # Fast path: if image already exists, reuse directly
+            try:
+                cached = client.images.get(tag)
+                if cached:
+                    if getattr(cached, "tags", None):
+                        return cached.tags[0]
+                    return cached.id
+            except Exception:
+                pass
             print(f"[DockerSandbox] Building self image on host: context={context_path} dockerfile={dockerfile_path} tag={tag}")
-            image_obj, build_logs = client.images.build(
+            # Use low-level API for robust streaming logs
+            api = client.api
+            output = api.build(
                 path=str(context_path),
                 dockerfile=dockerfile_path,
                 tag=tag,
                 rm=True,
                 pull=False,
-                forcerm=True,
                 decode=True,
+                forcerm=True,
             )
             # print docker build progress logs
             try:
-                for chunk in (build_logs or []):
+                for chunk in output:
                     try:
-                        if isinstance(chunk, (bytes, bytearray)):
-                            text = chunk.decode("utf-8", errors="replace")
-                            if text.strip():
-                                print(f"[DockerBuild] {text}", end="", flush=True)
-                            continue
                         if isinstance(chunk, dict):
                             if "stream" in chunk and chunk["stream"]:
                                 msg = str(chunk["stream"])
                                 print(f"[DockerBuild] {msg}", end="", flush=True)
                                 continue
-                            # status / progress lines
                             status = chunk.get("status")
                             prog = chunk.get("progress") or chunk.get("progressDetail")
                             cid = chunk.get("id")
@@ -99,19 +104,30 @@ def _resolve_self_image(client) -> str | None:
                                 err = (chunk.get("errorDetail") or {}).get("message") or chunk.get("error")
                                 print(f"[DockerBuild][ERROR] {err}", flush=True)
                                 continue
-                        # Fallback
-                        text = str(chunk)
-                        if text.strip():
-                            print(f"[DockerBuild] {text}", flush=True)
+                        else:
+                            # Fallback text
+                            text = str(chunk)
+                            if text.strip():
+                                print(f"[DockerBuild] {text}", flush=True)
                     except Exception:
                         # never break the build because of logging
                         pass
             except Exception:
                 pass
-            # Prefer resulting tag
-            if getattr(image_obj, "tags", None):
-                return image_obj.tags[0]
-            return image_obj.id
+            # Ensure image exists and return tag/id
+            try:
+                built = client.images.get(tag)
+                if getattr(built, "tags", None):
+                    return built.tags[0]
+                return built.id
+            except Exception:
+                # last resort: list images and find by tag
+                for img in client.images.list(name=tag):
+                    if getattr(img, "tags", None):
+                        for t in img.tags:
+                            if t.split(":")[0] == tag.split(":")[0]:
+                                return t
+                raise RuntimeError("Image build did not produce expected tag")
         except Exception as e:
             print(f"[DockerSandbox] Failed to build self image: {e}")
 
@@ -156,7 +172,7 @@ def _run_in_docker_sync(submission_dir: Path, judge_dir: Path) -> dict:
                 image = resolved
             else:
                 # fallback default
-                image = "swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/python:3.12-slim"
+                image = "swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/python:3.12-slim-bookworm"
 
         # Optionally pull image
         if settings.DOCKER_PULL:

@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     SANDBOX_BACKEND: str = "CHROOT"
 
     # Docker 评测相关配置（当 SANDBOX_BACKEND=DOCKER 时生效）
-    DOCKER_IMAGE: str = "swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/python:3.12-slim"
+    DOCKER_IMAGE: str = "swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/python:3.12-slim-bookworm"
     DOCKER_PULL: bool = False
     DOCKER_SOCKET: str = "/var/run/docker.sock"  # 仅用于部署文档提示
     DOCKER_MEMORY: str = "2g"
