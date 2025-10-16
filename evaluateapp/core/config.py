@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     DOCKER_CPUS: float = 1.0  # 逻辑 CPU 数量限制
     DOCKER_NETWORK_MODE: str = "none"  # 默认禁网
     DOCKER_USER: str | None = None  # 例如 "65534:65534" 以 nobody 运行，None 表示镜像默认用户
+    # 当 DOCKER_IMAGE=self 且 EvaluateApp 运行在宿主机时，是否自动构建服务镜像供评测复用
+    DOCKER_SELF_BUILD_ON_HOST: bool = True
+    # 构建出的自用镜像 tag（宿主机 self 模式）
+    DOCKER_SELF_TAG: str = "aigame-eval:self"
+    # 构建上下文与 Dockerfile（相对项目根）
+    DOCKER_SELF_CONTEXT: str = str(BASE_DIR.parent)
+    DOCKER_SELF_DOCKERFILE: str = "evaluateapp/docker/evaluateapp.Dockerfile"
 
     class Config:
         # 使用绝对路径加载 .env，避免工作目录变化导致无法读取

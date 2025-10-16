@@ -7,7 +7,7 @@ import zipfile
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor
 
-from core.config import settings
+from core.config import settings, BASE_DIR
 
 # 复用安全解压与回调逻辑
 from .sandbox import _safe_extractall
@@ -24,6 +24,62 @@ def _fill_eval_runner(judge_dir_in_container: str, submission_dir_in_container: 
         submission_dir_json=json.dumps(submission_dir_in_container),
         python_executable_json=json.dumps(python_executable),
     )
+
+
+def _resolve_self_image(client) -> str | None:
+    """Resolve image for DOCKER_IMAGE=self.
+
+    Priority:
+    1) If running inside a container, resolve current container image.
+    2) If on host and allowed to build, build evaluateapp service image and return its tag.
+    3) Otherwise return None.
+    """
+    # 1) try current container via HOSTNAME
+    try:
+        cid = (Path("/etc/hostname").read_text().strip() or "").strip()
+        if not cid:
+            import os
+            cid = os.environ.get("HOSTNAME", "").strip()
+        if cid:
+            this = client.containers.get(cid)
+            img = this.image
+            if getattr(img, "tags", None):
+                return img.tags[0]
+            return img.id
+    except Exception:
+        pass
+
+    # 2) host build path
+    if settings.DOCKER_SELF_BUILD_ON_HOST:
+        try:
+            context_path = Path(settings.DOCKER_SELF_CONTEXT or str(BASE_DIR.parent)).resolve()
+            dockerfile_rel = settings.DOCKER_SELF_DOCKERFILE or "evaluateapp/docker/evaluateapp.Dockerfile"
+            dockerfile_path = dockerfile_rel
+            tag = settings.DOCKER_SELF_TAG or "aigame-eval:self"
+            print(f"[DockerSandbox] Building self image on host: context={context_path} dockerfile={dockerfile_path} tag={tag}")
+            image_obj, build_logs = client.images.build(
+                path=str(context_path),
+                dockerfile=dockerfile_path,
+                tag=tag,
+                rm=True,
+                pull=False,
+                forcerm=True,
+            )
+            # optional: print brief build log summary
+            try:
+                # consume generator if returned as such
+                for _ in build_logs or []:
+                    pass
+            except Exception:
+                pass
+            # Prefer resulting tag
+            if getattr(image_obj, "tags", None):
+                return image_obj.tags[0]
+            return image_obj.id
+        except Exception as e:
+            print(f"[DockerSandbox] Failed to build self image: {e}")
+
+    return None
 
 
 def _run_in_docker_sync(submission_dir: Path, judge_dir: Path) -> dict:
@@ -59,22 +115,11 @@ def _run_in_docker_sync(submission_dir: Path, judge_dir: Path) -> dict:
 
         # If configured to reuse this running container's image, resolve it
         if (str(image_cfg or "").strip().lower() == "self"):
-            try:
-                # HOSTNAME is usually the container id
-                cid = (Path("/etc/hostname").read_text().strip() or "").strip()
-                if not cid:
-                    import os
-                    cid = os.environ.get("HOSTNAME", "").strip()
-                if cid:
-                    this = client.containers.get(cid)
-                    # Prefer tag if available, fallback to image id
-                    img = this.image
-                    if getattr(img, "tags", None):
-                        image = img.tags[0]
-                    else:
-                        image = img.id
-            except Exception:
-                # fallback to a reasonable default if self-detection fails
+            resolved = _resolve_self_image(client)
+            if resolved:
+                image = resolved
+            else:
+                # fallback default
                 image = "swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/library/python:3.12-slim"
 
         # Optionally pull image
